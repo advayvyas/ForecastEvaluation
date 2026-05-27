@@ -1,0 +1,72 @@
+---
+title: "WIS Data Loading"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+urlcolor: blue
+linkcolor: red
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FALSE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+------------------------------------------------------------------------
+
+```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+library(kableExtra)
+```
+
+```{r}
+compute_wis_score <- function(df, predicted, observed, target_date) {
+  df_wis <- df %>%
+    rename(predicted = !!rlang::sym(predicted),
+           observed = !!rlang::sym(observed),
+           quantile_level = output_type_id) %>%
+    dplyr::select(reference_date, location, horizon, target, target_end_date,
+                  output_type, quantile_level, observed, predicted) |>
+    as_forecast_quantile(
+      forecast_unit = c("location", "target_end_date", "horizon", "target"),
+      predicted = "predicted",
+      quantile_col = "quantile_level"
+    ) |>
+    score() |>
+    mutate(horizon = horizon + 1,
+           reference_date = target_date) |>
+    dplyr::select(location, target_end_date, horizon, reference_date, wis)
+  return(df_wis)
+}
+
+compute_wis_score(
+        df = .x,
+        predicted = predicted,
+        observed = observed,
+        target_date = target_date
+      )
+```
+Then, you will get WIS score by target_end_date, location, and horizon. Before doing this, you need to join the observed data (oracle-output.csv from the target-data folder in the hub) with the model_output.
+```{r}
+observed = read.csv("oracle-output.csv")
+
+```
+
+To download all model_output you can use this code.
+```{r}
+library(hubUtils)
+library(hubEnsembles)
+library(hubData)
+library(dplyr)
+hub_path <- flu-metrocast #(your directory connected to the this hub)
+hub_con <- connect_hub(hub_path)
+df <- hub_con %>%
+  collect()
+
+head(df)
+
+```
