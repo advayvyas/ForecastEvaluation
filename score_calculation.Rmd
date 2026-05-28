@@ -57,13 +57,12 @@ observed = read.csv("oracle-output.csv")
 
 ## Model Output
 ```{r}
-hub_path <- hubData::s3_bucket("reichlab-flu-metrocast-hub") # was able to find a way to access the hub remotely!
+hub_path <- "C:/Projects/flu-metrocast"
 hub_con <- connect_hub(hub_path)
 df <- hub_con %>%
   collect()
 
 head(df)
-
 ```
 
 
