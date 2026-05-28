@@ -1,5 +1,5 @@
 ---
-title: "WIS Data Loading"
+title: "Score Calculation"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
@@ -49,28 +49,78 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 }
 ```
 
-# Data Loading
-## Observed Data
+# Data 
+## Observed data
 ```{r}
-observed = read.csv("oracle-output.csv")
+observed = read.csv("oracle-output.csv") # the observed data does not have ILI ED Visits
+
+head(observed)
 ```
 
-## Model Output
+
+## Model output
 ```{r}
 hub_path <- "C:/Projects/flu-metrocast"
 hub_con <- connect_hub(hub_path)
-df <- hub_con %>%
+predictions <- hub_con %>%
   collect()
 
-head(df)
+head(predictions)
 ```
 
+# Data processing
+```{r}
+observed$target_end_date = as.Date(observed$target_end_date)
+df = left_join(predictions, observed, by = c("location", "target", "target_end_date"))
+```
+
+# WIS calculation
+```{r wis_calc}
+models <- unique(df$model_id)
+dates <- sort(unique(df$target_end_date))
+
+results <- df %>%
+  filter(!is.na(oracle_value)) %>%
+  {
+    models <- unique(.$model_id)
+    dates <- sort(unique(.$target_end_date))
+    
+    map_df(models, ~ {
+      model_name <- .x
+      
+      map_df(dates, ~ {
+        target_date <- .x
+        
+        df_filtered <- df %>%
+          filter(model_id == model_name,
+                 target_end_date == target_date,
+                 !is.na(oracle_value))
+        
+        if (nrow(df_filtered) == 0) return(NULL)
+        
+        compute_wis_score(
+          df = df_filtered,
+          predicted = "value",
+          observed = "oracle_value",
+          target_date = target_date
+        ) %>%
+          mutate(model_id = model_name)
+        
+      })
+    })
+  }
+```
 
 ```{r}
-compute_wis_score(
-        df = .x,
-        predicted = predicted,
-        observed = observed,
-        target_date = target_date
-      )
+head(results)
+#write_csv(results, "forecastWIS.csv")
+```
+
+```{r}
+# compute_wis_score(
+#         df = .x,
+#         predicted = predicted,
+#         observed = observed,
+#         target_date = target_date
+#       )
 ```
