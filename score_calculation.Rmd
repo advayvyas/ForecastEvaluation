@@ -75,7 +75,7 @@ df = left_join(predictions, observed, by = c("location", "target", "target_end_d
 ```
 
 # WIS calculation
-```{r wis_calc}
+```{r wis_calc, cache = TRUE}
 models <- unique(df$model_id)
 dates <- sort(unique(df$target_end_date))
 
@@ -113,7 +113,20 @@ results <- df %>%
 
 ```{r}
 head(results)
-write_csv(results, "forecast_WIS.csv")
+#write_csv(results, "forecast_WIS.csv")
+```
+
+```{r wis_summary}
+wis_summary <- results %>%
+  group_by(model_id, horizon) %>%
+  summarise(
+    mean_wis = mean(wis),
+    count = n(),
+    .groups = 'drop'
+  )
+
+wis_summary |> arrange(mean_wis)
+#write_csv(wis_summary, "forecast_WIS_summary.csv")
 ```
 
 ```{r}
@@ -147,7 +160,7 @@ head(coverage)
 
 ```{r coverage_summary}
 coverage_summary <- coverage %>%
-  group_by(model_id) %>%
+  group_by(model_id, horizon) %>%
   summarise(
     coverage_rate = mean(coverage_95),
     count = n(),
