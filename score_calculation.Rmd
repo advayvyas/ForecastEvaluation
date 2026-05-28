@@ -13,7 +13,6 @@ knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FAL
 ```
 
 ------------------------------------------------------------------------
-
 ```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
 library(dplyr)
 library(tidyverse)
@@ -21,8 +20,14 @@ library(ggplot2)
 library(lubridate)
 library(patchwork)
 library(kableExtra)
+
+library(scoringutils)
+library(hubUtils)
+library(hubEnsembles)
+library(hubData)
 ```
 
+# Functions
 ```{r}
 compute_wis_score <- function(df, predicted, observed, target_date) {
   df_wis <- df %>%
@@ -42,31 +47,31 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
     dplyr::select(location, target_end_date, horizon, reference_date, wis)
   return(df_wis)
 }
-
-compute_wis_score(
-        df = .x,
-        predicted = predicted,
-        observed = observed,
-        target_date = target_date
-      )
 ```
-Then, you will get WIS score by target_end_date, location, and horizon. Before doing this, you need to join the observed data (oracle-output.csv from the target-data folder in the hub) with the model_output.
+
+# Data Loading
+## Observed Data
 ```{r}
 observed = read.csv("oracle-output.csv")
-
 ```
 
-To download all model_output you can use this code.
+## Model Output
 ```{r}
-library(hubUtils)
-library(hubEnsembles)
-library(hubData)
-library(dplyr)
-hub_path <- flu-metrocast #(your directory connected to the this hub)
+hub_path <- hubData::s3_bucket("reichlab-flu-metrocast-hub") # was able to find a way to access the hub remotely!
 hub_con <- connect_hub(hub_path)
 df <- hub_con %>%
   collect()
 
 head(df)
 
+```
+
+
+```{r}
+compute_wis_score(
+        df = .x,
+        predicted = predicted,
+        observed = observed,
+        target_date = target_date
+      )
 ```
