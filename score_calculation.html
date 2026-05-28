@@ -367,6 +367,8 @@ data</a></li>
 processing</a></li>
 <li><a href="#wis-calculation" id="toc-wis-calculation">WIS
 calculation</a></li>
+<li><a href="#coverage-rate" id="toc-coverage-rate">Coverage
+rate</a></li>
 </ul>
 </div>
 
@@ -478,9 +480,60 @@ results &lt;- df %&gt;%
 ## 4: ACCIDDA-InfluPaint
 ## 5: ACCIDDA-InfluPaint
 ## 6: ACCIDDA-InfluPaint</code></pre>
-<pre class="r"><code># write_csv(results, &#39;forecastWIS.csv&#39;)</code></pre>
+<pre class="r"><code>write_csv(results, &quot;forecast_WIS.csv&quot;)</code></pre>
 <pre class="r"><code># compute_wis_score( df = .x, predicted = predicted,
 # observed = observed, target_date = target_date )</code></pre>
+</div>
+<div id="coverage-rate" class="section level1">
+<h1>Coverage rate</h1>
+<pre class="r"><code>coverage &lt;- df %&gt;%
+    filter(!is.na(oracle_value)) %&gt;%
+    pivot_wider(names_from = output_type_id, values_from = value,
+        names_prefix = &quot;quantile_&quot;) %&gt;%
+    mutate(coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
+        oracle_value &lt;= quantile_0.975)) %&gt;%
+    select(model_id, location, target_end_date, horizon, target,
+        reference_date, output_type, oracle_value, quantile_0.025,
+        quantile_0.975, coverage_95)
+
+head(coverage)</code></pre>
+<pre><code>## # A tibble: 6 × 11
+##   model_id    location target_end_date horizon target reference_date output_type
+##   &lt;chr&gt;       &lt;chr&gt;    &lt;date&gt;            &lt;int&gt; &lt;chr&gt;  &lt;date&gt;         &lt;chr&gt;      
+## 1 ACCIDDA-In… denver   2026-01-31            0 Flu E… 2026-01-31     quantile   
+## 2 ACCIDDA-In… denver   2026-02-07            1 Flu E… 2026-01-31     quantile   
+## 3 ACCIDDA-In… denver   2026-02-14            2 Flu E… 2026-01-31     quantile   
+## 4 ACCIDDA-In… denver   2026-02-21            3 Flu E… 2026-01-31     quantile   
+## 5 ACCIDDA-In… mesa     2026-01-31            0 Flu E… 2026-01-31     quantile   
+## 6 ACCIDDA-In… mesa     2026-02-07            1 Flu E… 2026-01-31     quantile   
+## # ℹ 4 more variables: oracle_value &lt;dbl&gt;, quantile_0.025 &lt;dbl&gt;,
+## #   quantile_0.975 &lt;dbl&gt;, coverage_95 &lt;dbl&gt;</code></pre>
+<pre class="r"><code># write_csv(coverage, &#39;forecast_coverage.csv&#39;)</code></pre>
+<pre class="r"><code>coverage_summary &lt;- coverage %&gt;%
+    group_by(model_id) %&gt;%
+    summarise(coverage_rate = mean(coverage_95), count = n(),
+        .groups = &quot;drop&quot;)
+
+coverage_summary |&gt;
+    arrange(-coverage_rate)</code></pre>
+<pre><code>## # A tibble: 14 × 3
+##    model_id                coverage_rate count
+##    &lt;chr&gt;                           &lt;dbl&gt; &lt;int&gt;
+##  1 UMass-alloy                     0.977  6526
+##  2 epiENGAGE-lop_norm              0.948  7410
+##  3 NAU-INFLAenza                   0.917  6230
+##  4 epiforecasts-dyngam             0.907  7118
+##  5 FluSight-ensemble               0.900  1313
+##  6 ACCIDDA-InfluPaint              0.897  4466
+##  7 epiENGAGE-ensemble_mean         0.893  7410
+##  8 UMass-SAR                       0.866  5422
+##  9 UT-GBQR                         0.825  7346
+## 10 epiENGAGE-baseline              0.799  7410
+## 11 MOBS-EpyStrain_Flu              0.767  4712
+## 12 NAU-Copycat                     0.752  6736
+## 13 VTSanghani-PRIME                0.696  5601
+## 14 epiENGAGE-GBQR                  0.664   876</code></pre>
+<pre class="r"><code># write_csv(coverage, &#39;forecast_coverage_summary.csv&#39;)</code></pre>
 </div>
 
 

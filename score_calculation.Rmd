@@ -113,7 +113,7 @@ results <- df %>%
 
 ```{r}
 head(results)
-#write_csv(results, "forecastWIS.csv")
+write_csv(results, "forecast_WIS.csv")
 ```
 
 ```{r}
@@ -124,3 +124,37 @@ head(results)
 #         target_date = target_date
 #       )
 ```
+
+# Coverage rate
+```{r coverage_calc}
+coverage <- df %>%
+  filter(!is.na(oracle_value)) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "quantile_"
+  ) %>%
+  mutate(
+    coverage_95 = as.numeric(oracle_value >= quantile_0.025 & oracle_value <= quantile_0.975)
+  ) %>%
+  select(model_id, location, target_end_date, horizon, target, 
+         reference_date, output_type, oracle_value,
+         quantile_0.025, quantile_0.975, coverage_95)
+
+head(coverage)
+#write_csv(coverage, "forecast_coverage.csv")
+```
+
+```{r coverage_summary}
+coverage_summary <- coverage %>%
+  group_by(model_id) %>%
+  summarise(
+    coverage_rate = mean(coverage_95),
+    count = n(),
+    .groups = 'drop'
+  )
+
+coverage_summary |> arrange(-coverage_rate)
+#write_csv(coverage, "forecast_coverage_summary.csv")
+```
+
