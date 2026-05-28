@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-05-27" />
+<meta name="date" content="2026-05-28" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">May 27, 2026</h4>
+<h4 class="date">May 28, 2026</h4>
 
 </div>
 
@@ -480,7 +480,28 @@ results &lt;- df %&gt;%
 ## 4: ACCIDDA-InfluPaint
 ## 5: ACCIDDA-InfluPaint
 ## 6: ACCIDDA-InfluPaint</code></pre>
-<pre class="r"><code>write_csv(results, &quot;forecast_WIS.csv&quot;)</code></pre>
+<pre class="r"><code># write_csv(results, &#39;forecast_WIS.csv&#39;)</code></pre>
+<pre class="r"><code>wis_summary &lt;- results %&gt;%
+    group_by(model_id, horizon) %&gt;%
+    summarise(mean_wis = mean(wis), count = n(), .groups = &quot;drop&quot;)
+
+wis_summary |&gt;
+    arrange(mean_wis)</code></pre>
+<pre><code>## # A tibble: 56 × 4
+##    model_id                horizon mean_wis count
+##    &lt;chr&gt;                     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+##  1 FluSight-ensemble             1    0.289   338
+##  2 ACCIDDA-InfluPaint            4    0.291  1001
+##  3 ACCIDDA-InfluPaint            3    0.305  1078
+##  4 ACCIDDA-InfluPaint            2    0.333  1155
+##  5 UMass-alloy                   1    0.335  1747
+##  6 MOBS-EpyStrain_Flu            1    0.340  1292
+##  7 ACCIDDA-InfluPaint            1    0.357  1232
+##  8 epiENGAGE-GBQR                1    0.366   219
+##  9 UT-GBQR                       1    0.369  1952
+## 10 epiENGAGE-ensemble_mean       1    0.395  1968
+## # ℹ 46 more rows</code></pre>
+<pre class="r"><code># write_csv(wis_summary, &#39;forecast_WIS_summary.csv&#39;)</code></pre>
 <pre class="r"><code># compute_wis_score( df = .x, predicted = predicted,
 # observed = observed, target_date = target_date )</code></pre>
 </div>
@@ -510,29 +531,26 @@ head(coverage)</code></pre>
 ## #   quantile_0.975 &lt;dbl&gt;, coverage_95 &lt;dbl&gt;</code></pre>
 <pre class="r"><code># write_csv(coverage, &#39;forecast_coverage.csv&#39;)</code></pre>
 <pre class="r"><code>coverage_summary &lt;- coverage %&gt;%
-    group_by(model_id) %&gt;%
+    group_by(model_id, horizon) %&gt;%
     summarise(coverage_rate = mean(coverage_95), count = n(),
         .groups = &quot;drop&quot;)
 
 coverage_summary |&gt;
     arrange(-coverage_rate)</code></pre>
-<pre><code>## # A tibble: 14 × 3
-##    model_id                coverage_rate count
-##    &lt;chr&gt;                           &lt;dbl&gt; &lt;int&gt;
-##  1 UMass-alloy                     0.977  6526
-##  2 epiENGAGE-lop_norm              0.948  7410
-##  3 NAU-INFLAenza                   0.917  6230
-##  4 epiforecasts-dyngam             0.907  7118
-##  5 FluSight-ensemble               0.900  1313
-##  6 ACCIDDA-InfluPaint              0.897  4466
-##  7 epiENGAGE-ensemble_mean         0.893  7410
-##  8 UMass-SAR                       0.866  5422
-##  9 UT-GBQR                         0.825  7346
-## 10 epiENGAGE-baseline              0.799  7410
-## 11 MOBS-EpyStrain_Flu              0.767  4712
-## 12 NAU-Copycat                     0.752  6736
-## 13 VTSanghani-PRIME                0.696  5601
-## 14 epiENGAGE-GBQR                  0.664   876</code></pre>
+<pre><code>## # A tibble: 56 × 4
+##    model_id                horizon coverage_rate count
+##    &lt;chr&gt;                     &lt;int&gt;         &lt;dbl&gt; &lt;int&gt;
+##  1 UMass-alloy                   2         0.981  1593
+##  2 UMass-alloy                   0         0.981  1747
+##  3 epiENGAGE-lop_norm            0         0.979  1968
+##  4 UMass-alloy                   3         0.976  1516
+##  5 UMass-alloy                   1         0.970  1670
+##  6 epiENGAGE-GBQR                0         0.963   219
+##  7 epiENGAGE-ensemble_mean       0         0.956  1968
+##  8 FluSight-ensemble             0         0.956   338
+##  9 epiforecasts-dyngam           0         0.947  1875
+## 10 ACCIDDA-InfluPaint            3         0.945  1001
+## # ℹ 46 more rows</code></pre>
 <pre class="r"><code># write_csv(coverage_summary,
 # &#39;forecast_coverage_summary.csv&#39;)</code></pre>
 </div>
