@@ -1,2 +1,2 @@
 # Forecast Evaluation
-Calculating metrics like WIS for model predictions in the FluSight Hub
+This project aims to calculate metrics like WIS and coverage rate for the model predictions in the FluSight hub and document the process and outcomes.
