@@ -458,7 +458,7 @@ results &lt;- df %&gt;%
 
                 compute_wis_score(df = df_filtered, predicted = &quot;value&quot;,
                   observed = &quot;oracle_value&quot;, target_date = target_date) %&gt;%
-                  mutate(model_id = model_name)
+                  mutate(model_id = model_name, target = df_filtered$target[1])
 
             })
         })
@@ -472,35 +472,35 @@ results &lt;- df %&gt;%
 ## 4:             weld      2026-01-31       1     2026-01-31 0.2135783
 ## 5:          boulder      2026-01-31       1     2026-01-31 0.2728416
 ## 6:          larimer      2026-01-31       1     2026-01-31 0.1595693
-##              model_id
-##                &lt;char&gt;
-## 1: ACCIDDA-InfluPaint
-## 2: ACCIDDA-InfluPaint
-## 3: ACCIDDA-InfluPaint
-## 4: ACCIDDA-InfluPaint
-## 5: ACCIDDA-InfluPaint
-## 6: ACCIDDA-InfluPaint</code></pre>
+##              model_id            target
+##                &lt;char&gt;            &lt;char&gt;
+## 1: ACCIDDA-InfluPaint Flu ED visits pct
+## 2: ACCIDDA-InfluPaint Flu ED visits pct
+## 3: ACCIDDA-InfluPaint Flu ED visits pct
+## 4: ACCIDDA-InfluPaint Flu ED visits pct
+## 5: ACCIDDA-InfluPaint Flu ED visits pct
+## 6: ACCIDDA-InfluPaint Flu ED visits pct</code></pre>
 <pre class="r"><code># write_csv(results, &#39;forecast_WIS.csv&#39;)</code></pre>
 <pre class="r"><code>wis_summary &lt;- results %&gt;%
-    group_by(model_id, horizon) %&gt;%
+    group_by(model_id, horizon, target) %&gt;%
     summarise(mean_wis = mean(wis), count = n(), .groups = &quot;drop&quot;)
 
 wis_summary |&gt;
     arrange(mean_wis)</code></pre>
-<pre><code>## # A tibble: 56 × 4
-##    model_id                horizon mean_wis count
-##    &lt;chr&gt;                     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
-##  1 FluSight-ensemble             1    0.289   338
-##  2 ACCIDDA-InfluPaint            4    0.291  1001
-##  3 ACCIDDA-InfluPaint            3    0.305  1078
-##  4 ACCIDDA-InfluPaint            2    0.333  1155
-##  5 UMass-alloy                   1    0.335  1747
-##  6 MOBS-EpyStrain_Flu            1    0.340  1292
-##  7 ACCIDDA-InfluPaint            1    0.357  1232
-##  8 epiENGAGE-GBQR                1    0.366   219
-##  9 UT-GBQR                       1    0.369  1952
-## 10 epiENGAGE-ensemble_mean       1    0.395  1968
-## # ℹ 46 more rows</code></pre>
+<pre><code>## # A tibble: 67 × 5
+##    model_id           horizon target            mean_wis count
+##    &lt;chr&gt;                &lt;dbl&gt; &lt;chr&gt;                &lt;dbl&gt; &lt;int&gt;
+##  1 NAU-Copycat              1 Flu ED visits pct    0.216  1292
+##  2 FluSight-ensemble        1 Flu ED visits pct    0.289   338
+##  3 ACCIDDA-InfluPaint       4 Flu ED visits pct    0.291  1001
+##  4 ACCIDDA-InfluPaint       3 Flu ED visits pct    0.305  1078
+##  5 NAU-Copycat              2 Flu ED visits pct    0.314  1292
+##  6 ACCIDDA-InfluPaint       2 Flu ED visits pct    0.333  1155
+##  7 UMass-alloy              1 Flu ED visits pct    0.335  1747
+##  8 MOBS-EpyStrain_Flu       1 Flu ED visits pct    0.340  1292
+##  9 ACCIDDA-InfluPaint       1 Flu ED visits pct    0.357  1232
+## 10 UT-GBQR                  1 Flu ED visits pct    0.366   219
+## # ℹ 57 more rows</code></pre>
 <pre class="r"><code># write_csv(wis_summary, &#39;forecast_WIS_summary.csv&#39;)</code></pre>
 <pre class="r"><code># compute_wis_score( df = .x, predicted = predicted,
 # observed = observed, target_date = target_date )</code></pre>
@@ -531,26 +531,26 @@ head(coverage)</code></pre>
 ## #   quantile_0.975 &lt;dbl&gt;, coverage_95 &lt;dbl&gt;</code></pre>
 <pre class="r"><code># write_csv(coverage, &#39;forecast_coverage.csv&#39;)</code></pre>
 <pre class="r"><code>coverage_summary &lt;- coverage %&gt;%
-    group_by(model_id, horizon) %&gt;%
+    group_by(model_id, horizon, target) %&gt;%
     summarise(coverage_rate = mean(coverage_95), count = n(),
         .groups = &quot;drop&quot;)
 
 coverage_summary |&gt;
     arrange(-coverage_rate)</code></pre>
-<pre><code>## # A tibble: 56 × 4
-##    model_id                horizon coverage_rate count
-##    &lt;chr&gt;                     &lt;int&gt;         &lt;dbl&gt; &lt;int&gt;
-##  1 UMass-alloy                   2         0.981  1593
-##  2 UMass-alloy                   0         0.981  1747
-##  3 epiENGAGE-lop_norm            0         0.979  1968
-##  4 UMass-alloy                   3         0.976  1516
-##  5 UMass-alloy                   1         0.970  1670
-##  6 epiENGAGE-GBQR                0         0.963   219
-##  7 epiENGAGE-ensemble_mean       0         0.956  1968
-##  8 FluSight-ensemble             0         0.956   338
-##  9 epiforecasts-dyngam           0         0.947  1875
-## 10 ACCIDDA-InfluPaint            3         0.945  1001
-## # ℹ 46 more rows</code></pre>
+<pre><code>## # A tibble: 100 × 5
+##    model_id         horizon target            coverage_rate count
+##    &lt;chr&gt;              &lt;int&gt; &lt;chr&gt;                     &lt;dbl&gt; &lt;int&gt;
+##  1 NAU-Copycat            0 ILI ED visits pct         1         4
+##  2 NAU-Copycat            1 ILI ED visits pct         1         4
+##  3 NAU-Copycat            2 ILI ED visits pct         1         4
+##  4 NAU-Copycat            3 ILI ED visits pct         1         4
+##  5 VTSanghani-PRIME       0 ILI ED visits pct         1        19
+##  6 VTSanghani-PRIME       1 ILI ED visits pct         1        19
+##  7 VTSanghani-PRIME       2 ILI ED visits pct         1        18
+##  8 VTSanghani-PRIME       3 ILI ED visits pct         1        17
+##  9 UMass-alloy            2 Flu ED visits pct         0.982  1572
+## 10 UMass-alloy            0 Flu ED visits pct         0.981  1724
+## # ℹ 90 more rows</code></pre>
 <pre class="r"><code># write_csv(coverage_summary,
 # &#39;forecast_coverage_summary.csv&#39;)</code></pre>
 </div>

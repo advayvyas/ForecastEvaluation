@@ -104,7 +104,8 @@ results <- df %>%
           observed = "oracle_value",
           target_date = target_date
         ) %>%
-          mutate(model_id = model_name)
+          mutate(model_id = model_name,
+                 target = df_filtered$target[1])
         
       })
     })
@@ -118,7 +119,7 @@ head(results)
 
 ```{r wis_summary}
 wis_summary <- results %>%
-  group_by(model_id, horizon) %>%
+  group_by(model_id, horizon, target) %>%
   summarise(
     mean_wis = mean(wis),
     count = n(),
@@ -160,7 +161,7 @@ head(coverage)
 
 ```{r coverage_summary}
 coverage_summary <- coverage %>%
-  group_by(model_id, horizon) %>%
+  group_by(model_id, horizon, target) %>%
   summarise(
     coverage_rate = mean(coverage_95),
     count = n(),
