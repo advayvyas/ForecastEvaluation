@@ -155,6 +155,6 @@ coverage_summary <- coverage %>%
   )
 
 coverage_summary |> arrange(-coverage_rate)
-#write_csv(coverage, "forecast_coverage_summary.csv")
+#write_csv(coverage_summary, "forecast_coverage_summary.csv")
 ```
 
