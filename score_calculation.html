@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-05-28" />
+<meta name="date" content="2026-06-05" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">May 28, 2026</h4>
+<h4 class="date">June 05, 2026</h4>
 
 </div>
 
@@ -369,6 +369,11 @@ processing</a></li>
 calculation</a></li>
 <li><a href="#coverage-rate" id="toc-coverage-rate">Coverage
 rate</a></li>
+<li><a href="#state-forecasts-with-local-truth" id="toc-state-forecasts-with-local-truth">State forecasts with local
+truth</a>
+<ul>
+<li><a href="#lookup-table" id="toc-lookup-table">Lookup table</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -396,163 +401,804 @@ rate</a></li>
 <div id="observed-data" class="section level2">
 <h2>Observed data</h2>
 <pre class="r"><code>observed = read.csv(&quot;oracle-output.csv&quot;)  # the observed data does not have ILI ED Visits
-
-head(observed)</code></pre>
-<pre><code>##   target_end_date location            target oracle_value
-## 1      2025-11-22      nyc ILI ED visits pct         3.69
-## 2      2025-11-29      nyc ILI ED visits pct         5.68
-## 3      2025-11-22   denver Flu ED visits pct         2.00
-## 4      2025-11-22  larimer Flu ED visits pct         0.81
-## 5      2025-11-22     mesa Flu ED visits pct         0.38
-## 6      2025-11-22    macon Flu ED visits pct         1.22</code></pre>
+# head(observed)</code></pre>
 </div>
 <div id="model-output" class="section level2">
 <h2>Model output</h2>
-<pre class="r"><code>hub_path &lt;- &quot;C:/Projects/flu-metrocast&quot;
-hub_con &lt;- connect_hub(hub_path)
-predictions &lt;- hub_con %&gt;%
-    collect()
-
-head(predictions)</code></pre>
-<pre><code>## # A tibble: 6 × 9
-##   reference_date target            horizon target_end_date location output_type
-##   &lt;date&gt;         &lt;chr&gt;               &lt;int&gt; &lt;date&gt;          &lt;chr&gt;    &lt;chr&gt;      
-## 1 2026-01-31     Flu ED visits pct       0 2026-01-31      denver   quantile   
-## 2 2026-01-31     Flu ED visits pct       1 2026-02-07      denver   quantile   
-## 3 2026-01-31     Flu ED visits pct       2 2026-02-14      denver   quantile   
-## 4 2026-01-31     Flu ED visits pct       3 2026-02-21      denver   quantile   
-## 5 2026-01-31     Flu ED visits pct       0 2026-01-31      mesa     quantile   
-## 6 2026-01-31     Flu ED visits pct       1 2026-02-07      mesa     quantile   
-## # ℹ 3 more variables: output_type_id &lt;dbl&gt;, value &lt;dbl&gt;, model_id &lt;chr&gt;</code></pre>
+<pre class="r"><code># hub_path &lt;- &#39;C:/Projects/flu-metrocast&#39; hub_con &lt;-
+# connect_hub(hub_path) predictions &lt;- hub_con %&gt;%
+# collect() head(predictions)</code></pre>
 </div>
 </div>
 <div id="data-processing" class="section level1">
 <h1>Data processing</h1>
-<pre class="r"><code>observed$target_end_date = as.Date(observed$target_end_date)
-df = left_join(predictions, observed, by = c(&quot;location&quot;, &quot;target&quot;,
-    &quot;target_end_date&quot;))</code></pre>
+<pre class="r"><code># observed$target_end_date =
+# as.Date(observed$target_end_date) df =
+# left_join(predictions, observed, by = c(&#39;location&#39;,
+# &#39;target&#39;, &#39;target_end_date&#39;))</code></pre>
+<pre class="r"><code># write_csv(df, &#39;raw_data.csv&#39;)
+raw = read.csv(&quot;raw_data.csv&quot;)
+knitr::kable(head(raw))</code></pre>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="13%" />
+<col width="5%" />
+<col width="11%" />
+<col width="6%" />
+<col width="8%" />
+<col width="11%" />
+<col width="7%" />
+<col width="14%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">reference_date</th>
+<th align="left">target</th>
+<th align="right">horizon</th>
+<th align="left">target_end_date</th>
+<th align="left">location</th>
+<th align="left">output_type</th>
+<th align="right">output_type_id</th>
+<th align="right">value</th>
+<th align="left">model_id</th>
+<th align="right">oracle_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.4672641</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.64</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.3330493</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.57</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">2</td>
+<td align="left">2026-02-14</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1517496</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.74</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-02-21</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1181898</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.10</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">1.1442013</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.42</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.5227330</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.34</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="wis-calculation" class="section level1">
 <h1>WIS calculation</h1>
-<pre class="r"><code>models &lt;- unique(df$model_id)
-dates &lt;- sort(unique(df$target_end_date))
+<pre class="r"><code># models &lt;- unique(df$model_id) dates &lt;-
+# sort(unique(df$target_end_date)) results &lt;- df %&gt;%
+# filter(!is.na(oracle_value)) %&gt;% { models &lt;-
+# unique(.$model_id) dates &lt;-
+# sort(unique(.$target_end_date)) map_df(models, ~ {
+# model_name &lt;- .x map_df(dates, ~ { target_date &lt;- .x
+# df_filtered &lt;- df %&gt;% filter(model_id == model_name,
+# target_end_date == target_date, !is.na(oracle_value)) if
+# (nrow(df_filtered) == 0) return(NULL) compute_wis_score(
+# df = df_filtered, predicted = &#39;value&#39;, observed =
+# &#39;oracle_value&#39;, target_date = target_date ) %&gt;%
+# mutate(model_id = model_name, target =
+# df_filtered$target[1]) }) }) }</code></pre>
+<pre class="r"><code># write_csv(results, &#39;forecast_WIS.csv&#39;)
 
-results &lt;- df %&gt;%
-    filter(!is.na(oracle_value)) %&gt;%
-    {
-        models &lt;- unique(.$model_id)
-        dates &lt;- sort(unique(.$target_end_date))
+wis = read.csv(&quot;forecast_WIS.csv&quot;)
+knitr::kable(head(wis))</code></pre>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="15%" />
+<col width="7%" />
+<col width="14%" />
+<col width="9%" />
+<col width="18%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">location</th>
+<th align="left">target_end_date</th>
+<th align="right">horizon</th>
+<th align="left">reference_date</th>
+<th align="right">wis</th>
+<th align="left">model_id</th>
+<th align="left">target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">denver</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1500635</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">mesa</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1359327</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="odd">
+<td align="left">colorado-springs</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1415632</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">weld</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.2135783</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="odd">
+<td align="left">boulder</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.2728416</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">larimer</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1595693</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># wis_summary &lt;- results %&gt;% group_by(model_id, horizon,
+# target) %&gt;% summarise( mean_wis = mean(wis), count = n(),
+# .groups = &#39;drop&#39; ) write_csv(wis_summary,
+# &#39;forecast_WIS_summary.csv&#39;)
 
-        map_df(models, ~{
-            model_name &lt;- .x
-
-            map_df(dates, ~{
-                target_date &lt;- .x
-
-                df_filtered &lt;- df %&gt;%
-                  filter(model_id == model_name, target_end_date ==
-                    target_date, !is.na(oracle_value))
-
-                if (nrow(df_filtered) == 0)
-                  return(NULL)
-
-                compute_wis_score(df = df_filtered, predicted = &quot;value&quot;,
-                  observed = &quot;oracle_value&quot;, target_date = target_date) %&gt;%
-                  mutate(model_id = model_name, target = df_filtered$target[1])
-
-            })
-        })
-    }</code></pre>
-<pre class="r"><code>head(results)</code></pre>
-<pre><code>##            location target_end_date horizon reference_date       wis
-##              &lt;char&gt;          &lt;Date&gt;   &lt;num&gt;         &lt;Date&gt;     &lt;num&gt;
-## 1:           denver      2026-01-31       1     2026-01-31 0.1500635
-## 2:             mesa      2026-01-31       1     2026-01-31 0.1359327
-## 3: colorado-springs      2026-01-31       1     2026-01-31 0.1415632
-## 4:             weld      2026-01-31       1     2026-01-31 0.2135783
-## 5:          boulder      2026-01-31       1     2026-01-31 0.2728416
-## 6:          larimer      2026-01-31       1     2026-01-31 0.1595693
-##              model_id            target
-##                &lt;char&gt;            &lt;char&gt;
-## 1: ACCIDDA-InfluPaint Flu ED visits pct
-## 2: ACCIDDA-InfluPaint Flu ED visits pct
-## 3: ACCIDDA-InfluPaint Flu ED visits pct
-## 4: ACCIDDA-InfluPaint Flu ED visits pct
-## 5: ACCIDDA-InfluPaint Flu ED visits pct
-## 6: ACCIDDA-InfluPaint Flu ED visits pct</code></pre>
-<pre class="r"><code># write_csv(results, &#39;forecast_WIS.csv&#39;)</code></pre>
-<pre class="r"><code>wis_summary &lt;- results %&gt;%
-    group_by(model_id, horizon, target) %&gt;%
-    summarise(mean_wis = mean(wis), count = n(), .groups = &quot;drop&quot;)
-
-wis_summary |&gt;
-    arrange(mean_wis)</code></pre>
-<pre><code>## # A tibble: 67 × 5
-##    model_id           horizon target            mean_wis count
-##    &lt;chr&gt;                &lt;dbl&gt; &lt;chr&gt;                &lt;dbl&gt; &lt;int&gt;
-##  1 NAU-Copycat              1 Flu ED visits pct    0.216  1292
-##  2 FluSight-ensemble        1 Flu ED visits pct    0.289   338
-##  3 ACCIDDA-InfluPaint       4 Flu ED visits pct    0.291  1001
-##  4 ACCIDDA-InfluPaint       3 Flu ED visits pct    0.305  1078
-##  5 NAU-Copycat              2 Flu ED visits pct    0.314  1292
-##  6 ACCIDDA-InfluPaint       2 Flu ED visits pct    0.333  1155
-##  7 UMass-alloy              1 Flu ED visits pct    0.335  1747
-##  8 MOBS-EpyStrain_Flu       1 Flu ED visits pct    0.340  1292
-##  9 ACCIDDA-InfluPaint       1 Flu ED visits pct    0.357  1232
-## 10 UT-GBQR                  1 Flu ED visits pct    0.366   219
-## # ℹ 57 more rows</code></pre>
-<pre class="r"><code># write_csv(wis_summary, &#39;forecast_WIS_summary.csv&#39;)</code></pre>
+wis_summary = read.csv(&quot;forecast_WIS_summary.csv&quot;)
+knitr::kable(head(wis_summary |&gt;
+    arrange(mean_wis)))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="right">mean_wis</th>
+<th align="right">count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NAU-Copycat</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.2163955</td>
+<td align="right">1292</td>
+</tr>
+<tr class="even">
+<td align="left">FluSight-ensemble</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.2894513</td>
+<td align="right">338</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">4</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.2913579</td>
+<td align="right">1001</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3053904</td>
+<td align="right">1078</td>
+</tr>
+<tr class="odd">
+<td align="left">NAU-Copycat</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3142315</td>
+<td align="right">1292</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3328621</td>
+<td align="right">1155</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code># compute_wis_score( df = .x, predicted = predicted,
 # observed = observed, target_date = target_date )</code></pre>
 </div>
 <div id="coverage-rate" class="section level1">
 <h1>Coverage rate</h1>
-<pre class="r"><code>coverage &lt;- df %&gt;%
-    filter(!is.na(oracle_value)) %&gt;%
-    pivot_wider(names_from = output_type_id, values_from = value,
-        names_prefix = &quot;quantile_&quot;) %&gt;%
-    mutate(coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
-        oracle_value &lt;= quantile_0.975)) %&gt;%
-    select(model_id, location, target_end_date, horizon, target,
-        reference_date, output_type, oracle_value, quantile_0.025,
-        quantile_0.975, coverage_95)
+<pre class="r"><code># coverage &lt;- df %&gt;% filter(!is.na(oracle_value)) %&gt;%
+# pivot_wider( names_from = output_type_id, values_from =
+# value, names_prefix = &#39;quantile_&#39; ) %&gt;% mutate(
+# coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
+# oracle_value &lt;= quantile_0.975) ) %&gt;% select(model_id,
+# location, target_end_date, horizon, target,
+# reference_date, output_type, oracle_value,
+# quantile_0.025, quantile_0.975, coverage_95)
 
-head(coverage)</code></pre>
-<pre><code>## # A tibble: 6 × 11
-##   model_id    location target_end_date horizon target reference_date output_type
-##   &lt;chr&gt;       &lt;chr&gt;    &lt;date&gt;            &lt;int&gt; &lt;chr&gt;  &lt;date&gt;         &lt;chr&gt;      
-## 1 ACCIDDA-In… denver   2026-01-31            0 Flu E… 2026-01-31     quantile   
-## 2 ACCIDDA-In… denver   2026-02-07            1 Flu E… 2026-01-31     quantile   
-## 3 ACCIDDA-In… denver   2026-02-14            2 Flu E… 2026-01-31     quantile   
-## 4 ACCIDDA-In… denver   2026-02-21            3 Flu E… 2026-01-31     quantile   
-## 5 ACCIDDA-In… mesa     2026-01-31            0 Flu E… 2026-01-31     quantile   
-## 6 ACCIDDA-In… mesa     2026-02-07            1 Flu E… 2026-01-31     quantile   
-## # ℹ 4 more variables: oracle_value &lt;dbl&gt;, quantile_0.025 &lt;dbl&gt;,
-## #   quantile_0.975 &lt;dbl&gt;, coverage_95 &lt;dbl&gt;</code></pre>
-<pre class="r"><code># write_csv(coverage, &#39;forecast_coverage.csv&#39;)</code></pre>
-<pre class="r"><code>coverage_summary &lt;- coverage %&gt;%
-    group_by(model_id, horizon, target) %&gt;%
-    summarise(coverage_rate = mean(coverage_95), count = n(),
-        .groups = &quot;drop&quot;)
+# write_csv(coverage, &#39;forecast_coverage.csv&#39;)
 
-coverage_summary |&gt;
-    arrange(-coverage_rate)</code></pre>
-<pre><code>## # A tibble: 100 × 5
-##    model_id         horizon target            coverage_rate count
-##    &lt;chr&gt;              &lt;int&gt; &lt;chr&gt;                     &lt;dbl&gt; &lt;int&gt;
-##  1 NAU-Copycat            0 ILI ED visits pct         1         4
-##  2 NAU-Copycat            1 ILI ED visits pct         1         4
-##  3 NAU-Copycat            2 ILI ED visits pct         1         4
-##  4 NAU-Copycat            3 ILI ED visits pct         1         4
-##  5 VTSanghani-PRIME       0 ILI ED visits pct         1        19
-##  6 VTSanghani-PRIME       1 ILI ED visits pct         1        19
-##  7 VTSanghani-PRIME       2 ILI ED visits pct         1        18
-##  8 VTSanghani-PRIME       3 ILI ED visits pct         1        17
-##  9 UMass-alloy            2 Flu ED visits pct         0.982  1572
-## 10 UMass-alloy            0 Flu ED visits pct         0.981  1724
-## # ℹ 90 more rows</code></pre>
-<pre class="r"><code># write_csv(coverage_summary,
-# &#39;forecast_coverage_summary.csv&#39;)</code></pre>
+coverage = read.csv(&quot;forecast_coverage.csv&quot;)
+knitr::kable(head(coverage))</code></pre>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="5%" />
+<col width="10%" />
+<col width="5%" />
+<col width="11%" />
+<col width="9%" />
+<col width="7%" />
+<col width="8%" />
+<col width="9%" />
+<col width="9%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="left">location</th>
+<th align="left">target_end_date</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="left">reference_date</th>
+<th align="left">output_type</th>
+<th align="right">oracle_value</th>
+<th align="right">quantile_0.025</th>
+<th align="right">quantile_0.975</th>
+<th align="right">coverage_95</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-01-31</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.64</td>
+<td align="right">0.4672641</td>
+<td align="right">2.588891</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-07</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.57</td>
+<td align="right">0.3330493</td>
+<td align="right">3.064956</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-14</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.74</td>
+<td align="right">0.1517496</td>
+<td align="right">2.956657</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-21</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.10</td>
+<td align="right">0.1181898</td>
+<td align="right">2.533754</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">mesa</td>
+<td align="left">2026-01-31</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.42</td>
+<td align="right">1.1442013</td>
+<td align="right">4.095020</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">mesa</td>
+<td align="left">2026-02-07</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.34</td>
+<td align="right">0.5227330</td>
+<td align="right">3.425648</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># coverage_summary &lt;- coverage %&gt;% group_by(model_id,
+# horizon, target) %&gt;% summarise( coverage_rate =
+# mean(coverage_95), count = n(), .groups = &#39;drop&#39; )
+# write_csv(coverage_summary,
+# &#39;forecast_coverage_summary.csv&#39;)
+
+coverage_summary = read.csv(&quot;forecast_coverage_summary.csv&quot;)
+knitr::kable(head(coverage_summary |&gt;
+    arrange(-coverage_rate)))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="right">coverage_rate</th>
+<th align="right">count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NAU-Copycat</td>
+<td align="right">0</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">NAU-Copycat</td>
+<td align="right">1</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">NAU-Copycat</td>
+<td align="right">2</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">NAU-Copycat</td>
+<td align="right">3</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">VTSanghani-PRIME</td>
+<td align="right">0</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">19</td>
+</tr>
+<tr class="even">
+<td align="left">VTSanghani-PRIME</td>
+<td align="right">1</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">1</td>
+<td align="right">19</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="state-forecasts-with-local-truth" class="section level1">
+<h1>State forecasts with local truth</h1>
+<div id="lookup-table" class="section level2">
+<h2>Lookup table</h2>
+<pre class="r"><code>lookup &lt;- data.frame(location = c(&quot;denver&quot;, &quot;mesa&quot;, &quot;colorado-springs&quot;,
+    &quot;weld&quot;, &quot;boulder&quot;, &quot;larimer&quot;, &quot;colorado&quot;, &quot;savannah&quot;, &quot;floyd&quot;,
+    &quot;hall&quot;, &quot;marietta&quot;, &quot;macon&quot;, &quot;henry&quot;, &quot;cherokee&quot;, &quot;athens&quot;,
+    &quot;south-augusta&quot;, &quot;columbus&quot;, &quot;la-grange&quot;, &quot;georgia&quot;, &quot;indianapolis&quot;,
+    &quot;indiana&quot;, &quot;bangor&quot;, &quot;portland&quot;, &quot;maine&quot;, &quot;baltimore&quot;, &quot;frederick&quot;,
+    &quot;montgomery&quot;, &quot;harford&quot;, &quot;maryland&quot;, &quot;worcester&quot;, &quot;pittsfield&quot;,
+    &quot;boston&quot;, &quot;springfield&quot;, &quot;new-bedford&quot;, &quot;lynn&quot;, &quot;massachusetts&quot;,
+    &quot;st-paul&quot;, &quot;duluth&quot;, &quot;minneapolis&quot;, &quot;st-cloud&quot;, &quot;rochester&quot;,
+    &quot;minnesota&quot;, &quot;columbia&quot;, &quot;greenville&quot;, &quot;florence&quot;, &quot;charleston&quot;,
+    &quot;rock-hill&quot;, &quot;horry&quot;, &quot;south-carolina&quot;, &quot;houston&quot;, &quot;san-antonio&quot;,
+    &quot;beaumont&quot;, &quot;el-paso&quot;, &quot;austin&quot;, &quot;dallas&quot;, &quot;texas&quot;, &quot;provo&quot;,
+    &quot;salt-lake-city&quot;, &quot;ogden&quot;, &quot;utah&quot;, &quot;roanoke&quot;, &quot;virginia&quot;,
+    &quot;nenc&quot;, &quot;senc&quot;, &quot;fay-area&quot;, &quot;rtp-area&quot;, &quot;triad-area&quot;, &quot;wnc&quot;,
+    &quot;clt-area&quot;, &quot;north-carolina&quot;, &quot;portland-or&quot;, &quot;salem&quot;, &quot;deschutes&quot;,
+    &quot;eugene&quot;, &quot;medford&quot;, &quot;oregon&quot;, &quot;Bronx&quot;, &quot;Brooklyn&quot;, &quot;Manhattan&quot;,
+    &quot;NYC&quot;, &quot;Queens&quot;, &quot;Staten Island&quot;, &quot;San Antonio&quot;, &quot;Dallas&quot;,
+    &quot;El Paso&quot;, &quot;Houston&quot;, &quot;Austin&quot;), state = c(&quot;colorado&quot;, &quot;colorado&quot;,
+    &quot;colorado&quot;, &quot;colorado&quot;, &quot;colorado&quot;, &quot;colorado&quot;, &quot;state&quot;,
+    &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;,
+    &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;state&quot;,
+    &quot;indiana&quot;, &quot;state&quot;, &quot;maine&quot;, &quot;maine&quot;, &quot;state&quot;, &quot;maryland&quot;,
+    &quot;maryland&quot;, &quot;maryland&quot;, &quot;maryland&quot;, &quot;state&quot;, &quot;massachusetts&quot;,
+    &quot;massachusetts&quot;, &quot;massachusetts&quot;, &quot;massachusetts&quot;, &quot;massachusetts&quot;,
+    &quot;massachusetts&quot;, &quot;state&quot;, &quot;minnesota&quot;, &quot;minnesota&quot;, &quot;minnesota&quot;,
+    &quot;minnesota&quot;, &quot;minnesota&quot;, &quot;state&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;,
+    &quot;south-carolina&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;,
+    &quot;state&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;,
+    &quot;state&quot;, &quot;utah&quot;, &quot;utah&quot;, &quot;utah&quot;, &quot;state&quot;, &quot;virginia&quot;, &quot;state&quot;,
+    &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;,
+    &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;state&quot;,
+    &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;state&quot;,
+    &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &quot;state&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &quot;texas&quot;, &quot;texas&quot;,
+    &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;))
+
+knitr::kable(head(lookup))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">location</th>
+<th align="left">state</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">denver</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">mesa</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">colorado-springs</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">weld</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">boulder</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">larimer</td>
+<td align="left">colorado</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>raw &lt;- raw |&gt;
+    filter(location != &quot;nyc&quot;)  # lower case is ili flu pct, which is not found anywhere else nyc/borough related
+
+raw &lt;- raw |&gt;
+    left_join(lookup, by = &quot;location&quot;)  # every row now has a state
+sum(is.na(raw$state) == TRUE)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>kable(head(raw))</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="10%" />
+<col width="12%" />
+<col width="5%" />
+<col width="11%" />
+<col width="6%" />
+<col width="8%" />
+<col width="10%" />
+<col width="6%" />
+<col width="13%" />
+<col width="9%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">reference_date</th>
+<th align="left">target</th>
+<th align="right">horizon</th>
+<th align="left">target_end_date</th>
+<th align="left">location</th>
+<th align="left">output_type</th>
+<th align="right">output_type_id</th>
+<th align="right">value</th>
+<th align="left">model_id</th>
+<th align="right">oracle_value</th>
+<th align="left">state</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.4672641</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.64</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.3330493</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.57</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">2</td>
+<td align="left">2026-02-14</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1517496</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.74</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-02-21</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1181898</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.10</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">1.1442013</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.42</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.5227330</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.34</td>
+<td align="left">colorado</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>state_data &lt;- raw |&gt;
+    filter(state == &quot;state&quot;) |&gt;
+    select(reference_date, target, horizon, target_end_date,
+        output_type, output_type_id, model_id, location, value) |&gt;
+    rename(state_value = value, state = location)
+
+raw &lt;- raw |&gt;
+    left_join(state_data, by = c(&quot;reference_date&quot;, &quot;target&quot;,
+        &quot;horizon&quot;, &quot;target_end_date&quot;, &quot;output_type&quot;, &quot;output_type_id&quot;,
+        &quot;model_id&quot;, &quot;state&quot;))
+
+sum(is.na(raw$state_value) &amp; raw$state != &quot;state&quot;)</code></pre>
+<pre><code>## [1] 23778</code></pre>
+<pre class="r"><code>kable(head(raw))</code></pre>
+<table>
+<colgroup>
+<col width="9%" />
+<col width="11%" />
+<col width="5%" />
+<col width="10%" />
+<col width="5%" />
+<col width="7%" />
+<col width="9%" />
+<col width="6%" />
+<col width="12%" />
+<col width="8%" />
+<col width="5%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">reference_date</th>
+<th align="left">target</th>
+<th align="right">horizon</th>
+<th align="left">target_end_date</th>
+<th align="left">location</th>
+<th align="left">output_type</th>
+<th align="right">output_type_id</th>
+<th align="right">value</th>
+<th align="left">model_id</th>
+<th align="right">oracle_value</th>
+<th align="left">state</th>
+<th align="right">state_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.4672641</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.64</td>
+<td align="left">colorado</td>
+<td align="right">1.6797132</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.3330493</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.57</td>
+<td align="left">colorado</td>
+<td align="right">0.8489404</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">2</td>
+<td align="left">2026-02-14</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1517496</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1.74</td>
+<td align="left">colorado</td>
+<td align="right">0.4783526</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-02-21</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.1181898</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.10</td>
+<td align="left">colorado</td>
+<td align="right">0.2556150</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0</td>
+<td align="left">2026-01-31</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">1.1442013</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.42</td>
+<td align="left">colorado</td>
+<td align="right">1.6797132</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-31</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">1</td>
+<td align="left">2026-02-07</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.5227330</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2.34</td>
+<td align="left">colorado</td>
+<td align="right">0.8489404</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
