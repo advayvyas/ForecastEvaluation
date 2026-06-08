@@ -52,9 +52,7 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 # Data 
 ## Observed data
 ```{r}
- observed = read.csv("oracle-output.csv") # the observed data does not have ILI ED Visits
-# 
-# head(observed)
+# observed = read.csv("Data/oracle-output.csv") # the observed data does not have ILI ED Visits
 ```
 
 
@@ -65,7 +63,8 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 # predictions <- hub_con %>%
 #   collect()
 # 
-# head(predictions)
+# predictions <- predictions |> filter(location == tolower(location))
+# write_csv(predictions, "Data/predictions.csv")
 ```
 
 # Data processing
@@ -75,53 +74,53 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 ```
 
 ```{r}
-# write_csv(df, "raw_data.csv")
-raw = read.csv("raw_data.csv")
+# write_csv(df, "Data/raw_data.csv")
+raw = read.csv("Data/raw_data.csv")
 knitr::kable(head(raw))
 ```
 
 # WIS calculation
 ```{r wis_calc, cache = TRUE}
-# models <- unique(df$model_id)
-# dates <- sort(unique(df$target_end_date))
+# models <- unique(raw$model_id)
+# dates <- sort(unique(raw$target_end_date))
 # 
-# results <- df %>%
+# results <- raw %>%
 #   filter(!is.na(oracle_value)) %>%
 #   {
 #     models <- unique(.$model_id)
 #     dates <- sort(unique(.$target_end_date))
-#     
+# 
 #     map_df(models, ~ {
 #       model_name <- .x
-#       
+# 
 #       map_df(dates, ~ {
 #         target_date <- .x
-#         
-#         df_filtered <- df %>%
+# 
+#         raw_filtered <- raw %>%
 #           filter(model_id == model_name,
 #                  target_end_date == target_date,
 #                  !is.na(oracle_value))
-#         
-#         if (nrow(df_filtered) == 0) return(NULL)
-#         
+# 
+#         if (nrow(raw_filtered) == 0) return(NULL)
+# 
 #         compute_wis_score(
-#           df = df_filtered,
+#           df = raw_filtered,
 #           predicted = "value",
 #           observed = "oracle_value",
 #           target_date = target_date
 #         ) %>%
 #           mutate(model_id = model_name,
-#                  target = df_filtered$target[1])
-#         
+#                  target = raw_filtered$target[1])
+# 
 #       })
 #     })
 #   }
 ```
 
 ```{r}
-#write_csv(results, "forecast_WIS.csv")
+# write_csv(results, "Data/standard_wis.csv")
 
-wis = read.csv("forecast_WIS.csv")
+wis = read.csv("Data/standard_wis.csv")
 knitr::kable(head(wis))
 ```
 
@@ -135,24 +134,15 @@ knitr::kable(head(wis))
 #   )
 # 
 # 
-#write_csv(wis_summary, "forecast_WIS_summary.csv")
+# write_csv(wis_summary, "Data/standard_wis_summary.csv")
 
-wis_summary = read.csv("forecast_WIS_summary.csv")
+wis_summary = read.csv("Data/standard_wis_summary.csv")
 knitr::kable(head(wis_summary |> arrange(mean_wis)))
-```
-
-```{r}
-# compute_wis_score(
-#         df = .x,
-#         predicted = predicted,
-#         observed = observed,
-#         target_date = target_date
-#       )
 ```
 
 # Coverage rate
 ```{r coverage_calc}
-# coverage <- df %>%
+# coverage <- raw %>%
 #   filter(!is.na(oracle_value)) %>%
 #   pivot_wider(
 #     names_from = output_type_id,
@@ -162,14 +152,14 @@ knitr::kable(head(wis_summary |> arrange(mean_wis)))
 #   mutate(
 #     coverage_95 = as.numeric(oracle_value >= quantile_0.025 & oracle_value <= quantile_0.975)
 #   ) %>%
-#   select(model_id, location, target_end_date, horizon, target, 
+#   select(model_id, location, target_end_date, horizon, target,
 #          reference_date, output_type, oracle_value,
 #          quantile_0.025, quantile_0.975, coverage_95)
 # 
+# 
+# write_csv(coverage, "Data/standard_coverage.csv")
 
-#write_csv(coverage, "forecast_coverage.csv")
-
-coverage = read.csv("forecast_coverage.csv")
+coverage = read.csv("Data/standard_coverage.csv")
 knitr::kable(head(coverage))
 ```
 
@@ -182,72 +172,59 @@ knitr::kable(head(coverage))
 #     .groups = 'drop'
 #   )
 # 
-#write_csv(coverage_summary, "forecast_coverage_summary.csv")
+# write_csv(coverage_summary, "Data/standard_coverage_summary.csv")
 
-coverage_summary = read.csv("forecast_coverage_summary.csv")
+coverage_summary = read.csv("Data/standard_coverage_summary.csv")
 knitr::kable(head(coverage_summary |> arrange(-coverage_rate)))
 ```
 
 # State forecasts with local truth
 ## Lookup table
 ```{r}
-lookup <- data.frame(
-  location = c("denver", "mesa", "colorado-springs", "weld", "boulder", "larimer", "colorado",
-               "savannah", "floyd", "hall", "marietta", "macon", "henry", "cherokee", "athens", 
-               "south-augusta", "columbus", "la-grange", "georgia",
-               "indianapolis", "indiana",
-               "bangor", "portland", "maine",
-               "baltimore", "frederick", "montgomery", "harford", "maryland",
-               "worcester", "pittsfield", "boston", "springfield", "new-bedford", "lynn", "massachusetts",
-               "st-paul", "duluth", "minneapolis", "st-cloud", "rochester", "minnesota",
-               "columbia", "greenville", "florence", "charleston", "rock-hill", "horry", "south-carolina",
-               "houston", "san-antonio", "beaumont", "el-paso", "austin", "dallas", "texas",
-               "provo", "salt-lake-city", "ogden", "utah",
-               "roanoke", "virginia",
-               "nenc", "senc", "fay-area", "rtp-area", "triad-area", "wnc", "clt-area", "north-carolina",
-               "portland-or", "salem", "deschutes", "eugene", "medford", "oregon",
-               "Bronx", "Brooklyn", "Manhattan", "NYC", "Queens", "Staten Island", "San Antonio",
-               "Dallas", "El Paso", "Houston", "Austin"),
-  state = c("colorado", "colorado", "colorado", "colorado", "colorado", "colorado", "state",
-            "georgia", "georgia", "georgia", "georgia", "georgia", "georgia", "georgia", "georgia",
-            "georgia", "georgia", "georgia", "state",
-            "indiana", "state",
-            "maine", "maine", "state",
-            "maryland", "maryland", "maryland", "maryland", "state",
-            "massachusetts", "massachusetts", "massachusetts", "massachusetts", "massachusetts", "massachusetts", "state",
-            "minnesota", "minnesota", "minnesota", "minnesota", "minnesota", "state",
-            "south-carolina", "south-carolina", "south-carolina", "south-carolina", "south-carolina", "south-carolina", "state",
-            "texas", "texas", "texas", "texas", "texas", "texas", "state",
-            "utah", "utah", "utah", "state",
-            "virginia", "state",
-            "north-carolina", "north-carolina", "north-carolina", "north-carolina", "north-carolina", "north-carolina", "north-carolina", "state",
-            "oregon", "oregon", "oregon", "oregon", "oregon", "state",
-            "NYC", "NYC", "NYC", "state", "NYC", "NYC", "texas",
-            "texas", "texas", "texas", "texas")
-)
+locations = read.csv("Data/locations.csv")
+lookup = locations |> select(location, state)
+lookup$state = tolower(lookup$state)
 
-knitr::kable(head(lookup))
+lookup <- lookup |>
+  mutate(state = case_when(
+    state == "north carolina" ~ "north-carolina",
+    state == "south carolina" ~ "south-carolina",
+    TRUE ~ state
+  ))
+
+lookup <- lookup |> mutate(state = ifelse(location == state, "state", state))
 ```
 
+## Joins
 ```{r}
-raw <- raw |> filter(location != "nyc") # lower case is ili flu pct, which is not found anywhere else nyc/borough related
-
 raw <- raw |> left_join(lookup, by = "location") # every row now has a state
-sum(is.na(raw$state) == TRUE)
-
-kable(head(raw)) 
+sum(is.na(raw) == TRUE)
 ```
 
 ```{r}
+# looks like these NA values are just the horizons not having data yet because it's too far in the future!
+raw |> filter(if_any(everything(), is.na)) |> View() 
+raw <- raw |> filter(!is.na(oracle_value))
+sum(is.na(raw) == TRUE)
+
+temp = raw
+```
+
+```{r}
+# state data goes out and back in to merge
 state_data <- raw |>
-  filter(state == "state") |>
+  filter(state == "state") |> # state indicator
   select(reference_date, target, horizon, target_end_date, output_type, output_type_id, model_id, location, value) |> 
   rename(state_value = value, state = location)
 
 raw <- raw |> left_join(state_data, by = c("reference_date", "target", "horizon", "target_end_date", "output_type", "output_type_id", "model_id", "state"))
 
-sum(is.na(raw$state_value) & raw$state != "state")
-kable(head(raw))
+raw = raw |> filter(location != "nyc") # removing new york
+raw = raw |> filter(state != "state") # removing state
+
+sum(is.na(raw) == TRUE) 
+na = raw |> filter(if_any(everything(), is.na)) |> filter(state != "state")
+table(na$state)
 ```
 
 
