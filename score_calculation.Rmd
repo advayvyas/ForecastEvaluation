@@ -79,7 +79,8 @@ raw = read.csv("Data/raw_data.csv")
 knitr::kable(head(raw))
 ```
 
-# WIS calculation
+# Standard scoring
+## WIS calculation
 ```{r wis_calc, cache = TRUE}
 # models <- unique(raw$model_id)
 # dates <- sort(unique(raw$target_end_date))
@@ -140,7 +141,7 @@ wis_summary = read.csv("Data/standard_wis_summary.csv")
 knitr::kable(head(wis_summary |> arrange(mean_wis)))
 ```
 
-# Coverage rate
+## Coverage rate
 ```{r coverage_calc}
 # coverage <- raw %>%
 #   filter(!is.na(oracle_value)) %>%
@@ -203,16 +204,14 @@ sum(is.na(raw) == TRUE)
 
 ```{r}
 # looks like these NA values are just the horizons not having data yet because it's too far in the future!
-raw |> filter(if_any(everything(), is.na)) |> View() 
+knitr::kable(head(raw |> filter(if_any(everything(), is.na))))
 raw <- raw |> filter(!is.na(oracle_value))
 sum(is.na(raw) == TRUE)
-
-temp = raw
 ```
 
 ```{r}
 # state data goes out and back in to merge
-state_data <- raw |>
+state_data <- raw |> 
   filter(state == "state") |> # state indicator
   select(reference_date, target, horizon, target_end_date, output_type, output_type_id, model_id, location, value) |> 
   rename(state_value = value, state = location)
@@ -221,10 +220,22 @@ raw <- raw |> left_join(state_data, by = c("reference_date", "target", "horizon"
 
 raw = raw |> filter(location != "nyc") # removing new york
 raw = raw |> filter(state != "state") # removing state
+```
 
+### NA value investigation
+```{r}
 sum(is.na(raw) == TRUE) 
 na = raw |> filter(if_any(everything(), is.na)) |> filter(state != "state")
-table(na$state)
+knitr::kable(table(na$state))
+knitr::kable(table(na$target_end_date))
+```
+
+```{r}
+na_sc = na |> filter(state == "south-carolina")
+na_nc = na |> filter(state == "north-carolina")
+
+knitr::kable(table(na_nc$model_id)) 
+knitr::kable(table(na_sc$model_id))
 ```
 
 

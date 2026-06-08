@@ -365,15 +365,23 @@ data</a></li>
 </ul></li>
 <li><a href="#data-processing" id="toc-data-processing">Data
 processing</a></li>
+<li><a href="#standard-scoring" id="toc-standard-scoring">Standard
+scoring</a>
+<ul>
 <li><a href="#wis-calculation" id="toc-wis-calculation">WIS
 calculation</a></li>
 <li><a href="#coverage-rate" id="toc-coverage-rate">Coverage
 rate</a></li>
+</ul></li>
 <li><a href="#state-forecasts-with-local-truth" id="toc-state-forecasts-with-local-truth">State forecasts with local
 truth</a>
 <ul>
 <li><a href="#lookup-table" id="toc-lookup-table">Lookup table</a></li>
-<li><a href="#joins" id="toc-joins">Joins</a></li>
+<li><a href="#joins" id="toc-joins">Joins</a>
+<ul>
+<li><a href="#na-value-investigation" id="toc-na-value-investigation">NA
+value investigation</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </div>
@@ -525,8 +533,10 @@ knitr::kable(head(raw))</code></pre>
 </tbody>
 </table>
 </div>
-<div id="wis-calculation" class="section level1">
-<h1>WIS calculation</h1>
+<div id="standard-scoring" class="section level1">
+<h1>Standard scoring</h1>
+<div id="wis-calculation" class="section level2">
+<h2>WIS calculation</h2>
 <pre class="r"><code># models &lt;- unique(raw$model_id) dates &lt;-
 # sort(unique(raw$target_end_date)) results &lt;- raw %&gt;%
 # filter(!is.na(oracle_value)) %&gt;% { models &lt;-
@@ -686,8 +696,8 @@ knitr::kable(head(wis_summary |&gt;
 </tbody>
 </table>
 </div>
-<div id="coverage-rate" class="section level1">
-<h1>Coverage rate</h1>
+<div id="coverage-rate" class="section level2">
+<h2>Coverage rate</h2>
 <pre class="r"><code># coverage &lt;- raw %&gt;% filter(!is.na(oracle_value)) %&gt;%
 # pivot_wider( names_from = output_type_id, values_from =
 # value, names_prefix = &#39;quantile_&#39; ) %&gt;% mutate(
@@ -875,6 +885,7 @@ knitr::kable(head(coverage_summary |&gt;
 </tbody>
 </table>
 </div>
+</div>
 <div id="state-forecasts-with-local-truth" class="section level1">
 <h1>State forecasts with local truth</h1>
 <div id="lookup-table" class="section level2">
@@ -900,16 +911,124 @@ sum(is.na(raw) == TRUE)</code></pre>
 <pre><code>## [1] 48852</code></pre>
 <pre class="r"><code># looks like these NA values are just the horizons not
 # having data yet because it&#39;s too far in the future!
-raw |&gt;
-    filter(if_any(everything(), is.na)) |&gt;
-    View()
-raw &lt;- raw |&gt;
+knitr::kable(head(raw |&gt;
+    filter(if_any(everything(), is.na))))</code></pre>
+<table>
+<colgroup>
+<col width="9%" />
+<col width="11%" />
+<col width="5%" />
+<col width="10%" />
+<col width="11%" />
+<col width="7%" />
+<col width="9%" />
+<col width="6%" />
+<col width="12%" />
+<col width="8%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">reference_date</th>
+<th align="left">target</th>
+<th align="right">horizon</th>
+<th align="left">target_end_date</th>
+<th align="left">location</th>
+<th align="left">output_type</th>
+<th align="right">output_type_id</th>
+<th align="right">value</th>
+<th align="left">model_id</th>
+<th align="right">oracle_value</th>
+<th align="left">state</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">denver</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0108241</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">mesa</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0016058</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">colorado-springs</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0020151</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">weld</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0165051</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">boulder</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0040358</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+<tr class="even">
+<td align="left">2026-05-09</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">3</td>
+<td align="left">2026-05-30</td>
+<td align="left">larimer</td>
+<td align="left">quantile</td>
+<td align="right">0.025</td>
+<td align="right">0.0091862</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">NA</td>
+<td align="left">colorado</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>raw &lt;- raw |&gt;
     filter(!is.na(oracle_value))
 sum(is.na(raw) == TRUE)</code></pre>
 <pre><code>## [1] 0</code></pre>
-<pre class="r"><code>temp = raw</code></pre>
 <pre class="r"><code># state data goes out and back in to merge
-state_data &lt;- raw |&gt;
+state_data &lt;- raw |&gt; 
   filter(state == &quot;state&quot;) |&gt; # state indicator
   select(reference_date, target, horizon, target_end_date, output_type, output_type_id, model_id, location, value) |&gt; 
   rename(state_value = value, state = location)
@@ -917,15 +1036,132 @@ state_data &lt;- raw |&gt;
 raw &lt;- raw |&gt; left_join(state_data, by = c(&quot;reference_date&quot;, &quot;target&quot;, &quot;horizon&quot;, &quot;target_end_date&quot;, &quot;output_type&quot;, &quot;output_type_id&quot;, &quot;model_id&quot;, &quot;state&quot;))
 
 raw = raw |&gt; filter(location != &quot;nyc&quot;) # removing new york
-raw = raw |&gt; filter(state != &quot;state&quot;) # removing state
-
-sum(is.na(raw) == TRUE) </code></pre>
+raw = raw |&gt; filter(state != &quot;state&quot;) # removing state</code></pre>
+<div id="na-value-investigation" class="section level3">
+<h3>NA value investigation</h3>
+<pre class="r"><code>sum(is.na(raw) == TRUE)</code></pre>
 <pre><code>## [1] 1728</code></pre>
-<pre class="r"><code>na = raw |&gt; filter(if_any(everything(), is.na)) |&gt; filter(state != &quot;state&quot;)
-table(na$state)</code></pre>
-<pre><code>## 
-## north-carolina south-carolina 
-##           1512            216</code></pre>
+<pre class="r"><code>na = raw |&gt;
+    filter(if_any(everything(), is.na)) |&gt;
+    filter(state != &quot;state&quot;)
+knitr::kable(table(na$state))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Var1</th>
+<th align="right">Freq</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">north-carolina</td>
+<td align="right">1512</td>
+</tr>
+<tr class="even">
+<td align="left">south-carolina</td>
+<td align="right">216</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>knitr::kable(table(na$target_end_date))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Var1</th>
+<th align="right">Freq</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2025-11-22</td>
+<td align="right">315</td>
+</tr>
+<tr class="even">
+<td align="left">2025-11-29</td>
+<td align="right">315</td>
+</tr>
+<tr class="odd">
+<td align="left">2025-12-06</td>
+<td align="right">315</td>
+</tr>
+<tr class="even">
+<td align="left">2025-12-13</td>
+<td align="right">315</td>
+</tr>
+<tr class="odd">
+<td align="left">2025-12-20</td>
+<td align="right">117</td>
+</tr>
+<tr class="even">
+<td align="left">2025-12-27</td>
+<td align="right">117</td>
+</tr>
+<tr class="odd">
+<td align="left">2026-01-03</td>
+<td align="right">117</td>
+</tr>
+<tr class="even">
+<td align="left">2026-01-10</td>
+<td align="right">117</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>na_sc = na |&gt;
+    filter(state == &quot;south-carolina&quot;)
+na_nc = na |&gt;
+    filter(state == &quot;north-carolina&quot;)
+
+knitr::kable(table(na_nc$model_id))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Var1</th>
+<th align="right">Freq</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">epiENGAGE-baseline</td>
+<td align="right">252</td>
+</tr>
+<tr class="even">
+<td align="left">epiENGAGE-ensemble_mean</td>
+<td align="right">252</td>
+</tr>
+<tr class="odd">
+<td align="left">epiENGAGE-GBQR</td>
+<td align="right">252</td>
+</tr>
+<tr class="even">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">252</td>
+</tr>
+<tr class="odd">
+<td align="left">NAU-INFLAenza</td>
+<td align="right">252</td>
+</tr>
+<tr class="even">
+<td align="left">UT-GBQR</td>
+<td align="right">252</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>knitr::kable(table(na_sc$model_id))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Var1</th>
+<th align="right">Freq</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NAU-INFLAenza</td>
+<td align="right">216</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 
