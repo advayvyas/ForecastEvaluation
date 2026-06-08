@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-06-05" />
+<meta name="date" content="2026-06-08" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">June 05, 2026</h4>
+<h4 class="date">June 08, 2026</h4>
 
 </div>
 
@@ -373,6 +373,7 @@ rate</a></li>
 truth</a>
 <ul>
 <li><a href="#lookup-table" id="toc-lookup-table">Lookup table</a></li>
+<li><a href="#joins" id="toc-joins">Joins</a></li>
 </ul></li>
 </ul>
 </div>
@@ -400,14 +401,16 @@ truth</a>
 <h1>Data</h1>
 <div id="observed-data" class="section level2">
 <h2>Observed data</h2>
-<pre class="r"><code>observed = read.csv(&quot;oracle-output.csv&quot;)  # the observed data does not have ILI ED Visits
-# head(observed)</code></pre>
+<pre class="r"><code># observed = read.csv(&#39;Data/oracle-output.csv&#39;) # the
+# observed data does not have ILI ED Visits</code></pre>
 </div>
 <div id="model-output" class="section level2">
 <h2>Model output</h2>
 <pre class="r"><code># hub_path &lt;- &#39;C:/Projects/flu-metrocast&#39; hub_con &lt;-
 # connect_hub(hub_path) predictions &lt;- hub_con %&gt;%
-# collect() head(predictions)</code></pre>
+# collect() predictions &lt;- predictions |&gt; filter(location
+# == tolower(location)) write_csv(predictions,
+# &#39;Data/predictions.csv&#39;)</code></pre>
 </div>
 </div>
 <div id="data-processing" class="section level1">
@@ -416,8 +419,8 @@ truth</a>
 # as.Date(observed$target_end_date) df =
 # left_join(predictions, observed, by = c(&#39;location&#39;,
 # &#39;target&#39;, &#39;target_end_date&#39;))</code></pre>
-<pre class="r"><code># write_csv(df, &#39;raw_data.csv&#39;)
-raw = read.csv(&quot;raw_data.csv&quot;)
+<pre class="r"><code># write_csv(df, &#39;Data/raw_data.csv&#39;)
+raw = read.csv(&quot;Data/raw_data.csv&quot;)
 knitr::kable(head(raw))</code></pre>
 <table>
 <colgroup>
@@ -524,22 +527,22 @@ knitr::kable(head(raw))</code></pre>
 </div>
 <div id="wis-calculation" class="section level1">
 <h1>WIS calculation</h1>
-<pre class="r"><code># models &lt;- unique(df$model_id) dates &lt;-
-# sort(unique(df$target_end_date)) results &lt;- df %&gt;%
+<pre class="r"><code># models &lt;- unique(raw$model_id) dates &lt;-
+# sort(unique(raw$target_end_date)) results &lt;- raw %&gt;%
 # filter(!is.na(oracle_value)) %&gt;% { models &lt;-
 # unique(.$model_id) dates &lt;-
 # sort(unique(.$target_end_date)) map_df(models, ~ {
 # model_name &lt;- .x map_df(dates, ~ { target_date &lt;- .x
-# df_filtered &lt;- df %&gt;% filter(model_id == model_name,
+# raw_filtered &lt;- raw %&gt;% filter(model_id == model_name,
 # target_end_date == target_date, !is.na(oracle_value)) if
-# (nrow(df_filtered) == 0) return(NULL) compute_wis_score(
-# df = df_filtered, predicted = &#39;value&#39;, observed =
+# (nrow(raw_filtered) == 0) return(NULL) compute_wis_score(
+# df = raw_filtered, predicted = &#39;value&#39;, observed =
 # &#39;oracle_value&#39;, target_date = target_date ) %&gt;%
 # mutate(model_id = model_name, target =
-# df_filtered$target[1]) }) }) }</code></pre>
-<pre class="r"><code># write_csv(results, &#39;forecast_WIS.csv&#39;)
+# raw_filtered$target[1]) }) }) }</code></pre>
+<pre class="r"><code># write_csv(results, &#39;Data/standard_wis.csv&#39;)
 
-wis = read.csv(&quot;forecast_WIS.csv&quot;)
+wis = read.csv(&quot;Data/standard_wis.csv&quot;)
 knitr::kable(head(wis))</code></pre>
 <table>
 <colgroup>
@@ -622,9 +625,9 @@ knitr::kable(head(wis))</code></pre>
 <pre class="r"><code># wis_summary &lt;- results %&gt;% group_by(model_id, horizon,
 # target) %&gt;% summarise( mean_wis = mean(wis), count = n(),
 # .groups = &#39;drop&#39; ) write_csv(wis_summary,
-# &#39;forecast_WIS_summary.csv&#39;)
+# &#39;Data/standard_wis_summary.csv&#39;)
 
-wis_summary = read.csv(&quot;forecast_WIS_summary.csv&quot;)
+wis_summary = read.csv(&quot;Data/standard_wis_summary.csv&quot;)
 knitr::kable(head(wis_summary |&gt;
     arrange(mean_wis)))</code></pre>
 <table>
@@ -682,12 +685,10 @@ knitr::kable(head(wis_summary |&gt;
 </tr>
 </tbody>
 </table>
-<pre class="r"><code># compute_wis_score( df = .x, predicted = predicted,
-# observed = observed, target_date = target_date )</code></pre>
 </div>
 <div id="coverage-rate" class="section level1">
 <h1>Coverage rate</h1>
-<pre class="r"><code># coverage &lt;- df %&gt;% filter(!is.na(oracle_value)) %&gt;%
+<pre class="r"><code># coverage &lt;- raw %&gt;% filter(!is.na(oracle_value)) %&gt;%
 # pivot_wider( names_from = output_type_id, values_from =
 # value, names_prefix = &#39;quantile_&#39; ) %&gt;% mutate(
 # coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
@@ -695,10 +696,9 @@ knitr::kable(head(wis_summary |&gt;
 # location, target_end_date, horizon, target,
 # reference_date, output_type, oracle_value,
 # quantile_0.025, quantile_0.975, coverage_95)
+# write_csv(coverage, &#39;Data/standard_coverage.csv&#39;)
 
-# write_csv(coverage, &#39;forecast_coverage.csv&#39;)
-
-coverage = read.csv(&quot;forecast_coverage.csv&quot;)
+coverage = read.csv(&quot;Data/standard_coverage.csv&quot;)
 knitr::kable(head(coverage))</code></pre>
 <table>
 <colgroup>
@@ -814,9 +814,9 @@ knitr::kable(head(coverage))</code></pre>
 # horizon, target) %&gt;% summarise( coverage_rate =
 # mean(coverage_95), count = n(), .groups = &#39;drop&#39; )
 # write_csv(coverage_summary,
-# &#39;forecast_coverage_summary.csv&#39;)
+# &#39;Data/standard_coverage_summary.csv&#39;)
 
-coverage_summary = read.csv(&quot;forecast_coverage_summary.csv&quot;)
+coverage_summary = read.csv(&quot;Data/standard_coverage_summary.csv&quot;)
 knitr::kable(head(coverage_summary |&gt;
     arrange(-coverage_rate)))</code></pre>
 <table>
@@ -879,325 +879,53 @@ knitr::kable(head(coverage_summary |&gt;
 <h1>State forecasts with local truth</h1>
 <div id="lookup-table" class="section level2">
 <h2>Lookup table</h2>
-<pre class="r"><code>lookup &lt;- data.frame(location = c(&quot;denver&quot;, &quot;mesa&quot;, &quot;colorado-springs&quot;,
-    &quot;weld&quot;, &quot;boulder&quot;, &quot;larimer&quot;, &quot;colorado&quot;, &quot;savannah&quot;, &quot;floyd&quot;,
-    &quot;hall&quot;, &quot;marietta&quot;, &quot;macon&quot;, &quot;henry&quot;, &quot;cherokee&quot;, &quot;athens&quot;,
-    &quot;south-augusta&quot;, &quot;columbus&quot;, &quot;la-grange&quot;, &quot;georgia&quot;, &quot;indianapolis&quot;,
-    &quot;indiana&quot;, &quot;bangor&quot;, &quot;portland&quot;, &quot;maine&quot;, &quot;baltimore&quot;, &quot;frederick&quot;,
-    &quot;montgomery&quot;, &quot;harford&quot;, &quot;maryland&quot;, &quot;worcester&quot;, &quot;pittsfield&quot;,
-    &quot;boston&quot;, &quot;springfield&quot;, &quot;new-bedford&quot;, &quot;lynn&quot;, &quot;massachusetts&quot;,
-    &quot;st-paul&quot;, &quot;duluth&quot;, &quot;minneapolis&quot;, &quot;st-cloud&quot;, &quot;rochester&quot;,
-    &quot;minnesota&quot;, &quot;columbia&quot;, &quot;greenville&quot;, &quot;florence&quot;, &quot;charleston&quot;,
-    &quot;rock-hill&quot;, &quot;horry&quot;, &quot;south-carolina&quot;, &quot;houston&quot;, &quot;san-antonio&quot;,
-    &quot;beaumont&quot;, &quot;el-paso&quot;, &quot;austin&quot;, &quot;dallas&quot;, &quot;texas&quot;, &quot;provo&quot;,
-    &quot;salt-lake-city&quot;, &quot;ogden&quot;, &quot;utah&quot;, &quot;roanoke&quot;, &quot;virginia&quot;,
-    &quot;nenc&quot;, &quot;senc&quot;, &quot;fay-area&quot;, &quot;rtp-area&quot;, &quot;triad-area&quot;, &quot;wnc&quot;,
-    &quot;clt-area&quot;, &quot;north-carolina&quot;, &quot;portland-or&quot;, &quot;salem&quot;, &quot;deschutes&quot;,
-    &quot;eugene&quot;, &quot;medford&quot;, &quot;oregon&quot;, &quot;Bronx&quot;, &quot;Brooklyn&quot;, &quot;Manhattan&quot;,
-    &quot;NYC&quot;, &quot;Queens&quot;, &quot;Staten Island&quot;, &quot;San Antonio&quot;, &quot;Dallas&quot;,
-    &quot;El Paso&quot;, &quot;Houston&quot;, &quot;Austin&quot;), state = c(&quot;colorado&quot;, &quot;colorado&quot;,
-    &quot;colorado&quot;, &quot;colorado&quot;, &quot;colorado&quot;, &quot;colorado&quot;, &quot;state&quot;,
-    &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;,
-    &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;georgia&quot;, &quot;state&quot;,
-    &quot;indiana&quot;, &quot;state&quot;, &quot;maine&quot;, &quot;maine&quot;, &quot;state&quot;, &quot;maryland&quot;,
-    &quot;maryland&quot;, &quot;maryland&quot;, &quot;maryland&quot;, &quot;state&quot;, &quot;massachusetts&quot;,
-    &quot;massachusetts&quot;, &quot;massachusetts&quot;, &quot;massachusetts&quot;, &quot;massachusetts&quot;,
-    &quot;massachusetts&quot;, &quot;state&quot;, &quot;minnesota&quot;, &quot;minnesota&quot;, &quot;minnesota&quot;,
-    &quot;minnesota&quot;, &quot;minnesota&quot;, &quot;state&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;,
-    &quot;south-carolina&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;, &quot;south-carolina&quot;,
-    &quot;state&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;,
-    &quot;state&quot;, &quot;utah&quot;, &quot;utah&quot;, &quot;utah&quot;, &quot;state&quot;, &quot;virginia&quot;, &quot;state&quot;,
-    &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;,
-    &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;north-carolina&quot;, &quot;state&quot;,
-    &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;oregon&quot;, &quot;state&quot;,
-    &quot;NYC&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &quot;state&quot;, &quot;NYC&quot;, &quot;NYC&quot;, &quot;texas&quot;, &quot;texas&quot;,
-    &quot;texas&quot;, &quot;texas&quot;, &quot;texas&quot;))
+<pre class="r"><code>locations = read.csv(&quot;Data/locations.csv&quot;)
+lookup = locations |&gt;
+    select(location, state)
+lookup$state = tolower(lookup$state)
 
-knitr::kable(head(lookup))</code></pre>
-<table>
-<thead>
-<tr class="header">
-<th align="left">location</th>
-<th align="left">state</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">denver</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">mesa</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">colorado-springs</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">weld</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">boulder</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">larimer</td>
-<td align="left">colorado</td>
-</tr>
-</tbody>
-</table>
+lookup &lt;- lookup |&gt;
+    mutate(state = case_when(state == &quot;north carolina&quot; ~ &quot;north-carolina&quot;,
+        state == &quot;south carolina&quot; ~ &quot;south-carolina&quot;, TRUE ~
+            state))
+
+lookup &lt;- lookup |&gt;
+    mutate(state = ifelse(location == state, &quot;state&quot;, state))</code></pre>
+</div>
+<div id="joins" class="section level2">
+<h2>Joins</h2>
 <pre class="r"><code>raw &lt;- raw |&gt;
-    filter(location != &quot;nyc&quot;)  # lower case is ili flu pct, which is not found anywhere else nyc/borough related
-
-raw &lt;- raw |&gt;
     left_join(lookup, by = &quot;location&quot;)  # every row now has a state
-sum(is.na(raw$state) == TRUE)</code></pre>
-<pre><code>## [1] 0</code></pre>
-<pre class="r"><code>kable(head(raw))</code></pre>
-<table style="width:100%;">
-<colgroup>
-<col width="10%" />
-<col width="12%" />
-<col width="5%" />
-<col width="11%" />
-<col width="6%" />
-<col width="8%" />
-<col width="10%" />
-<col width="6%" />
-<col width="13%" />
-<col width="9%" />
-<col width="6%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">reference_date</th>
-<th align="left">target</th>
-<th align="right">horizon</th>
-<th align="left">target_end_date</th>
-<th align="left">location</th>
-<th align="left">output_type</th>
-<th align="right">output_type_id</th>
-<th align="right">value</th>
-<th align="left">model_id</th>
-<th align="right">oracle_value</th>
-<th align="left">state</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0</td>
-<td align="left">2026-01-31</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.4672641</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.64</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">1</td>
-<td align="left">2026-02-07</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.3330493</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.57</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">2</td>
-<td align="left">2026-02-14</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.1517496</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.74</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-02-21</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.1181898</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.10</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0</td>
-<td align="left">2026-01-31</td>
-<td align="left">mesa</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">1.1442013</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.42</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">1</td>
-<td align="left">2026-02-07</td>
-<td align="left">mesa</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.5227330</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.34</td>
-<td align="left">colorado</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>state_data &lt;- raw |&gt;
-    filter(state == &quot;state&quot;) |&gt;
-    select(reference_date, target, horizon, target_end_date,
-        output_type, output_type_id, model_id, location, value) |&gt;
-    rename(state_value = value, state = location)
-
+sum(is.na(raw) == TRUE)</code></pre>
+<pre><code>## [1] 48852</code></pre>
+<pre class="r"><code># looks like these NA values are just the horizons not
+# having data yet because it&#39;s too far in the future!
+raw |&gt;
+    filter(if_any(everything(), is.na)) |&gt;
+    View()
 raw &lt;- raw |&gt;
-    left_join(state_data, by = c(&quot;reference_date&quot;, &quot;target&quot;,
-        &quot;horizon&quot;, &quot;target_end_date&quot;, &quot;output_type&quot;, &quot;output_type_id&quot;,
-        &quot;model_id&quot;, &quot;state&quot;))
+    filter(!is.na(oracle_value))
+sum(is.na(raw) == TRUE)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>temp = raw</code></pre>
+<pre class="r"><code># state data goes out and back in to merge
+state_data &lt;- raw |&gt;
+  filter(state == &quot;state&quot;) |&gt; # state indicator
+  select(reference_date, target, horizon, target_end_date, output_type, output_type_id, model_id, location, value) |&gt; 
+  rename(state_value = value, state = location)
 
-sum(is.na(raw$state_value) &amp; raw$state != &quot;state&quot;)</code></pre>
-<pre><code>## [1] 23778</code></pre>
-<pre class="r"><code>kable(head(raw))</code></pre>
-<table>
-<colgroup>
-<col width="9%" />
-<col width="11%" />
-<col width="5%" />
-<col width="10%" />
-<col width="5%" />
-<col width="7%" />
-<col width="9%" />
-<col width="6%" />
-<col width="12%" />
-<col width="8%" />
-<col width="5%" />
-<col width="7%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">reference_date</th>
-<th align="left">target</th>
-<th align="right">horizon</th>
-<th align="left">target_end_date</th>
-<th align="left">location</th>
-<th align="left">output_type</th>
-<th align="right">output_type_id</th>
-<th align="right">value</th>
-<th align="left">model_id</th>
-<th align="right">oracle_value</th>
-<th align="left">state</th>
-<th align="right">state_value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0</td>
-<td align="left">2026-01-31</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.4672641</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.64</td>
-<td align="left">colorado</td>
-<td align="right">1.6797132</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">1</td>
-<td align="left">2026-02-07</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.3330493</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.57</td>
-<td align="left">colorado</td>
-<td align="right">0.8489404</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">2</td>
-<td align="left">2026-02-14</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.1517496</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">1.74</td>
-<td align="left">colorado</td>
-<td align="right">0.4783526</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-02-21</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.1181898</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.10</td>
-<td align="left">colorado</td>
-<td align="right">0.2556150</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0</td>
-<td align="left">2026-01-31</td>
-<td align="left">mesa</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">1.1442013</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.42</td>
-<td align="left">colorado</td>
-<td align="right">1.6797132</td>
-</tr>
-<tr class="even">
-<td align="left">2026-01-31</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">1</td>
-<td align="left">2026-02-07</td>
-<td align="left">mesa</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.5227330</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">2.34</td>
-<td align="left">colorado</td>
-<td align="right">0.8489404</td>
-</tr>
-</tbody>
-</table>
+raw &lt;- raw |&gt; left_join(state_data, by = c(&quot;reference_date&quot;, &quot;target&quot;, &quot;horizon&quot;, &quot;target_end_date&quot;, &quot;output_type&quot;, &quot;output_type_id&quot;, &quot;model_id&quot;, &quot;state&quot;))
+
+raw = raw |&gt; filter(location != &quot;nyc&quot;) # removing new york
+raw = raw |&gt; filter(state != &quot;state&quot;) # removing state
+
+sum(is.na(raw) == TRUE) </code></pre>
+<pre><code>## [1] 1728</code></pre>
+<pre class="r"><code>na = raw |&gt; filter(if_any(everything(), is.na)) |&gt; filter(state != &quot;state&quot;)
+table(na$state)</code></pre>
+<pre><code>## 
+## north-carolina south-carolina 
+##           1512            216</code></pre>
 </div>
 </div>
 
