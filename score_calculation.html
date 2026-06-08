@@ -382,6 +382,10 @@ truth</a>
 <li><a href="#na-value-investigation" id="toc-na-value-investigation">NA
 value investigation</a></li>
 </ul></li>
+<li><a href="#wis-calculation-1" id="toc-wis-calculation-1">WIS
+calculation</a></li>
+<li><a href="#coverage-rate-1" id="toc-coverage-rate-1">Coverage
+rate</a></li>
 </ul></li>
 </ul>
 </div>
@@ -550,9 +554,9 @@ knitr::kable(head(raw))</code></pre>
 # &#39;oracle_value&#39;, target_date = target_date ) %&gt;%
 # mutate(model_id = model_name, target =
 # raw_filtered$target[1]) }) }) }</code></pre>
-<pre class="r"><code># write_csv(results, &#39;Data/standard_wis.csv&#39;)
+<pre class="r"><code># write_csv(wis, &#39;Data/standard-scoring/standard_wis.csv&#39;)
 
-wis = read.csv(&quot;Data/standard_wis.csv&quot;)
+wis = read.csv(&quot;Data/standard-scoring/standard_wis.csv&quot;)
 knitr::kable(head(wis))</code></pre>
 <table>
 <colgroup>
@@ -635,9 +639,9 @@ knitr::kable(head(wis))</code></pre>
 <pre class="r"><code># wis_summary &lt;- results %&gt;% group_by(model_id, horizon,
 # target) %&gt;% summarise( mean_wis = mean(wis), count = n(),
 # .groups = &#39;drop&#39; ) write_csv(wis_summary,
-# &#39;Data/standard_wis_summary.csv&#39;)
+# &#39;Data/standard-scoring/standard_wis_summary.csv&#39;)
 
-wis_summary = read.csv(&quot;Data/standard_wis_summary.csv&quot;)
+wis_summary = read.csv(&quot;Data/standard-scoring/standard_wis_summary.csv&quot;)
 knitr::kable(head(wis_summary |&gt;
     arrange(mean_wis)))</code></pre>
 <table>
@@ -706,9 +710,10 @@ knitr::kable(head(wis_summary |&gt;
 # location, target_end_date, horizon, target,
 # reference_date, output_type, oracle_value,
 # quantile_0.025, quantile_0.975, coverage_95)
-# write_csv(coverage, &#39;Data/standard_coverage.csv&#39;)
+# write_csv(coverage,
+# &#39;Data/standard-scoring/standard_coverage.csv&#39;)
 
-coverage = read.csv(&quot;Data/standard_coverage.csv&quot;)
+coverage = read.csv(&quot;Data/standard-scoring/standard_coverage.csv&quot;)
 knitr::kable(head(coverage))</code></pre>
 <table>
 <colgroup>
@@ -824,9 +829,9 @@ knitr::kable(head(coverage))</code></pre>
 # horizon, target) %&gt;% summarise( coverage_rate =
 # mean(coverage_95), count = n(), .groups = &#39;drop&#39; )
 # write_csv(coverage_summary,
-# &#39;Data/standard_coverage_summary.csv&#39;)
+# &#39;Data/standard-scoring/standard_coverage_summary.csv&#39;)
 
-coverage_summary = read.csv(&quot;Data/standard_coverage_summary.csv&quot;)
+coverage_summary = read.csv(&quot;Data/standard-scoring/standard_coverage_summary.csv&quot;)
 knitr::kable(head(coverage_summary |&gt;
     arrange(-coverage_rate)))</code></pre>
 <table>
@@ -890,18 +895,16 @@ knitr::kable(head(coverage_summary |&gt;
 <h1>State forecasts with local truth</h1>
 <div id="lookup-table" class="section level2">
 <h2>Lookup table</h2>
-<pre class="r"><code>locations = read.csv(&quot;Data/locations.csv&quot;)
-lookup = locations |&gt;
-    select(location, state)
-lookup$state = tolower(lookup$state)
+<pre class="r"><code># locations = read.csv(&#39;Data/locations.csv&#39;) lookup =
+# locations |&gt; select(location, state) lookup$state =
+# tolower(lookup$state) lookup &lt;- lookup |&gt; mutate(state =
+# case_when( state == &#39;north carolina&#39; ~ &#39;north-carolina&#39;,
+# state == &#39;south carolina&#39; ~ &#39;south-carolina&#39;, TRUE ~
+# state )) lookup &lt;- lookup |&gt; mutate(state =
+# ifelse(location == state, &#39;state&#39;, state))
 
-lookup &lt;- lookup |&gt;
-    mutate(state = case_when(state == &quot;north carolina&quot; ~ &quot;north-carolina&quot;,
-        state == &quot;south carolina&quot; ~ &quot;south-carolina&quot;, TRUE ~
-            state))
-
-lookup &lt;- lookup |&gt;
-    mutate(state = ifelse(location == state, &quot;state&quot;, state))</code></pre>
+# write_csv(lookup, &#39;Data/lookup.csv&#39;)
+lookup = read.csv(&quot;data/lookup.csv&quot;)</code></pre>
 </div>
 <div id="joins" class="section level2">
 <h2>Joins</h2>
@@ -1161,7 +1164,376 @@ knitr::kable(table(na_nc$model_id))</code></pre>
 </tr>
 </tbody>
 </table>
+<p>I plan to remove the NAs for now until we can figure out what
+happened to these models in this timeframe, doesn’t look systematic,
+maybe these ensemble models took a while to get online</p>
+<pre class="r"><code>dim(raw)</code></pre>
+<pre><code>## [1] 570051     12</code></pre>
+<pre class="r"><code>raw = na.omit(raw)
+dim(raw)</code></pre>
+<pre><code>## [1] 568323     12</code></pre>
+<pre class="r"><code># state_raw = raw |&gt; select(-value) write_csv(state_raw,
+# &#39;Data/state_raw.csv&#39;)
+
+state_raw = read.csv(&quot;Data/state_raw.csv&quot;)
+sum(is.na(state_raw) == TRUE)</code></pre>
+<pre><code>## [1] 0</code></pre>
 </div>
+</div>
+<div id="wis-calculation-1" class="section level2">
+<h2>WIS calculation</h2>
+<pre class="r"><code># models &lt;- unique(state_raw$model_id) dates &lt;-
+# sort(unique(state_raw$target_end_date)) state_results &lt;-
+# state_raw %&gt;% filter(!is.na(state_value)) %&gt;% { models &lt;-
+# unique(.$model_id) dates &lt;-
+# sort(unique(.$target_end_date)) map_df(models, ~ {
+# model_name &lt;- .x map_df(dates, ~ { target_date &lt;- .x
+# state_raw_filtered &lt;- state_raw %&gt;% filter(model_id ==
+# model_name, target_end_date == target_date,
+# !is.na(state_value)) if (nrow(state_raw_filtered) == 0)
+# return(NULL) compute_wis_score( df = state_raw_filtered,
+# predicted = &#39;state_value&#39;, observed = &#39;oracle_value&#39;,
+# target_date = target_date ) %&gt;% mutate(model_id =
+# model_name, target = state_raw_filtered$target[1]) }) })
+# }</code></pre>
+<pre class="r"><code># write_csv(state_results,
+# &#39;Data/state-scoring/state_wis.csv&#39;)
+
+state_wis = read.csv(&quot;Data/state-scoring/state_wis.csv&quot;)
+knitr::kable(head(state_wis))</code></pre>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="15%" />
+<col width="7%" />
+<col width="14%" />
+<col width="9%" />
+<col width="18%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">location</th>
+<th align="left">target_end_date</th>
+<th align="right">horizon</th>
+<th align="left">reference_date</th>
+<th align="right">wis</th>
+<th align="left">model_id</th>
+<th align="left">target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">denver</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.6002015</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">mesa</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1860900</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="odd">
+<td align="left">colorado-springs</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.3712519</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">weld</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">1.2002015</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="odd">
+<td align="left">boulder</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.1638542</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+<tr class="even">
+<td align="left">larimer</td>
+<td align="left">2026-01-31</td>
+<td align="right">1</td>
+<td align="left">2026-01-31</td>
+<td align="right">0.3768074</td>
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">Flu ED visits pct</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># state_wis_summary &lt;- state_wis %&gt;% group_by(model_id,
+# horizon, target) %&gt;% summarise( mean_wis = mean(wis),
+# count = n(), .groups = &#39;drop&#39; )
+# write_csv(state_wis_summary,
+# &#39;Data/state-scoring/state_wis_summary.csv&#39;)
+
+state_wis_summary = read.csv(&quot;Data/state-scoring/state_wis_summary.csv&quot;)
+knitr::kable(head(state_wis_summary |&gt;
+    arrange(mean_wis)))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="right">mean_wis</th>
+<th align="right">count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">4</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3026273</td>
+<td align="right">819</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3229292</td>
+<td align="right">882</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3555184</td>
+<td align="right">945</td>
+</tr>
+<tr class="even">
+<td align="left">MOBS-EpyStrain_Flu</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3995357</td>
+<td align="right">1071</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.4074876</td>
+<td align="right">1008</td>
+</tr>
+<tr class="even">
+<td align="left">NAU-INFLAenza</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.4144961</td>
+<td align="right">1358</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="coverage-rate-1" class="section level2">
+<h2>Coverage rate</h2>
+<pre class="r"><code># state_coverage &lt;- state_raw %&gt;%
+# filter(!is.na(state_value)) %&gt;% pivot_wider( names_from =
+# output_type_id, values_from = state_value, names_prefix =
+# &#39;quantile_&#39; ) %&gt;% mutate( coverage_95 =
+# as.numeric(oracle_value &gt;= quantile_0.025 &amp; oracle_value
+# &lt;= quantile_0.975) ) %&gt;% select(model_id, location,
+# target_end_date, horizon, target, reference_date,
+# output_type, oracle_value, quantile_0.025,
+# quantile_0.975, coverage_95)</code></pre>
+<pre class="r"><code># write_csv(state_coverage,
+# &#39;Data/state-scoring/state_coverage.csv&#39;)
+
+state_coverage = read.csv(&quot;Data/state-scoring/state_coverage.csv&quot;)
+knitr::kable(head(state_coverage))</code></pre>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="5%" />
+<col width="10%" />
+<col width="5%" />
+<col width="11%" />
+<col width="9%" />
+<col width="7%" />
+<col width="8%" />
+<col width="9%" />
+<col width="9%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="left">location</th>
+<th align="left">target_end_date</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="left">reference_date</th>
+<th align="left">output_type</th>
+<th align="right">oracle_value</th>
+<th align="right">quantile_0.025</th>
+<th align="right">quantile_0.975</th>
+<th align="right">coverage_95</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-01-31</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.64</td>
+<td align="right">1.6797132</td>
+<td align="right">4.902631</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-07</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.57</td>
+<td align="right">0.8489404</td>
+<td align="right">4.677867</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-14</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">1.74</td>
+<td align="right">0.4783526</td>
+<td align="right">4.897001</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">denver</td>
+<td align="left">2026-02-21</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.10</td>
+<td align="right">0.2556150</td>
+<td align="right">4.952144</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">mesa</td>
+<td align="left">2026-01-31</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.42</td>
+<td align="right">1.6797132</td>
+<td align="right">4.902631</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="left">mesa</td>
+<td align="left">2026-02-07</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
+<td align="left">quantile</td>
+<td align="right">2.34</td>
+<td align="right">0.8489404</td>
+<td align="right">4.677867</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># state_coverage_summary &lt;- state_coverage %&gt;%
+# group_by(model_id, horizon, target) %&gt;% summarise(
+# coverage_rate = mean(coverage_95), count = n(), .groups =
+# &#39;drop&#39; ) write_csv(state_coverage_summary,
+# &#39;Data/state-scoring/state_coverage_summary.csv&#39;)
+
+state_coverage_summary = read.csv(&quot;Data/state-scoring/state_coverage_summary.csv&quot;)
+knitr::kable(head(state_coverage_summary |&gt;
+    arrange(-coverage_rate)))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">model_id</th>
+<th align="right">horizon</th>
+<th align="left">target</th>
+<th align="right">coverage_rate</th>
+<th align="right">count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9457268</td>
+<td align="right">1603</td>
+</tr>
+<tr class="even">
+<td align="left">epiENGAGE-GBQR</td>
+<td align="right">0</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9421965</td>
+<td align="right">173</td>
+</tr>
+<tr class="odd">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9337662</td>
+<td align="right">1540</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9328449</td>
+<td align="right">819</td>
+</tr>
+<tr class="odd">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9299859</td>
+<td align="right">1414</td>
+</tr>
+<tr class="even">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9248477</td>
+<td align="right">1477</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 

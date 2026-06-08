@@ -119,9 +119,9 @@ knitr::kable(head(raw))
 ```
 
 ```{r}
-# write_csv(results, "Data/standard_wis.csv")
+# write_csv(wis, "Data/standard-scoring/standard_wis.csv")
 
-wis = read.csv("Data/standard_wis.csv")
+wis = read.csv("Data/standard-scoring/standard_wis.csv")
 knitr::kable(head(wis))
 ```
 
@@ -135,9 +135,9 @@ knitr::kable(head(wis))
 #   )
 # 
 # 
-# write_csv(wis_summary, "Data/standard_wis_summary.csv")
+# write_csv(wis_summary, "Data/standard-scoring/standard_wis_summary.csv")
 
-wis_summary = read.csv("Data/standard_wis_summary.csv")
+wis_summary = read.csv("Data/standard-scoring/standard_wis_summary.csv")
 knitr::kable(head(wis_summary |> arrange(mean_wis)))
 ```
 
@@ -158,9 +158,9 @@ knitr::kable(head(wis_summary |> arrange(mean_wis)))
 #          quantile_0.025, quantile_0.975, coverage_95)
 # 
 # 
-# write_csv(coverage, "Data/standard_coverage.csv")
+# write_csv(coverage, "Data/standard-scoring/standard_coverage.csv")
 
-coverage = read.csv("Data/standard_coverage.csv")
+coverage = read.csv("Data/standard-scoring/standard_coverage.csv")
 knitr::kable(head(coverage))
 ```
 
@@ -173,27 +173,30 @@ knitr::kable(head(coverage))
 #     .groups = 'drop'
 #   )
 # 
-# write_csv(coverage_summary, "Data/standard_coverage_summary.csv")
+# write_csv(coverage_summary, "Data/standard-scoring/standard_coverage_summary.csv")
 
-coverage_summary = read.csv("Data/standard_coverage_summary.csv")
+coverage_summary = read.csv("Data/standard-scoring/standard_coverage_summary.csv")
 knitr::kable(head(coverage_summary |> arrange(-coverage_rate)))
 ```
 
 # State forecasts with local truth
 ## Lookup table
 ```{r}
-locations = read.csv("Data/locations.csv")
-lookup = locations |> select(location, state)
-lookup$state = tolower(lookup$state)
+# locations = read.csv("Data/locations.csv")
+# lookup = locations |> select(location, state)
+# lookup$state = tolower(lookup$state)
+# 
+# lookup <- lookup |>
+#   mutate(state = case_when(
+#     state == "north carolina" ~ "north-carolina",
+#     state == "south carolina" ~ "south-carolina",
+#     TRUE ~ state
+#   ))
+# 
+# lookup <- lookup |> mutate(state = ifelse(location == state, "state", state))
 
-lookup <- lookup |>
-  mutate(state = case_when(
-    state == "north carolina" ~ "north-carolina",
-    state == "south carolina" ~ "south-carolina",
-    TRUE ~ state
-  ))
-
-lookup <- lookup |> mutate(state = ifelse(location == state, "state", state))
+# write_csv(lookup, "Data/lookup.csv")
+lookup = read.csv("data/lookup.csv")
 ```
 
 ## Joins
@@ -238,6 +241,116 @@ knitr::kable(table(na_nc$model_id))
 knitr::kable(table(na_sc$model_id))
 ```
 
+I plan to remove the NAs for now until we can figure out what happened to these models in this timeframe, doesn't look systematic, maybe these ensemble models took a while to get online
 
+```{r}
+dim(raw)
+raw = na.omit(raw)
+dim(raw)
+```
 
+```{r}
+# state_raw = raw |> select(-value)
+# write_csv(state_raw, "Data/state_raw.csv")
 
+state_raw = read.csv("Data/state_raw.csv")
+sum(is.na(state_raw) == TRUE)
+```
+## WIS calculation
+```{r}
+# models <- unique(state_raw$model_id)
+# dates <- sort(unique(state_raw$target_end_date))
+# 
+# state_results <- state_raw %>%
+#   filter(!is.na(state_value)) %>%
+#   {
+#     models <- unique(.$model_id)
+#     dates <- sort(unique(.$target_end_date))
+# 
+#     map_df(models, ~ {
+#       model_name <- .x
+# 
+#       map_df(dates, ~ {
+#         target_date <- .x
+# 
+#         state_raw_filtered <- state_raw %>%
+#           filter(model_id == model_name,
+#                  target_end_date == target_date,
+#                  !is.na(state_value))
+# 
+#         if (nrow(state_raw_filtered) == 0) return(NULL)
+# 
+#         compute_wis_score(
+#           df = state_raw_filtered,
+#           predicted = "state_value",
+#           observed = "oracle_value",
+#           target_date = target_date
+#         ) %>%
+#           mutate(model_id = model_name,
+#                  target = state_raw_filtered$target[1])
+# 
+#       })
+#     })
+#   }
+```
+
+```{r}
+# write_csv(state_results, "Data/state-scoring/state_wis.csv")
+
+state_wis = read.csv("Data/state-scoring/state_wis.csv")
+knitr::kable(head(state_wis))
+```
+
+```{r}
+# state_wis_summary <- state_wis %>%
+#   group_by(model_id, horizon, target) %>%
+#   summarise(
+#     mean_wis = mean(wis),
+#     count = n(),
+#     .groups = 'drop'
+#   )
+# 
+# write_csv(state_wis_summary, "Data/state-scoring/state_wis_summary.csv")
+
+state_wis_summary = read.csv("Data/state-scoring/state_wis_summary.csv")
+knitr::kable(head(state_wis_summary |> arrange(mean_wis)))
+```
+
+## Coverage rate
+```{r}
+# state_coverage <- state_raw %>%
+#   filter(!is.na(state_value)) %>%
+#   pivot_wider(
+#     names_from = output_type_id,
+#     values_from = state_value,
+#     names_prefix = "quantile_"
+#   ) %>%
+#   mutate(
+#     coverage_95 = as.numeric(oracle_value >= quantile_0.025 & oracle_value <= quantile_0.975)
+#   ) %>%
+#   select(model_id, location, target_end_date, horizon, target,
+#          reference_date, output_type, oracle_value,
+#          quantile_0.025, quantile_0.975, coverage_95)
+```
+
+```{r}
+# write_csv(state_coverage, "Data/state-scoring/state_coverage.csv")
+
+state_coverage = read.csv("Data/state-scoring/state_coverage.csv")
+knitr::kable(head(state_coverage))
+```
+
+```{r}
+# state_coverage_summary <- state_coverage %>%
+#   group_by(model_id, horizon, target) %>%
+#   summarise(
+#     coverage_rate = mean(coverage_95),
+#     count = n(),
+#     .groups = 'drop'
+#   )
+# 
+# write_csv(state_coverage_summary, "Data/state-scoring/state_coverage_summary.csv")
+
+state_coverage_summary = read.csv("Data/state-scoring/state_coverage_summary.csv")
+knitr::kable(head(state_coverage_summary |> arrange(-coverage_rate)))
+```
