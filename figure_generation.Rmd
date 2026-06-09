@@ -47,6 +47,51 @@ Fig.1 “Boilerplate” analysis comparing local vs state-level forecast perform
 Using all models regardless of when they started submitting
 
 ## Relative WIS
+In this case, the baseline model is the local model (regular application) with the state model being compared to the baseline. A higher rWIS score (>1) would mean the state model is worse. On the other hand, a smaller rWIS score (<1) means that the state model performed better than the baseline.
+```{r}
+state_wis = state_wis |> rename(state_wis = wis)
+```
+
+```{r}
+complete_wis <- state_wis %>%
+  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
+
+complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
+complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+```
+
+```{r}
+sum(is.na(complete_wis))
+complete_wis = na.omit(complete_wis)
+```
+
+```{r}
+complete_wis_summary <- complete_wis %>%
+  group_by(model_id) %>%
+  summarise(
+    mean_relative_wis = mean(relative_wis),
+    count = n(),
+    .groups = 'drop'
+  )
+
+complete_wis_summary |> arrange(mean_relative_wis)
+
+# complete_wis_summary_horizon <- complete_wis %>%
+#   group_by(model_id, horizon) %>%
+#   summarise(
+#     mean_relative_wis = mean(relative_wis),
+#     count = n(),
+#     .groups = 'drop'
+#   )
+# 
+# complete_wis_summary_horizon |> arrange(mean_relative_wis)
+```
+
+```{r}
+ggplot(complete_wis_summary, aes(x = fct_reorder(model_id, mean_relative_wis, .desc = TRUE), y = mean_relative_wis)) +
+  geom_col(fill = "firebrick", color = "black") +  coord_flip() +
+  labs(x = "Model", y = "Mean Relative WIS (State / Baseline)") + theme_bw() 
+```
 
 # Figure 2
 Model-based evaluation of aggregate versus local forecast performance
