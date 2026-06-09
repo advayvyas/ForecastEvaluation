@@ -1,0 +1,63 @@
+---
+title: "Figure Generation"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+urlcolor: blue
+linkcolor: red
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FALSE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+------------------------------------------------------------------------
+```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+library(kableExtra)
+
+library(scoringutils)
+library(hubUtils)
+library(hubEnsembles)
+library(hubData)
+```
+
+# Data
+```{r}
+state_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_coverage.csv")
+state_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_coverage_summary.csv")
+state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+state_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis_summary.csv")
+
+standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
+standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+```
+
+# Figure 1
+Local versus state-level forecast performance
+Fig.1 “Boilerplate” analysis comparing local vs state-level forecast performance, with relative WIS computed via treating the state forecast superimposed onto the local data as a baseline model
+Using all models regardless of when they started submitting
+
+## Relative WIS
+
+# Figure 2
+Model-based evaluation of aggregate versus local forecast performance
+Fig. 2 Visual summary of model-based analysis, plotting intercept and model-specific effects + location specific effects
+Using all models regardless of when they started submitting
+
+# Figure 3
+Model comparison across locations
+Fig. 3 “Boilerplate” analysis comparing forecast performance by model for all locations and subset of models
+Using the 6 models that submitted before the peak: (UT-GBQR, epiforecasts-dyngam, NAU-Copycat, UMass-alloy, NAU-INFLAenza, UMass-SAR, VTSanghani-Prime + epiengage-baseline + epiENGAGE-ensemble_mean)
+
+# Figure 4
+Model-based evaluation of model performance
+Fig. 4 Visual summary of model-based analysis, plotting model-specific effects after accounting for epidemic phase, granularity of location, horizon, etc.
+Using the 6 models that submitted before the peak: (UT-GBQR, epiforecasts-dyngam, NAU-Copycat, UMass-alloy, NAU-INFLAenza, UMass-SAR, VTSanghani-Prime + epiengage-baseline + epiENGAGE-ensemble_mean)
