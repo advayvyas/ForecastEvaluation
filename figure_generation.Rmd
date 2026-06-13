@@ -74,6 +74,8 @@ complete_wis_summary <- complete_wis %>%
     .groups = 'drop'
   )
 
+complete_wis_summary = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
+
 complete_wis_summary |> arrange(mean_relative_wis)
 
 # complete_wis_summary_horizon <- complete_wis %>%
@@ -93,10 +95,12 @@ ggplot(complete_wis_summary, aes(x = fct_reorder(model_id, mean_relative_wis, .d
   labs(x = "Model", y = "Mean Relative WIS (State / Baseline)") + theme_bw() 
 ```
 
+
 # Figure 2
 Model-based evaluation of aggregate versus local forecast performance
 Fig. 2 Visual summary of model-based analysis, plotting intercept and model-specific effects + location specific effects
 Using all models regardless of when they started submitting
+
 
 # Figure 3
 Model comparison across locations
