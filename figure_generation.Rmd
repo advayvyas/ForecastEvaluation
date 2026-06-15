@@ -61,8 +61,8 @@ complete_wis = complete_wis |> select("location", "target_end_date", "horizon", 
 ```
 
 ```{r}
-sum(is.na(complete_wis))
-complete_wis = na.omit(complete_wis)
+sum(is.na(complete_wis)) 
+   complete_wis = na.omit(complete_wis)
 ```
 
 ```{r}
@@ -74,9 +74,9 @@ complete_wis_summary <- complete_wis %>%
     .groups = 'drop'
   )
 
-complete_wis_summary = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
+complete_wis_summary_1 = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
 
-complete_wis_summary |> arrange(mean_relative_wis)
+complete_wis_summary_1 |> arrange(mean_relative_wis)
 
 # complete_wis_summary_horizon <- complete_wis %>%
 #   group_by(model_id, horizon) %>%
@@ -90,7 +90,7 @@ complete_wis_summary |> arrange(mean_relative_wis)
 ```
 
 ```{r}
-ggplot(complete_wis_summary, aes(x = fct_reorder(model_id, mean_relative_wis, .desc = TRUE), y = mean_relative_wis)) +
+ggplot(complete_wis_summary_1, aes(x = fct_reorder(model_id, mean_relative_wis, .desc = TRUE), y = mean_relative_wis)) +
   geom_col(fill = "firebrick", color = "black") +  coord_flip() +
   labs(x = "Model", y = "Mean Relative WIS (State / Baseline)") + theme_bw() 
 ```
@@ -100,14 +100,36 @@ ggplot(complete_wis_summary, aes(x = fct_reorder(model_id, mean_relative_wis, .d
 Model-based evaluation of aggregate versus local forecast performance
 Fig. 2 Visual summary of model-based analysis, plotting intercept and model-specific effects + location specific effects
 Using all models regardless of when they started submitting
+```{r}
+complete_wis_summary_2 = complete_wis_summary
 
+```
 
 # Figure 3
 Model comparison across locations
 Fig. 3 “Boilerplate” analysis comparing forecast performance by model for all locations and subset of models
 Using the 6 models that submitted before the peak: (UT-GBQR, epiforecasts-dyngam, NAU-Copycat, UMass-alloy, NAU-INFLAenza, UMass-SAR, VTSanghani-Prime + epiengage-baseline + epiENGAGE-ensemble_mean)
+```{r, fig.height = 8}
+complete_wis_summary_3 = complete_wis |> filter(model_id %in% c("UT-GBQR", "epiforecasts-dyngam","NAU-Copycat","UMass-alloy", "NAU-INFLAenza", "UMass-SAR")) |> group_by(model_id, location) %>%  summarise(
+    mean_relative_wis = mean(relative_wis),
+    count = n(),
+    .groups = 'drop'
+  )
+
+complete_wis_summary_3 |> arrange(mean_relative_wis) 
+
+ggplot(complete_wis_summary_3, aes(x = fct_reorder(location, mean_relative_wis, .desc = TRUE), y = mean_relative_wis)) +
+  geom_col(fill = "firebrick", width = 1, col = "black") +  coord_flip() +
+  labs(x = "Model", y = "Mean Relative WIS (State / Baseline)") + theme_bw() + facet_wrap(~model_id)
+
+```
 
 # Figure 4
 Model-based evaluation of model performance
 Fig. 4 Visual summary of model-based analysis, plotting model-specific effects after accounting for epidemic phase, granularity of location, horizon, etc.
 Using the 6 models that submitted before the peak: (UT-GBQR, epiforecasts-dyngam, NAU-Copycat, UMass-alloy, NAU-INFLAenza, UMass-SAR, VTSanghani-Prime + epiengage-baseline + epiENGAGE-ensemble_mean)
+```{r}
+
+
+
+```
