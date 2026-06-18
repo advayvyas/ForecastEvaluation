@@ -1,0 +1,56 @@
+---
+title: "Relative Skill Scores"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "C:/Projects/ForecastEvaluation/HTML", encoding = encoding) })
+urlcolor: blue
+linkcolor: red
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FALSE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+------------------------------------------------------------------------
+```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+library(kableExtra)
+
+library(scoringutils)
+library(hubUtils)
+library(hubEnsembles)
+library(hubData)
+```
+
+# Data
+```{r}
+standard_wis = read.csv("Data/standard-scoring/standard_wis.csv")
+state_wis = read.csv("Data/state-scoring/state_wis.csv")
+```
+
+```{r}
+glimpse(standard_wis)
+glimpse(state_wis)
+```
+
+# Computation
+```{r}
+library(scoringutils)
+
+local_scores = raw %>%
+  filter(model_id == unique(model_id)[1]) %>%
+  compute_wis_score(
+    predicted = "value",
+    observed = "oracle_value",
+    target_date = first(target_end_date)
+  )
+
+class(local_scores)
+attributes(local_scores)
+```
