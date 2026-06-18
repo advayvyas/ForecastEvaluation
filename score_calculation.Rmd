@@ -355,3 +355,4 @@ knitr::kable(head(state_coverage))
 state_coverage_summary = read.csv("Data/state-scoring/state_coverage_summary.csv")
 knitr::kable(head(state_coverage_summary |> arrange(-coverage_rate)))
 ```
+
