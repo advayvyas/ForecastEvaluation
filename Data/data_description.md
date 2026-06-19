@@ -1,9 +1,13 @@
 # Data Description
-The corresponding issue is https://github.com/advayvyas/ForecastEvaluation/issues/10. This markdown file is meant to have short descriptions of each dataset and a missing values analysis for merged/joined datasets.
+The corresponding issue is https://github.com/advayvyas/ForecastEvaluation/issues/10. This markdown file is meant to have short descriptions of each dataset and a missing values analysis for merged/joined datasets. 
 
-<img width="3300" height="2100" alt="image" src="https://github.com/user-attachments/assets/935c7de6-f045-435b-972f-6f59d430cb2e" />
+_If investigating the datasets, the prediction values are either "state_value" (state_raw) or "value" (raw_data) with the truth values always being "oracle_value" with a corresponding "output_type" (quantile) and "output_type_id" (quantile level)._
+
+<img width="660" height="410" alt="image" src="https://github.com/user-attachments/assets/935c7de6-f045-435b-972f-6f59d430cb2e" />
+
 Initial submission status figure from https://github.com/advayvyas/ForecastEvaluation/issues/10#issuecomment-4709391465 by Dr. Kim.
 
+# Datasets
 ## locations.csv
 A list of locations and states along with other geographical information.
 
