@@ -1,5 +1,8 @@
 # Data Description
-Development of https://github.com/advayvyas/ForecastEvaluation/issues/10, will have short description of each dataset and then missing values analysis for merged/joined datasets.
+The corresponding issue is https://github.com/advayvyas/ForecastEvaluation/issues/10. This markdown file is meant to have short descriptions of each dataset and a missing values analysis for merged/joined datasets.
+
+<img width="3300" height="2100" alt="image" src="https://github.com/user-attachments/assets/935c7de6-f045-435b-972f-6f59d430cb2e" />
+Initial submission status figure from https://github.com/advayvyas/ForecastEvaluation/issues/10#issuecomment-4709391465 by Dr. Kim.
 
 ## locations.csv
 A list of locations and states along with other geographical information.
@@ -16,8 +19,12 @@ The prediction data acquired from the FluSight hub.
 ## raw_data.csv
 The joined prediction/truth data.
 
+**NA values: 48852 of 756036 (~6.46%) missing due to projected data into the future (when processed) where truth values had yet not been saved. The date range of missing values was specifically 5/30/26 - 6/13/26, spread out amongst models and locations decently uniformly.**
+
 ## state_raw.csv
-The joined prediction/truth data with state predictions and local truth.
+The joined prediction/truth data with state predictions and local truth. New York values are removed from this dataset, per project assumptions/directions.
+         
+**NA values: Missing prediction data from NAU-INFLAenza model on the date 12/20/25 for the locations of south-carolina and north-carolina. Additionally, there is missing predictions from the models UT-GBQR, epiENGAGE-GBQR, epiENGAGE-baseline, epiENGAGE-ensemble_mean, and epiENGAGE-lop_norm on the date 11/22/25 for location north-carolina. NA investigation in issue https://github.com/advayvyas/ForecastEvaluation/issues/3**.
 
 ## standard-scoring
 ### standard_coverage.csv
