@@ -77,8 +77,8 @@ plot_df <- plot_df %>%
 ```
 Missing prediction data from NAU-INFLAenza model on the date 12/20/25 for the locations of south-carolina and north-carolina. Additionally, there is missing predictions from the models UT-GBQR, epiENGAGE-GBQR, epiENGAGE-baseline, epiENGAGE-ensemble_mean, and epiENGAGE-lop_norm on the date 11/22/25 for location north-carolina. 
 ```{r}
-# png("metrocast_hub_models.png", 
-#      width = 8, height = 4, units = "in", res = 600)
+# png("Data/data_details.png", 
+#       width = 8, height = 4, units = "in", res = 600)
 ggplot(plot_df, aes(x = reference_date, y = model_id)) +
   geom_line(aes(group = model_id),
             linewidth = 0.7,
