@@ -42,7 +42,7 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 ```
 
 # Subfigures
-# Top left
+## Top left
 ```{r}
 temp1a_state = state_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 temp1a_state$type = "state-scoring"
@@ -68,7 +68,7 @@ figure1a = ggplot(temp1a, aes(x = fct_reorder(model_id, mean_wis, .fun = max), y
 figure1a
 ```
 
-# Top right
+## Top right
 ```{r}
 temp1b_state = state_wis |> group_by(model_id, location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 
@@ -90,7 +90,7 @@ figure1b = ggplot(temp1b, aes(x = fct_reorder(location, mean_wis, .fun = sum), y
 figure1b
 ```
 
-# Bottom left
+## Bottom left
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
@@ -131,7 +131,7 @@ figure1c
 ```
 
 
-# Bottom right
+## Bottom right
 ```{r}
 temp1d_state = state_coverage |> group_by(model_id, target) |>  
   summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
@@ -165,7 +165,7 @@ figure1d
 
 ## Save to file
 ```{r}
-# png("figure1.png", width = 1920, height = 1920)
+# png("Figures/figure1.png", width = 1920, height = 1920)
 # (figure1a + figure1b) / (figure1c + figure1d)
 # dev.off()
 ```
