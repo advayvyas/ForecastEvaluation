@@ -1,5 +1,5 @@
 ---
-title: "Figure Generation"
+title: "Figure 1"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
@@ -122,7 +122,7 @@ temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
 figure1c = ggplot(temp1c, aes(x = fct_reorder(model_id, mean_relative_wis, .fun = sum), y = mean_relative_wis)) + 
   geom_col(fill = "firebrick", color = "black") + 
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Model", y = "Mean Relative WIS (over 1 is infinity)") + 
+  labs(x = "Model", y = "Mean Relative WIS (values exceeding 1 are infinite)") + 
   theme_bw() + 
   theme(legend.position = "top") + 
   coord_flip()
@@ -160,6 +160,6 @@ figure1d
 
 # Figure 1
 ```{r, fig.height = 20, fig.width = 20}
-(figure1a + figure1b) / (figure1d)
+(figure1a + figure1b) / (figure1c + figure1d)
 
 ```
