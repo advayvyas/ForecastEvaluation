@@ -161,5 +161,11 @@ figure1d
 # Figure 1
 ```{r, fig.height = 20, fig.width = 20}
 (figure1a + figure1b) / (figure1c + figure1d)
+```
 
+## Save to file
+```{r}
+# png("figure1.png", width = 1920, height = 1920)
+# (figure1a + figure1b) / (figure1c + figure1d)
+# dev.off()
 ```
