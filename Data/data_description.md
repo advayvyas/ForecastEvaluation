@@ -23,8 +23,6 @@ The prediction data acquired from the FluSight hub.
 ### raw_data.csv
 The joined prediction/truth data.
 
-**NA values: 48852 of 756036 (~6.46%) missing due to projected data into the future (when processed) where truth values had yet not been saved. The date range of missing values was specifically 5/30/26 - 6/13/26, spread out amongst models and locations decently uniformly.**
-
 ### state_raw.csv
 The joined prediction/truth data with state predictions and local truth. New York values are removed from this dataset, per project assumptions/directions.
          
