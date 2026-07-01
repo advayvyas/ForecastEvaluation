@@ -203,13 +203,7 @@ lookup = read.csv("data/lookup.csv")
 raw <- raw |> left_join(lookup, by = "location") # every row now has a state
 sum(is.na(raw) == TRUE)
 ```
-
-```{r}
-# looks like these NA values are just the horizons not having data yet because it's too far in the future!
-knitr::kable(head(raw |> filter(if_any(everything(), is.na))))
-raw <- raw |> filter(!is.na(oracle_value))
-sum(is.na(raw) == TRUE)
-```
+NA values from horizons are gone!
 
 ```{r}
 # state data goes out and back in to merge
@@ -294,7 +288,7 @@ sum(is.na(state_raw) == TRUE)
 ```
 
 ```{r}
-# write_csv(state_results, "Data/state-scoring/state_wis.csv")
+write_csv(state_results, "Data/state-scoring/state_wis.csv")
 
 state_wis = read.csv("Data/state-scoring/state_wis.csv")
 knitr::kable(head(state_wis))
