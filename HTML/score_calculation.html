@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-06-08" />
+<meta name="date" content="2026-07-01" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">June 08, 2026</h4>
+<h4 class="date">July 01, 2026</h4>
 
 </div>
 
@@ -393,21 +393,19 @@ rate</a></li>
 <hr />
 <div id="functions" class="section level1">
 <h1>Functions</h1>
-<pre class="r"><code>compute_wis_score &lt;- function(df, predicted, observed, target_date) {
-    df_wis &lt;- df %&gt;%
-        rename(predicted = !!rlang::sym(predicted), observed = !!rlang::sym(observed),
-            quantile_level = output_type_id) %&gt;%
-        dplyr::select(reference_date, location, horizon, target,
-            target_end_date, output_type, quantile_level, observed,
-            predicted) |&gt;
-        as_forecast_quantile(forecast_unit = c(&quot;location&quot;, &quot;target_end_date&quot;,
-            &quot;horizon&quot;, &quot;target&quot;), predicted = &quot;predicted&quot;, quantile_col = &quot;quantile_level&quot;) |&gt;
-        score() |&gt;
-        mutate(horizon = horizon + 1, reference_date = target_date) |&gt;
-        dplyr::select(location, target_end_date, horizon, reference_date,
-            wis)
-    return(df_wis)
-}</code></pre>
+<pre class="r"><code># compute_wis_score &lt;- function(df, predicted, observed,
+# target_date) { df_wis &lt;- df %&gt;% rename(predicted =
+# !!rlang::sym(predicted), observed =
+# !!rlang::sym(observed), quantile_level = output_type_id)
+# %&gt;% dplyr::select(reference_date, location, horizon,
+# target, target_end_date, output_type, quantile_level,
+# observed, predicted) |&gt; as_forecast_quantile(
+# forecast_unit = c(&#39;location&#39;, &#39;target_end_date&#39;,
+# &#39;horizon&#39;, &#39;target&#39;), predicted = &#39;predicted&#39;,
+# quantile_col = &#39;quantile_level&#39; ) |&gt; score() |&gt;
+# mutate(horizon = horizon + 1, reference_date =
+# target_date) |&gt; dplyr::select(location, target_end_date,
+# horizon, reference_date, wis) return(df_wis) }</code></pre>
 </div>
 <div id="data" class="section level1">
 <h1>Data</h1>
@@ -542,7 +540,7 @@ knitr::kable(head(raw))</code></pre>
 <div id="wis-calculation" class="section level2">
 <h2>WIS calculation</h2>
 <pre class="r"><code># models &lt;- unique(raw$model_id) dates &lt;-
-# sort(unique(raw$target_end_date)) results &lt;- raw %&gt;%
+# sort(unique(raw$target_end_date)) wis &lt;- raw %&gt;%
 # filter(!is.na(oracle_value)) %&gt;% { models &lt;-
 # unique(.$model_id) dates &lt;-
 # sort(unique(.$target_end_date)) map_df(models, ~ {
@@ -636,9 +634,12 @@ knitr::kable(head(wis))</code></pre>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code># wis_summary &lt;- results %&gt;% group_by(model_id, horizon,
+<pre class="r"><code># wis_summary &lt;- wis %&gt;% group_by(model_id, horizon,
 # target) %&gt;% summarise( mean_wis = mean(wis), count = n(),
-# .groups = &#39;drop&#39; ) write_csv(wis_summary,
+# .groups = &#39;drop&#39; )
+
+
+# write_csv(wis_summary,
 # &#39;Data/standard-scoring/standard_wis_summary.csv&#39;)
 
 wis_summary = read.csv(&quot;Data/standard-scoring/standard_wis_summary.csv&quot;)
@@ -659,43 +660,43 @@ knitr::kable(head(wis_summary |&gt;
 <td align="left">NAU-Copycat</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.2163955</td>
+<td align="right">0.2164307</td>
 <td align="right">1292</td>
+</tr>
+<tr class="even">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">4</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.2480390</td>
+<td align="right">1232</td>
+</tr>
+<tr class="odd">
+<td align="left">ACCIDDA-InfluPaint</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.2740031</td>
+<td align="right">1232</td>
 </tr>
 <tr class="even">
 <td align="left">FluSight-ensemble</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.2894513</td>
-<td align="right">338</td>
-</tr>
-<tr class="odd">
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">4</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.2913579</td>
-<td align="right">1001</td>
-</tr>
-<tr class="even">
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">3</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.3053904</td>
-<td align="right">1078</td>
+<td align="right">0.2794712</td>
+<td align="right">351</td>
 </tr>
 <tr class="odd">
 <td align="left">NAU-Copycat</td>
 <td align="right">2</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3142315</td>
-<td align="right">1292</td>
+<td align="right">0.3001700</td>
+<td align="right">1368</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">2</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3328621</td>
-<td align="right">1155</td>
+<td align="right">0.3151123</td>
+<td align="right">1232</td>
 </tr>
 </tbody>
 </table>
@@ -911,125 +912,8 @@ lookup = read.csv(&quot;data/lookup.csv&quot;)</code></pre>
 <pre class="r"><code>raw &lt;- raw |&gt;
     left_join(lookup, by = &quot;location&quot;)  # every row now has a state
 sum(is.na(raw) == TRUE)</code></pre>
-<pre><code>## [1] 48852</code></pre>
-<pre class="r"><code># looks like these NA values are just the horizons not
-# having data yet because it&#39;s too far in the future!
-knitr::kable(head(raw |&gt;
-    filter(if_any(everything(), is.na))))</code></pre>
-<table>
-<colgroup>
-<col width="9%" />
-<col width="11%" />
-<col width="5%" />
-<col width="10%" />
-<col width="11%" />
-<col width="7%" />
-<col width="9%" />
-<col width="6%" />
-<col width="12%" />
-<col width="8%" />
-<col width="5%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">reference_date</th>
-<th align="left">target</th>
-<th align="right">horizon</th>
-<th align="left">target_end_date</th>
-<th align="left">location</th>
-<th align="left">output_type</th>
-<th align="right">output_type_id</th>
-<th align="right">value</th>
-<th align="left">model_id</th>
-<th align="right">oracle_value</th>
-<th align="left">state</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">denver</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0108241</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">mesa</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0016058</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">colorado-springs</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0020151</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">weld</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0165051</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="odd">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">boulder</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0040358</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-<tr class="even">
-<td align="left">2026-05-09</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">3</td>
-<td align="left">2026-05-30</td>
-<td align="left">larimer</td>
-<td align="left">quantile</td>
-<td align="right">0.025</td>
-<td align="right">0.0091862</td>
-<td align="left">ACCIDDA-InfluPaint</td>
-<td align="right">NA</td>
-<td align="left">colorado</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>raw &lt;- raw |&gt;
-    filter(!is.na(oracle_value))
-sum(is.na(raw) == TRUE)</code></pre>
 <pre><code>## [1] 0</code></pre>
+<p>NA values from horizons are gone!</p>
 <pre class="r"><code># state data goes out and back in to merge
 state_data &lt;- raw |&gt; 
   filter(state == &quot;state&quot;) |&gt; # state indicator
@@ -1168,10 +1052,10 @@ knitr::kable(table(na_nc$model_id))</code></pre>
 happened to these models in this timeframe, doesn’t look systematic,
 maybe these ensemble models took a while to get online</p>
 <pre class="r"><code>dim(raw)</code></pre>
-<pre><code>## [1] 570051     12</code></pre>
+<pre><code>## [1] 609876     12</code></pre>
 <pre class="r"><code>raw = na.omit(raw)
 dim(raw)</code></pre>
-<pre><code>## [1] 568323     12</code></pre>
+<pre><code>## [1] 608148     12</code></pre>
 <pre class="r"><code># state_raw = raw |&gt; select(-value) write_csv(state_raw,
 # &#39;Data/state_raw.csv&#39;)
 
@@ -1303,42 +1187,42 @@ knitr::kable(head(state_wis_summary |&gt;
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">4</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3026273</td>
-<td align="right">819</td>
+<td align="right">0.2590346</td>
+<td align="right">1008</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">3</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3229292</td>
-<td align="right">882</td>
+<td align="right">0.2914228</td>
+<td align="right">1008</td>
 </tr>
 <tr class="odd">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">2</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3555184</td>
-<td align="right">945</td>
+<td align="right">0.3377897</td>
+<td align="right">1008</td>
 </tr>
 <tr class="even">
 <td align="left">MOBS-EpyStrain_Flu</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3995357</td>
+<td align="right">0.3997714</td>
 <td align="right">1071</td>
 </tr>
 <tr class="odd">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.4074876</td>
+<td align="right">0.4073593</td>
 <td align="right">1008</td>
 </tr>
 <tr class="even">
 <td align="left">NAU-INFLAenza</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.4144961</td>
+<td align="right">0.4143498</td>
 <td align="right">1358</td>
 </tr>
 </tbody>
@@ -1506,31 +1390,31 @@ knitr::kable(head(state_coverage_summary |&gt;
 </tr>
 <tr class="odd">
 <td align="left">epiENGAGE-lop_norm</td>
+<td align="right">3</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9376170</td>
+<td align="right">1603</td>
+</tr>
+<tr class="even">
+<td align="left">epiENGAGE-lop_norm</td>
 <td align="right">1</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.9337662</td>
-<td align="right">1540</td>
+<td align="right">0.9363693</td>
+<td align="right">1603</td>
+</tr>
+<tr class="odd">
+<td align="left">epiENGAGE-lop_norm</td>
+<td align="right">2</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.9295072</td>
+<td align="right">1603</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">3</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.9328449</td>
-<td align="right">819</td>
-</tr>
-<tr class="odd">
-<td align="left">epiENGAGE-lop_norm</td>
-<td align="right">3</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.9299859</td>
-<td align="right">1414</td>
-</tr>
-<tr class="even">
-<td align="left">epiENGAGE-lop_norm</td>
-<td align="right">2</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.9248477</td>
-<td align="right">1477</td>
+<td align="right">0.9275794</td>
+<td align="right">1008</td>
 </tr>
 </tbody>
 </table>
