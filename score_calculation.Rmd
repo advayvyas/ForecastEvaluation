@@ -288,7 +288,7 @@ sum(is.na(state_raw) == TRUE)
 ```
 
 ```{r}
-write_csv(state_results, "Data/state-scoring/state_wis.csv")
+# write_csv(state_results, "Data/state-scoring/state_wis.csv")
 
 state_wis = read.csv("Data/state-scoring/state_wis.csv")
 knitr::kable(head(state_wis))
