@@ -30,24 +30,24 @@ library(hubData)
 
 # Functions
 ```{r}
-compute_wis_score <- function(df, predicted, observed, target_date) {
-  df_wis <- df %>%
-    rename(predicted = !!rlang::sym(predicted),
-           observed = !!rlang::sym(observed),
-           quantile_level = output_type_id) %>%
-    dplyr::select(reference_date, location, horizon, target, target_end_date,
-                  output_type, quantile_level, observed, predicted) |>
-    as_forecast_quantile(
-      forecast_unit = c("location", "target_end_date", "horizon", "target"),
-      predicted = "predicted",
-      quantile_col = "quantile_level"
-    ) |>
-    score() |>
-    mutate(horizon = horizon + 1,
-           reference_date = target_date) |>
-    dplyr::select(location, target_end_date, horizon, reference_date, wis)
-  return(df_wis)
-}
+# compute_wis_score <- function(df, predicted, observed, target_date) {
+#   df_wis <- df %>%
+#     rename(predicted = !!rlang::sym(predicted),
+#            observed = !!rlang::sym(observed),
+#            quantile_level = output_type_id) %>%
+#     dplyr::select(reference_date, location, horizon, target, target_end_date,
+#                   output_type, quantile_level, observed, predicted) |>
+#     as_forecast_quantile(
+#       forecast_unit = c("location", "target_end_date", "horizon", "target"),
+#       predicted = "predicted",
+#       quantile_col = "quantile_level"
+#     ) |>
+#     score() |>
+#     mutate(horizon = horizon + 1,
+#            reference_date = target_date) |>
+#     dplyr::select(location, target_end_date, horizon, reference_date, wis)
+#   return(df_wis)
+# }
 ```
 
 # Data 
@@ -56,13 +56,11 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 # observed = read.csv("Data/oracle-output.csv") # the observed data does not have ILI ED Visits
 ```
 
-
 ## Model output
 ```{r}
-# hub_path <- "C:/Projects/flu-metrocast"
+# hub_path <- "C:/Projects/flu-metrocast" 
 # hub_con <- connect_hub(hub_path)
-# predictions <- hub_con %>%
-#   collect()
+# predictions <- hub_con %>% collect()
 # 
 # predictions <- predictions |> filter(location == tolower(location))
 # write_csv(predictions, "Data/predictions.csv")
@@ -86,7 +84,7 @@ knitr::kable(head(raw))
 # models <- unique(raw$model_id)
 # dates <- sort(unique(raw$target_end_date))
 # 
-# results <- raw %>%
+# wis <- raw %>%
 #   filter(!is.na(oracle_value)) %>%
 #   {
 #     models <- unique(.$model_id)
@@ -127,15 +125,15 @@ knitr::kable(head(wis))
 ```
 
 ```{r wis_summary}
-# wis_summary <- results %>%
+# wis_summary <- wis %>%
 #   group_by(model_id, horizon, target) %>%
 #   summarise(
 #     mean_wis = mean(wis),
 #     count = n(),
 #     .groups = 'drop'
 #   )
-# 
-# 
+
+
 # write_csv(wis_summary, "Data/standard-scoring/standard_wis_summary.csv")
 
 wis_summary = read.csv("Data/standard-scoring/standard_wis_summary.csv")
