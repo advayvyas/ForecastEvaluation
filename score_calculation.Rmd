@@ -150,13 +150,18 @@ knitr::kable(head(wis_summary |> arrange(mean_wis)))
 #     names_prefix = "quantile_"
 #   ) %>%
 #   mutate(
-#     coverage_95 = as.numeric(oracle_value >= quantile_0.025 & oracle_value <= quantile_0.975)
+#     coverage_95 = as.numeric(`oracle_value` >= `quantile_0.025` & `oracle_value` <= `quantile_0.975`),
+#     prediction_category = case_when(
+#       `oracle_value` < `quantile_0.025` ~ "under",
+#       `oracle_value` > `quantile_0.975` ~ "over",
+#       coverage_95 == 1 ~ "on-target"
+#     )
 #   ) %>%
 #   select(model_id, location, target_end_date, horizon, target,
 #          reference_date, output_type, oracle_value,
-#          quantile_0.025, quantile_0.975, coverage_95)
-# 
-# 
+#          `quantile_0.025`, `quantile_0.975`, coverage_95, prediction_category)
+
+
 # write_csv(coverage, "Data/standard-scoring/standard_coverage.csv")
 
 coverage = read.csv("Data/standard-scoring/standard_coverage.csv")

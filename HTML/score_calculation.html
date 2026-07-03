@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-07-01" />
+<meta name="date" content="2026-07-02" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">July 01, 2026</h4>
+<h4 class="date">July 02, 2026</h4>
 
 </div>
 
@@ -706,29 +706,36 @@ knitr::kable(head(wis_summary |&gt;
 <pre class="r"><code># coverage &lt;- raw %&gt;% filter(!is.na(oracle_value)) %&gt;%
 # pivot_wider( names_from = output_type_id, values_from =
 # value, names_prefix = &#39;quantile_&#39; ) %&gt;% mutate(
-# coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
-# oracle_value &lt;= quantile_0.975) ) %&gt;% select(model_id,
-# location, target_end_date, horizon, target,
-# reference_date, output_type, oracle_value,
-# quantile_0.025, quantile_0.975, coverage_95)
+# coverage_95 = as.numeric(`oracle_value` &gt;=
+# `quantile_0.025` &amp; `oracle_value` &lt;= `quantile_0.975`),
+# prediction_category = case_when( `oracle_value` &lt;
+# `quantile_0.025` ~ &#39;under&#39;, `oracle_value` &gt;
+# `quantile_0.975` ~ &#39;over&#39;, coverage_95 == 1 ~ &#39;on-target&#39;
+# ) ) %&gt;% select(model_id, location, target_end_date,
+# horizon, target, reference_date, output_type,
+# oracle_value, `quantile_0.025`, `quantile_0.975`,
+# coverage_95, prediction_category)
+
+
 # write_csv(coverage,
 # &#39;Data/standard-scoring/standard_coverage.csv&#39;)
 
 coverage = read.csv(&quot;Data/standard-scoring/standard_coverage.csv&quot;)
 knitr::kable(head(coverage))</code></pre>
-<table>
+<table style="width:100%;">
 <colgroup>
-<col width="12%" />
-<col width="5%" />
-<col width="10%" />
-<col width="5%" />
 <col width="11%" />
+<col width="5%" />
 <col width="9%" />
+<col width="4%" />
+<col width="10%" />
+<col width="8%" />
+<col width="6%" />
 <col width="7%" />
 <col width="8%" />
-<col width="9%" />
-<col width="9%" />
-<col width="7%" />
+<col width="8%" />
+<col width="6%" />
+<col width="11%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -743,6 +750,7 @@ knitr::kable(head(coverage))</code></pre>
 <th align="right">quantile_0.025</th>
 <th align="right">quantile_0.975</th>
 <th align="right">coverage_95</th>
+<th align="left">prediction_category</th>
 </tr>
 </thead>
 <tbody>
@@ -758,6 +766,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">0.4672641</td>
 <td align="right">2.588891</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
@@ -771,6 +780,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">0.3330493</td>
 <td align="right">3.064956</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 <tr class="odd">
 <td align="left">ACCIDDA-InfluPaint</td>
@@ -784,6 +794,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">0.1517496</td>
 <td align="right">2.956657</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
@@ -797,6 +808,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">0.1181898</td>
 <td align="right">2.533754</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 <tr class="odd">
 <td align="left">ACCIDDA-InfluPaint</td>
@@ -810,6 +822,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">1.1442013</td>
 <td align="right">4.095020</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 <tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
@@ -823,6 +836,7 @@ knitr::kable(head(coverage))</code></pre>
 <td align="right">0.5227330</td>
 <td align="right">3.425648</td>
 <td align="right">1</td>
+<td align="left">on-target</td>
 </tr>
 </tbody>
 </table>
