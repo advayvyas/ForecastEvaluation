@@ -43,9 +43,8 @@ library(hubData)
 #       quantile_col = "quantile_level"
 #     ) |>
 #     score() |>
-#     mutate(horizon = horizon + 1,
-#            reference_date = target_date) |>
-#     dplyr::select(location, target_end_date, horizon, reference_date, wis)
+#     mutate(horizon = horizon + 1) |>
+#     dplyr::select(location, target_end_date, horizon, wis)   # reference_date dropped here, rejoined below
 #   return(df_wis)
 # }
 ```
@@ -81,9 +80,6 @@ knitr::kable(head(raw))
 # Standard scoring
 ## WIS calculation
 ```{r wis_calc}
-# models <- unique(raw$model_id)
-# dates <- sort(unique(raw$target_end_date))
-# 
 # wis <- raw %>%
 #   filter(!is.na(oracle_value)) %>%
 #   {
@@ -109,8 +105,10 @@ knitr::kable(head(raw))
 #           observed = "oracle_value",
 #           target_date = target_date
 #         ) %>%
-#           mutate(model_id = model_name,
-#                  target = raw_filtered$target[1])
+#           mutate(model_id = model_name) %>%
+#           left_join(raw_filtered %>% mutate(horizon = horizon + 1) %>% 
+#                        distinct(location, horizon, target, reference_date),
+#                      by = c("location", "horizon"))   # target + reference_date both rejoined per-row
 # 
 #       })
 #     })
@@ -132,8 +130,8 @@ knitr::kable(head(wis))
 #     count = n(),
 #     .groups = 'drop'
 #   )
-
-
+# 
+# 
 # write_csv(wis_summary, "Data/standard-scoring/standard_wis_summary.csv")
 
 wis_summary = read.csv("Data/standard-scoring/standard_wis_summary.csv")
@@ -142,27 +140,27 @@ knitr::kable(head(wis_summary |> arrange(mean_wis)))
 
 ## Coverage rate
 ```{r coverage_calc}
-# coverage <- raw %>%
-#   filter(!is.na(oracle_value)) %>%
-#   pivot_wider(
-#     names_from = output_type_id,
-#     values_from = value,
-#     names_prefix = "quantile_"
-#   ) %>%
-#   mutate(
-#     coverage_95 = as.numeric(`oracle_value` >= `quantile_0.025` & `oracle_value` <= `quantile_0.975`),
-#     prediction_category = case_when(
-#       `oracle_value` < `quantile_0.025` ~ "under",
-#       `oracle_value` > `quantile_0.975` ~ "over",
-#       coverage_95 == 1 ~ "on-target"
-#     )
-#   ) %>%
-#   select(model_id, location, target_end_date, horizon, target,
-#          reference_date, output_type, oracle_value,
-#          `quantile_0.025`, `quantile_0.975`, coverage_95, prediction_category)
+coverage <- raw %>%
+  filter(!is.na(oracle_value)) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "quantile_"
+  ) %>%
+  mutate(
+    coverage_95 = as.numeric(`oracle_value` >= `quantile_0.025` & `oracle_value` <= `quantile_0.975`),
+    prediction_category = case_when(
+      `oracle_value` < `quantile_0.025` ~ "under",
+      `oracle_value` > `quantile_0.975` ~ "over",
+      coverage_95 == 1 ~ "on-target"
+    )
+  ) %>%
+  select(model_id, location, target_end_date, horizon, target,
+         reference_date, output_type, oracle_value,
+         `quantile_0.025`, `quantile_0.975`, coverage_95, prediction_category)
 
 
-# write_csv(coverage, "Data/standard-scoring/standard_coverage.csv")
+write_csv(coverage, "Data/standard-scoring/standard_coverage.csv")
 
 coverage = read.csv("Data/standard-scoring/standard_coverage.csv")
 knitr::kable(head(coverage))
