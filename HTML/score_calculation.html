@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2026-07-02" />
+<meta name="date" content="2026-07-03" />
 
 <title>Score Calculation</title>
 
@@ -350,7 +350,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Score Calculation</h1>
-<h4 class="date">July 02, 2026</h4>
+<h4 class="date">July 03, 2026</h4>
 
 </div>
 
@@ -403,9 +403,9 @@ rate</a></li>
 # forecast_unit = c(&#39;location&#39;, &#39;target_end_date&#39;,
 # &#39;horizon&#39;, &#39;target&#39;), predicted = &#39;predicted&#39;,
 # quantile_col = &#39;quantile_level&#39; ) |&gt; score() |&gt;
-# mutate(horizon = horizon + 1, reference_date =
-# target_date) |&gt; dplyr::select(location, target_end_date,
-# horizon, reference_date, wis) return(df_wis) }</code></pre>
+# mutate(horizon = horizon + 1) |&gt; dplyr::select(location,
+# target_end_date, horizon, wis) # reference_date dropped
+# here, rejoined below return(df_wis) }</code></pre>
 </div>
 <div id="data" class="section level1">
 <h1>Data</h1>
@@ -539,10 +539,8 @@ knitr::kable(head(raw))</code></pre>
 <h1>Standard scoring</h1>
 <div id="wis-calculation" class="section level2">
 <h2>WIS calculation</h2>
-<pre class="r"><code># models &lt;- unique(raw$model_id) dates &lt;-
-# sort(unique(raw$target_end_date)) wis &lt;- raw %&gt;%
-# filter(!is.na(oracle_value)) %&gt;% { models &lt;-
-# unique(.$model_id) dates &lt;-
+<pre class="r"><code># wis &lt;- raw %&gt;% filter(!is.na(oracle_value)) %&gt;% { models
+# &lt;- unique(.$model_id) dates &lt;-
 # sort(unique(.$target_end_date)) map_df(models, ~ {
 # model_name &lt;- .x map_df(dates, ~ { target_date &lt;- .x
 # raw_filtered &lt;- raw %&gt;% filter(model_id == model_name,
@@ -550,8 +548,11 @@ knitr::kable(head(raw))</code></pre>
 # (nrow(raw_filtered) == 0) return(NULL) compute_wis_score(
 # df = raw_filtered, predicted = &#39;value&#39;, observed =
 # &#39;oracle_value&#39;, target_date = target_date ) %&gt;%
-# mutate(model_id = model_name, target =
-# raw_filtered$target[1]) }) }) }</code></pre>
+# mutate(model_id = model_name) %&gt;% left_join(raw_filtered
+# %&gt;% mutate(horizon = horizon + 1) %&gt;% distinct(location,
+# horizon, target, reference_date), by = c(&#39;location&#39;,
+# &#39;horizon&#39;)) # target + reference_date both rejoined
+# per-row }) }) }</code></pre>
 <pre class="r"><code># write_csv(wis, &#39;Data/standard-scoring/standard_wis.csv&#39;)
 
 wis = read.csv(&quot;Data/standard-scoring/standard_wis.csv&quot;)
@@ -561,20 +562,20 @@ knitr::kable(head(wis))</code></pre>
 <col width="16%" />
 <col width="15%" />
 <col width="7%" />
-<col width="14%" />
 <col width="9%" />
 <col width="18%" />
 <col width="17%" />
+<col width="14%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">location</th>
 <th align="left">target_end_date</th>
 <th align="right">horizon</th>
-<th align="left">reference_date</th>
 <th align="right">wis</th>
 <th align="left">model_id</th>
 <th align="left">target</th>
+<th align="left">reference_date</th>
 </tr>
 </thead>
 <tbody>
@@ -582,64 +583,61 @@ knitr::kable(head(wis))</code></pre>
 <td align="left">denver</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.1500635</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 <tr class="even">
 <td align="left">mesa</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.1359327</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 <tr class="odd">
 <td align="left">colorado-springs</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.1415632</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 <tr class="even">
 <td align="left">weld</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.2135783</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 <tr class="odd">
 <td align="left">boulder</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.2728416</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 <tr class="even">
 <td align="left">larimer</td>
 <td align="left">2026-01-31</td>
 <td align="right">1</td>
-<td align="left">2026-01-31</td>
 <td align="right">0.1595693</td>
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="left">Flu ED visits pct</td>
+<td align="left">2026-01-31</td>
 </tr>
 </tbody>
 </table>
 <pre class="r"><code># wis_summary &lt;- wis %&gt;% group_by(model_id, horizon,
 # target) %&gt;% summarise( mean_wis = mean(wis), count = n(),
-# .groups = &#39;drop&#39; )
-
-
-# write_csv(wis_summary,
+# .groups = &#39;drop&#39; ) write_csv(wis_summary,
 # &#39;Data/standard-scoring/standard_wis_summary.csv&#39;)
 
 wis_summary = read.csv(&quot;Data/standard-scoring/standard_wis_summary.csv&quot;)
@@ -657,25 +655,25 @@ knitr::kable(head(wis_summary |&gt;
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">NAU-Copycat</td>
-<td align="right">1</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.2164307</td>
-<td align="right">1292</td>
-</tr>
-<tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">4</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.2480390</td>
-<td align="right">1232</td>
+<td align="right">0.2456040</td>
+<td align="right">1216</td>
+</tr>
+<tr class="even">
+<td align="left">UT-GBQR</td>
+<td align="right">1</td>
+<td align="left">ILI ED visits pct</td>
+<td align="right">0.2607028</td>
+<td align="right">27</td>
 </tr>
 <tr class="odd">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">3</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.2740031</td>
-<td align="right">1232</td>
+<td align="right">0.2724911</td>
+<td align="right">1216</td>
 </tr>
 <tr class="even">
 <td align="left">FluSight-ensemble</td>
@@ -685,40 +683,38 @@ knitr::kable(head(wis_summary |&gt;
 <td align="right">351</td>
 </tr>
 <tr class="odd">
-<td align="left">NAU-Copycat</td>
-<td align="right">2</td>
-<td align="left">Flu ED visits pct</td>
-<td align="right">0.3001700</td>
-<td align="right">1368</td>
-</tr>
-<tr class="even">
 <td align="left">ACCIDDA-InfluPaint</td>
 <td align="right">2</td>
 <td align="left">Flu ED visits pct</td>
-<td align="right">0.3151123</td>
-<td align="right">1232</td>
+<td align="right">0.3126506</td>
+<td align="right">1216</td>
+</tr>
+<tr class="even">
+<td align="left">UMass-alloy</td>
+<td align="right">1</td>
+<td align="left">Flu ED visits pct</td>
+<td align="right">0.3349054</td>
+<td align="right">1724</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div id="coverage-rate" class="section level2">
 <h2>Coverage rate</h2>
-<pre class="r"><code># coverage &lt;- raw %&gt;% filter(!is.na(oracle_value)) %&gt;%
-# pivot_wider( names_from = output_type_id, values_from =
-# value, names_prefix = &#39;quantile_&#39; ) %&gt;% mutate(
-# coverage_95 = as.numeric(`oracle_value` &gt;=
-# `quantile_0.025` &amp; `oracle_value` &lt;= `quantile_0.975`),
-# prediction_category = case_when( `oracle_value` &lt;
-# `quantile_0.025` ~ &#39;under&#39;, `oracle_value` &gt;
-# `quantile_0.975` ~ &#39;over&#39;, coverage_95 == 1 ~ &#39;on-target&#39;
-# ) ) %&gt;% select(model_id, location, target_end_date,
-# horizon, target, reference_date, output_type,
-# oracle_value, `quantile_0.025`, `quantile_0.975`,
-# coverage_95, prediction_category)
+<pre class="r"><code>coverage &lt;- raw %&gt;%
+    filter(!is.na(oracle_value)) %&gt;%
+    pivot_wider(names_from = output_type_id, values_from = value,
+        names_prefix = &quot;quantile_&quot;) %&gt;%
+    mutate(coverage_95 = as.numeric(oracle_value &gt;= quantile_0.025 &amp;
+        oracle_value &lt;= quantile_0.975), prediction_category = case_when(oracle_value &lt;
+        quantile_0.025 ~ &quot;under&quot;, oracle_value &gt; quantile_0.975 ~
+        &quot;over&quot;, coverage_95 == 1 ~ &quot;on-target&quot;)) %&gt;%
+    select(model_id, location, target_end_date, horizon, target,
+        reference_date, output_type, oracle_value, quantile_0.025,
+        quantile_0.975, coverage_95, prediction_category)
 
 
-# write_csv(coverage,
-# &#39;Data/standard-scoring/standard_coverage.csv&#39;)
+write_csv(coverage, &quot;Data/standard-scoring/standard_coverage.csv&quot;)
 
 coverage = read.csv(&quot;Data/standard-scoring/standard_coverage.csv&quot;)
 knitr::kable(head(coverage))</code></pre>
