@@ -60,33 +60,63 @@ plot_df <- temp3a %>%
   ungroup() %>%
   mutate(model_id = fct_reorder(model_id, total_wis))
 
-ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
+plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("over", "on-target", "under"))
+```
+
+```{r, fig.height = 20, fig.width=10}
+figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
   geom_col() +
   coord_flip() +
   labs(x = "Model", y = "Mean WIS", fill = "Prediction Category") +
-  theme_minimal()
+  theme_bw()
+figure3a
 ```
 
 ## Top right
 ```{r}
-
-
+temp3b = standard_coverage |> group_by(model_id, horizon) |> 
+  summarise(mean_coverage = mean(coverage_95, na.rm = TRUE), .groups = "drop") %>%
+  group_by(model_id) %>%
+  ungroup()
 ```
+
+```{r, fig.height = 10, fig.width=10}
+figure3b = ggplot(temp3b) + geom_tile(aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "magma") + theme_bw() + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
+figure3b
+```
+
 
 ## Bottom right
 ```{r}
+temp3c = rbind(
+  standard_wis |>
+    group_by(target_end_date, model_id) |>
+    summarize(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop"),
+  standard_wis |>
+    group_by(target_end_date) |>
+    summarize(
+      model_id = "AVERAGE",
+      mean_wis = mean(wis, na.rm = TRUE),
+      .groups = "drop"
+    )
+)
 
+temp3c$target_end_date = as.Date(temp3c$target_end_date)
+```
 
+```{r, fig.height = 10, fig.width=10}
+figure3c = ggplot(temp3c) + geom_line(aes(x=target_end_date, y=mean_wis, color = model_id)) + theme_bw()
+figure3c
 ```
 
 # Figure 3
 ```{r, fig.height = 20, fig.width = 20}
-# (figure3a) / (figure3b + figure3c)
+(figure3a + figure3b) / (figure3c)
 ```
 
 ## Save to file
 ```{r}
-# png("Figures/figure3.png", width = 1920, height = 1920)
-# (figure3a) / (figure3b + figure3c)
-# dev.off()
+png("Figures/figure3.png", width = 1920, height = 1920)
+(figure3a + figure3b) / (figure3c)
+dev.off()
 ```
