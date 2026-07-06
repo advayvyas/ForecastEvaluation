@@ -104,8 +104,19 @@ temp3c = rbind(
 temp3c$target_end_date = as.Date(temp3c$target_end_date)
 ```
 
-```{r, fig.height = 10, fig.width=10}
-figure3c = ggplot(temp3c) + geom_line(aes(x=target_end_date, y=mean_wis, color = model_id)) + theme_bw()
+```{r, fig.height = 10, fig.width=20}
+figure3c = ggplot() +
+  geom_line(
+    data = subset(temp3c, model_id != "AVERAGE"),
+    aes(target_end_date, mean_wis, color = model_id)
+  ) +
+  geom_line(
+    data = subset(temp3c, model_id == "AVERAGE"),
+    aes(target_end_date, mean_wis),
+    color = "black",
+    linewidth = 1
+  ) + theme_bw() + labs(y = "Mean WIS", x = "Date", color = "Model") + scale_x_date(date_breaks = "1 month",date_labels = "%b %Y")
+
 figure3c
 ```
 
