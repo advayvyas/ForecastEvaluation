@@ -37,6 +37,12 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 ```
 
 # Subfigures
+```{r}
+model_ids <- c("UT-GBQR", "epiforecasts-dyngam", "NAU-Copycat", "UMass-alloy",
+               "NAU-INFLAenza", "UMass-SAR", "VTSanghani-PRIME",
+               "epiENGAGE-baseline", "epiENGAGE-ensemble_mean")
+```
+
 ## Left
 ```{r}
 standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
@@ -46,9 +52,12 @@ standard_coverage <- standard_coverage |>
 
 temp3a <- standard_wis %>% 
   left_join(standard_coverage, 
-            by = join_by(location, target_end_date, horizon, reference_date, model_id, target))
+            by = join_by(location, target_end_date, horizon, reference_date, model_id, target)) %>% filter(model_id %in% model_ids)
 
 table(is.na(temp3a$prediction_category))
+
+temp3a$model_id <- factor(temp3a$model_id,
+  levels = model_ids)
 ```
 
 ```{r}
@@ -57,18 +66,16 @@ plot_df <- temp3a %>%
   summarise(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop") %>%
   group_by(model_id) %>%
   mutate(total_wis = sum(mean_wis)) %>%
-  ungroup() %>%
-  mutate(model_id = fct_reorder(model_id, total_wis))
+  ungroup()
 
 plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("over", "on-target", "under"))
 ```
 
-```{r, fig.height = 20, fig.width=10}
+```{r}
 figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
   geom_col() +
   coord_flip() +
-  labs(x = "Model", y = "Mean WIS", fill = "Prediction Category") +
-  theme_bw()
+  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Prediction Category") + theme_bw(base_size = 18)
 figure3a
 ```
 
@@ -77,45 +84,55 @@ figure3a
 temp3b = standard_coverage |> group_by(model_id, horizon) |> 
   summarise(mean_coverage = mean(coverage_95, na.rm = TRUE), .groups = "drop") %>%
   group_by(model_id) %>%
-  ungroup()
+  ungroup() %>% filter(model_id %in% model_ids)
+
+temp3b$model_id <- factor(temp3b$model_id,
+  levels = model_ids)
 ```
 
-```{r, fig.height = 10, fig.width=10}
-figure3b = ggplot(temp3b) + geom_tile(aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "magma") + theme_bw() + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
+```{r}
+figure3b = ggplot(temp3b) + geom_tile(aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
 figure3b
 ```
 
 
 ## Bottom right
 ```{r}
-temp3c = rbind(
-  standard_wis |>
-    group_by(target_end_date, model_id) |>
-    summarize(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop"),
-  standard_wis |>
-    group_by(target_end_date) |>
-    summarize(
-      model_id = "AVERAGE",
-      mean_wis = mean(wis, na.rm = TRUE),
-      .groups = "drop"
-    )
-)
+temp3c = standard_wis |>
+    group_by(target_end_date, model_id, horizon) |>
+    summarize(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop") %>% filter(model_id %in% model_ids)
 
 temp3c$target_end_date = as.Date(temp3c$target_end_date)
+
+temp3c$model_id <- factor(temp3c$model_id,
+  levels = model_ids)
 ```
 
-```{r, fig.height = 10, fig.width=20}
+```{r}
 figure3c = ggplot() +
   geom_line(
-    data = subset(temp3c, model_id != "AVERAGE"),
-    aes(target_end_date, mean_wis, color = model_id)
+    data = subset(temp3c, model_id != "epiENGAGE-ensemble_mean"),
+    aes(target_end_date, mean_wis, color = model_id), linewidth = 1
   ) +
   geom_line(
-    data = subset(temp3c, model_id == "AVERAGE"),
-    aes(target_end_date, mean_wis),
-    color = "black",
-    linewidth = 1
-  ) + theme_bw() + labs(y = "Mean WIS", x = "Date", color = "Model") + scale_x_date(date_breaks = "1 month",date_labels = "%b %Y")
+    data = subset(temp3c, model_id == "epiENGAGE-ensemble_mean"),
+    aes(target_end_date, mean_wis, color = model_id), linewidth = 1.2
+  ) +
+  scale_color_manual(
+    values = c(setNames(scales::hue_pal()(length(unique(temp3c$model_id)) - 1),
+                         setdiff(unique(temp3c$model_id), "epiENGAGE-ensemble_mean")),
+                "epiENGAGE-ensemble_mean" = "black")
+  ) + labs(y = "Mean WIS", x = "Date", color = "Model") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") + 
+  facet_wrap(~horizon,  labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", x)))) + theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  )
 
 figure3c
 ```
@@ -126,8 +143,8 @@ figure3c
 ```
 
 ## Save to file
-```{r}
-png("Figures/figure3.png", width = 1920, height = 1920)
-(figure3a + figure3b) / (figure3c)
-dev.off()
+# ```{r}
+# png("Figures/figure3.png", width = 1920, height = 1920)
+# (figure3a + figure3b) / (figure3c)
+# dev.off()
 ```
