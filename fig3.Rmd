@@ -143,7 +143,7 @@ figure3c
 ```
 
 ## Save to file
-# ```{r}
+```{r}
 # png("Figures/figure3.png", width = 1920, height = 1920)
 # (figure3a + figure3b) / (figure3c)
 # dev.off()
