@@ -51,7 +51,7 @@ temp1a_standard = standard_wis |> group_by(model_id, target) |>  summarise(mean_
 temp1a_standard$type = "standard-scoring"
 
 temp1a = rbind(temp1a_standard, temp1a_state)
-temp1a = temp1a |> filter(target == "Flu ED visits pct")
+temp1a = temp1a |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
 ```
 
 ```{r}
@@ -83,7 +83,7 @@ temp1b_state = state_wis |> group_by(model_id, location, target) |>  summarise(m
 temp1b_standard = standard_wis |> group_by(model_id, location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 
 temp1b = rbind(temp1b_standard, temp1b_state)
-temp1b = temp1b |> filter(target == "Flu ED visits pct")
+temp1b = temp1b |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
@@ -164,7 +164,7 @@ temp1d_standard = standard_coverage |> group_by(model_id, target) |>
 temp1d_standard$type = "standard-scoring"
 
 temp1d = rbind(temp1d_standard, temp1d_state)
-temp1d = temp1d |> filter(target == "Flu ED visits pct")
+temp1d = temp1d |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
 ```
 
 ```{r}
