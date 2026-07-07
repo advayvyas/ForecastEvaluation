@@ -61,7 +61,15 @@ figure1a = ggplot(temp1a, aes(x = fct_reorder(model_id, mean_wis, .fun = max), y
   scale_y_continuous(limits = c(0, 2.5), breaks = c(0.5, 1, 1.5, 2, 2.5, 3),
                      expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Model", y = "Mean WIS", fill = "Scoring Method") + 
-  theme_bw() + 
+  theme_bw() + theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
   theme(legend.position = "top") + 
   coord_flip()
 
@@ -79,14 +87,21 @@ temp1b = temp1b |> filter(target == "Flu ED visits pct")
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b = ggplot(temp1b, aes(x = fct_reorder(location, mean_wis, .fun = sum), y = mean_wis, fill = model_id)) + 
-  geom_col() + 
-  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Location", y = "Mean WIS", fill = "Model") + 
+figure1b = ggplot(temp1b, aes(x = fct_inorder(model_id), y = fct_inorder(location), fill = mean_wis)) + 
+  scale_fill_viridis_c(option = "mako", direction = -1) +
+  geom_tile() + 
+  labs(x = "Model", y = "Location", fill = "Mean WIS") + 
   theme_bw() + 
   theme(legend.position = "top") + 
-  coord_flip()
-
+  theme(
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 12)  
+  )
 figure1b
 ```
 
@@ -110,11 +125,10 @@ complete_wis = na.omit(complete_wis)
 complete_wis_summary <- complete_wis %>%
   group_by(model_id) %>%
   summarise(
-    mean_relative_wis = mean(relative_wis),
+    mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
     count = n(),
     .groups = 'drop'
   )
-
 temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
 ```
 
@@ -123,7 +137,15 @@ figure1c = ggplot(temp1c, aes(x = fct_reorder(model_id, mean_relative_wis, .fun 
   geom_col(fill = "firebrick", color = "black") + 
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Model", y = "Mean Relative WIS (values exceeding 1 are infinite)") + 
-  theme_bw() + 
+   theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
   theme(legend.position = "top") + 
   coord_flip()
 
@@ -152,6 +174,14 @@ figure1d = ggplot(temp1d, aes(x = fct_reorder(model_id, mean_coverage, .fun = ma
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Model", y = "Mean Coverage (95%)", fill = "Scoring Method") + 
   theme_bw() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
   theme(legend.position = "top") + 
   coord_flip()
 
