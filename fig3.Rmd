@@ -73,7 +73,7 @@ plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("o
 
 ```{r}
 figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
-  geom_col() +
+  geom_col(col = "black") +
   coord_flip() +
   labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Prediction Category") + theme_bw(base_size = 18)
 figure3a
@@ -91,7 +91,7 @@ temp3b$model_id <- factor(temp3b$model_id,
 ```
 
 ```{r}
-figure3b = ggplot(temp3b) + geom_tile(aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
+figure3b = ggplot(temp3b) + geom_tile(col='black',aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
 figure3b
 ```
 
@@ -144,7 +144,7 @@ figure3c
 
 ## Save to file
 ```{r}
-# png("Figures/figure3.png", width = 1920, height = 1920)
-# (figure3a + figure3b) / (figure3c)
-# dev.off()
+png("Figures/figure3.png", width = 1920, height = 1920)
+(figure3a + figure3b) / (figure3c)
+dev.off()
 ```
