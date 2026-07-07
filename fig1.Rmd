@@ -42,6 +42,10 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 ```
 
 # Subfigures
+```{r}
+model_ids <- c("ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu", "NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
+```
+
 ## Top left
 ```{r}
 temp1a_state = state_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
@@ -51,11 +55,14 @@ temp1a_standard = standard_wis |> group_by(model_id, target) |>  summarise(mean_
 temp1a_standard$type = "standard-scoring"
 
 temp1a = rbind(temp1a_standard, temp1a_state)
-temp1a = temp1a |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
+temp1a = temp1a |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+
+temp1a$model_id <- factor(temp1a$model_id,
+  levels = model_ids)
 ```
 
 ```{r}
-figure1a = ggplot(temp1a, aes(x = fct_reorder(model_id, mean_wis, .fun = max), y = mean_wis, fill = type)) + 
+figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) + 
   geom_col(position = "dodge", color = "black") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
   scale_y_continuous(limits = c(0, 2.5), breaks = c(0.5, 1, 1.5, 2, 2.5, 3),
@@ -64,14 +71,14 @@ figure1a = ggplot(temp1a, aes(x = fct_reorder(model_id, mean_wis, .fun = max), y
   theme_bw() + theme_bw() +
   theme(
     text = element_text(size = 18),
-    axis.text = element_text(size = 16),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top") + 
-  coord_flip()
+  theme(legend.position = "top") 
 
 figure1a
 ```
@@ -83,11 +90,14 @@ temp1b_state = state_wis |> group_by(model_id, location, target) |>  summarise(m
 temp1b_standard = standard_wis |> group_by(model_id, location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 
 temp1b = rbind(temp1b_standard, temp1b_state)
-temp1b = temp1b |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
+temp1b = temp1b |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+
+temp1b$model_id <- factor(temp1b$model_id,
+  levels = model_ids)
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b = ggplot(temp1b, aes(x = fct_inorder(model_id), y = fct_inorder(location), fill = mean_wis)) + 
+figure1b = ggplot(temp1b, aes(x = model_id, y = fct_inorder(location), fill = mean_wis)) + 
   scale_fill_viridis_c(option = "mako", direction = -1) +
   geom_tile() + 
   labs(x = "Model", y = "Location", fill = "Mean WIS") + 
@@ -129,25 +139,28 @@ complete_wis_summary <- complete_wis %>%
     count = n(),
     .groups = 'drop'
   )
-temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR")
+temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+
+temp1c$model_id <- factor(temp1c$model_id,
+  levels = model_ids)
 ```
 
 ```{r}
-figure1c = ggplot(temp1c, aes(x = fct_reorder(model_id, mean_relative_wis, .fun = sum), y = mean_relative_wis)) + 
+figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) + 
   geom_col(fill = "firebrick", color = "black") + 
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Model", y = "Mean Relative WIS (values exceeding 1 are infinite)") + 
+  labs(x = "Model", y = "Mean Relative WIS") + 
    theme_bw() +
   theme(
     text = element_text(size = 18),
-    axis.text = element_text(size = 16),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top") + 
-  coord_flip()
+  theme(legend.position = "top")
 
 figure1c
 ```
@@ -164,11 +177,14 @@ temp1d_standard = standard_coverage |> group_by(model_id, target) |>
 temp1d_standard$type = "standard-scoring"
 
 temp1d = rbind(temp1d_standard, temp1d_state)
-temp1d = temp1d |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR")
+temp1d = temp1d |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+
+temp1d$model_id <- factor(temp1d$model_id,
+  levels = model_ids)
 ```
 
 ```{r}
-figure1d = ggplot(temp1d, aes(x = fct_reorder(model_id, mean_coverage, .fun = max), y = mean_coverage, fill = type)) + 
+figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) + 
   geom_col(position = "dodge", color = "black") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
@@ -176,14 +192,14 @@ figure1d = ggplot(temp1d, aes(x = fct_reorder(model_id, mean_coverage, .fun = ma
   theme_bw() + 
   theme(
     text = element_text(size = 18),
-    axis.text = element_text(size = 16),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top") + 
-  coord_flip()
+  theme(legend.position = "top")
 
 figure1d
 ```
@@ -195,7 +211,7 @@ figure1d
 
 ## Save to file
 ```{r}
-# png("Figures/figure1.png", width = 1920, height = 1920)
-# (figure1a + figure1b) / (figure1c + figure1d)
-# dev.off()
+png("Figures/figure1.png", width = 1920, height = 1920)
+(figure1a + figure1b) / (figure1c + figure1d)
+dev.off()
 ```
