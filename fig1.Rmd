@@ -62,6 +62,10 @@ temp1a$model_id <- factor(temp1a$model_id,
 ```
 
 ```{r}
+knitr::kable(temp1a)
+```
+
+```{r}
 figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) + 
   geom_col(position = "dodge", color = "black") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
@@ -85,25 +89,47 @@ figure1a
 
 ## Top right
 ```{r}
-temp1b_state = state_wis |> group_by(model_id, location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+state_wis_grouped <- state_wis %>%
+  group_by(model_id, location, target) %>%
+  summarise(state_wis = mean(wis), count = n(), .groups = 'drop')
 
-temp1b_standard = standard_wis |> group_by(model_id, location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+standard_wis_grouped <- standard_wis %>%
+  group_by(model_id, location, target) %>%
+  summarise(standard_wis = mean(wis), count = n(), .groups = 'drop')
 
-temp1b = rbind(temp1b_standard, temp1b_state)
-temp1b = temp1b |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+rWIS_location_target <- standard_wis_grouped %>%
+  left_join(state_wis_grouped, 
+            by = c("model_id", "location", "target")) %>%
+  mutate(mean_relative_wis = state_wis / standard_wis) %>%
+  filter(!is.infinite(mean_relative_wis), !is.na(mean_relative_wis))
 
-temp1b$model_id <- factor(temp1b$model_id,
-  levels = model_ids)
+temp1b <- rWIS_location_target %>%
+  filter(target == "Flu ED visits pct") %>%
+  filter(model_id != "epiENGAGE-GBQR") %>%
+  filter(model_id != "FluSight-ensemble") %>%
+  mutate(model_id = factor(model_id, levels = model_ids))
+```
+
+```{r}
+knitr::kable(temp1b)
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b = ggplot(temp1b, aes(x = model_id, y = fct_inorder(location), fill = mean_wis)) + 
-  scale_fill_viridis_c(option = "mako", direction = -1) +
-  geom_tile() + 
-  labs(x = "Model", y = "Location", fill = "Mean WIS") + 
+figure1b = ggplot(temp1b, aes(x = model_id, y = location, fill = mean_relative_wis)) + 
+  scale_fill_gradient2(
+    low = "green",
+    mid = "#ffff00",
+    high = "#d32f2f",
+    midpoint = 1,
+    limits = c(0, 4),   
+    name = "Mean Relative WIS"
+  ) +
+  geom_tile(col = "black") + geom_text(aes(label = round(mean_relative_wis, 2)), size = 3, color = "black") +
+  labs(x = "Model", y = "Location", fill = "Mean Relative WIS") + 
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
+    legend.position = "top",
     text = element_text(size = 14),
     axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 10),
@@ -111,7 +137,7 @@ figure1b = ggplot(temp1b, aes(x = model_id, y = fct_inorder(location), fill = me
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     strip.text = element_text(size = 12)  
-  )
+  ) 
 figure1b
 ```
 
@@ -131,6 +157,7 @@ complete_wis = complete_wis |> select("location", "target_end_date", "horizon", 
 sum(is.na(complete_wis)) 
 complete_wis = na.omit(complete_wis)
 ```
+
 ```{r}
 complete_wis_summary <- complete_wis %>%
   group_by(model_id) %>%
@@ -143,6 +170,10 @@ temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR") |> filter(
 
 temp1c$model_id <- factor(temp1c$model_id,
   levels = model_ids)
+```
+
+```{r}
+knitr::kable(temp1c)
 ```
 
 ```{r}
@@ -160,7 +191,7 @@ figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) +
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top")
+  theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
 figure1c
 ```
@@ -184,22 +215,25 @@ temp1d$model_id <- factor(temp1d$model_id,
 ```
 
 ```{r}
+knitr::kable(temp1d)
+```
+
+```{r}
 figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) + 
-  geom_col(position = "dodge", color = "black") + 
+  geom_col(col = "black", position = "dodge") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Model", y = "Mean Coverage (95%)", fill = "Scoring Method") + 
+  labs(x = "Model", y = "Scoring Method", fill = "Mean Coverage (95%)") + 
   theme_bw() + 
+  theme(legend.position = "top") + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) +
-  theme(legend.position = "top")
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 12)  
+  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03))
 
 figure1d
 ```
@@ -209,7 +243,7 @@ figure1d
 (figure1a + figure1b) / (figure1c + figure1d)
 ```
 
-## Save to file
+## Save to files
 ```{r}
 png("Figures/figure1.png", width = 1920, height = 1920)
 (figure1a + figure1b) / (figure1c + figure1d)
