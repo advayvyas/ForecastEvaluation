@@ -74,8 +74,15 @@ plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("o
 ```{r}
 figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
   geom_col(col = "black") +
-  coord_flip() +
-  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Prediction Category") + theme_bw(base_size = 18)
+  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Prediction Category") + theme_bw(base_size = 18)+ theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
 figure3a
 ```
 
@@ -91,7 +98,15 @@ temp3b$model_id <- factor(temp3b$model_id,
 ```
 
 ```{r}
-figure3b = ggplot(temp3b) + geom_tile(col='black',aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)")
+figure3b = ggplot(temp3b) + geom_tile(col='black',aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
 figure3b
 ```
 
