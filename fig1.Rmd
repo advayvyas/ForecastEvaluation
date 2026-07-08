@@ -46,7 +46,7 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 model_ids <- c("ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu", "NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
 ```
 
-## Top left
+## Figure 1a
 ```{r}
 temp1a_state = state_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 temp1a_state$type = "state-scoring"
@@ -87,7 +87,45 @@ figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) +
 figure1a
 ```
 
-## Top right
+### Location version 
+```{r}
+temp1a_state = state_wis |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble") |> group_by(location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+temp1a_state$type = "state-scoring"
+
+temp1a_standard = standard_wis |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble") |> group_by(location, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+temp1a_standard$type = "standard-scoring"
+
+temp1a = rbind(temp1a_standard, temp1a_state)
+```
+
+```{r}
+knitr::kable(temp1a)
+```
+
+```{r, fig.height = 10, fig.width = 10}
+figure1a_loc = ggplot(temp1a, aes(x = location, y = mean_wis, fill = type)) + 
+  geom_col(position = "dodge", color = "black") + 
+  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
+  scale_y_continuous(limits = c(0, 2.5), breaks = c(0.5, 1, 1.5, 2, 2.5, 3),
+                     expand = expansion(mult = 0, add = 0.03)) +
+  labs(x = "Model", y = "Mean WIS", fill = "Scoring Method") + 
+  theme_bw() + theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
+  theme(legend.position = "top") 
+
+figure1a_loc
+```
+
+## Figure 1b
+### Version 1
 ```{r}
 state_wis_grouped <- state_wis %>%
   group_by(model_id, location, target) %>%
@@ -124,7 +162,63 @@ figure1b = ggplot(temp1b, aes(x = model_id, y = location, fill = mean_relative_w
     limits = c(0, 4),   
     name = "Mean Relative WIS"
   ) +
-  geom_tile(col = "black") + geom_text(aes(label = round(mean_relative_wis, 2)), size = 3, color = "black") +
+  geom_tile(col = "black") + 
+  # geom_text(aes(label = round(mean_relative_wis, 2)), size = 3, color = "black") +
+  labs(x = "Model", y = "Location", fill = "Mean Relative WIS") + 
+  theme_bw() + 
+  theme(legend.position = "top") + 
+  theme(
+    legend.position = "top",
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 12)  
+  ) 
+figure1b
+```
+
+### Version 2
+```{r}
+state_wis_grouped <- state_wis %>%
+  group_by(model_id, target_end_date, target) %>%
+  summarise(state_wis = mean(wis), count = n(), .groups = 'drop')
+
+standard_wis_grouped <- standard_wis %>%
+  group_by(model_id, target_end_date, target) %>%
+  summarise(standard_wis = mean(wis), count = n(), .groups = 'drop')
+
+rWIS_location_target <- standard_wis_grouped %>%
+  left_join(state_wis_grouped, 
+            by = c("model_id", "target_end_date", "target")) %>%
+  mutate(mean_relative_wis = state_wis / standard_wis) %>%
+  filter(!is.infinite(mean_relative_wis), !is.na(mean_relative_wis))
+
+temp1b <- rWIS_location_target %>%
+  filter(target == "Flu ED visits pct") %>%
+  filter(model_id != "epiENGAGE-GBQR") %>%
+  filter(model_id != "FluSight-ensemble") %>%
+  mutate(model_id = factor(model_id, levels = model_ids))
+```
+
+```{r}
+knitr::kable(temp1b)
+```
+
+```{r, fig.height = 10, fig.width = 10}
+figure1b = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mean_relative_wis)) + 
+  scale_fill_gradient2(
+    low = "green",
+    mid = "#ffff00",
+    high = "#d32f2f",
+    midpoint = 1,
+    limits = c(0, 4),   
+    name = "Mean Relative WIS"
+  ) +
+  geom_tile(col = "black") + 
+  geom_text(aes(label = round(mean_relative_wis, 2)), size = 3, color = "black") +
   labs(x = "Model", y = "Location", fill = "Mean Relative WIS") + 
   theme_bw() + 
   theme(legend.position = "top") + 
@@ -222,7 +316,7 @@ knitr::kable(temp1d)
 figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) + 
   geom_col(col = "black", position = "dodge") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  labs(x = "Model", y = "Scoring Method", fill = "Mean Coverage (95%)") + 
+  labs(x = "Model", y = "Mean Coverage (95%)", fill = "Scoring Method") + 
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
