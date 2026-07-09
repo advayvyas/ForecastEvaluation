@@ -403,6 +403,7 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
+    legend.position = "bottom",
     strip.text = element_text(size = 17)  
   ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
  
@@ -470,6 +471,7 @@ obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
+    legend.position = "bottom",
     strip.text = element_text(size = 17)  
   ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
  
