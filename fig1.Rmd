@@ -343,6 +343,7 @@ figure1c_loc
 ```
 
 ### Observed vs predicted version
+#### Local
 ```{r}
 raw = read.csv("Data/raw_data.csv")
 ```
@@ -361,25 +362,22 @@ plot_data <- raw %>%
   ) %>%
   rename(
     observed = oracle_value,
-    predicted_value = `q_0.5`,  # median prediction
-    lower = `q_0.025`,           # lower bound
-    upper = `q_0.975`            # upper bound
-  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(location == "austin")
- 
-# Create the plot
-obsvspred <- ggplot(plot_data, aes(x = date)) +
-  # Prediction uncertainty ribbon
+    predicted_value = `q_0.5`,  
+    lower = `q_0.025`,           
+    upper = `q_0.975`            
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == 0) |> 
+  filter(location %in% c("austin", "san-antonio",  "el-paso", "baltimore", "denver", "portland")) 
+```
+
+```{r, fig.width=20, fig.height=10}
+obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
   geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
               alpha = 0.4, color = NA) +
-  # Point prediction line
   geom_line(aes(y = predicted_value, color = "Predicted HSA"),
             linewidth = 1) +
-  # Observed values as points
   geom_point(aes(y = observed, color = "Observed HSA"),
              size = 2, shape = 16) +
-  # Facet by location
-  facet_wrap(~location) +
-  # Styling
+  facet_wrap(~location, nrow=1) +
   scale_color_manual(
     name = NULL,
     values = c(
@@ -405,9 +403,9 @@ obsvspred <- ggplot(plot_data, aes(x = date)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) + scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") 
+  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
  
-obsvspred
+obsvspred_loc
 ```
 
 ## Bottom right
