@@ -290,6 +290,125 @@ figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) +
 figure1c
 ```
 
+### Location version
+```{r}
+state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+state_wis = state_wis |> rename(state_wis = wis)
+
+complete_wis <- state_wis %>%
+  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
+
+complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
+complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+```
+
+```{r}
+sum(is.na(complete_wis)) 
+complete_wis = na.omit(complete_wis)
+```
+
+```{r}
+complete_wis_summary <- complete_wis |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble") %>%
+  group_by(location) %>%
+  summarise(
+    mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
+    count = n(),
+    .groups = 'drop'
+  )
+temp1c = complete_wis_summary 
+```
+
+```{r}
+knitr::kable(temp1c)
+```
+
+```{r, fig.height=6, fig.width=14}
+figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis)) + 
+  geom_col(fill = "firebrick", color = "black") + 
+  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
+  labs(x = "Location", y = "Mean Relative WIS") + 
+   theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
+  theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
+
+figure1c_loc
+```
+
+### Observed vs predicted version
+```{r}
+raw = read.csv("Data/raw_data.csv")
+```
+
+```{r, fig.width=10, fig.height=10}
+plot_data <- raw %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,  # median prediction
+    lower = `q_0.025`,           # lower bound
+    upper = `q_0.975`            # upper bound
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(location == "austin")
+ 
+# Create the plot
+obsvspred <- ggplot(plot_data, aes(x = date)) +
+  # Prediction uncertainty ribbon
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
+              alpha = 0.4, color = NA) +
+  # Point prediction line
+  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
+            linewidth = 1) +
+  # Observed values as points
+  geom_point(aes(y = observed, color = "Observed HSA"),
+             size = 2, shape = 16) +
+  # Facet by location
+  facet_wrap(~location) +
+  # Styling
+  scale_color_manual(
+    name = NULL,
+    values = c(
+      "Observed HSA" = "#E74C3C",
+      "Predicted HSA" = "#F39C12"
+    )
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("Prediction Interval" = "#F39C12")
+  ) +
+  labs(
+    x = NULL,
+    y = "Percent Influenza ED Visits",
+    title = "Influenza ED Visits: Observed vs. Predicted"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") 
+ 
+obsvspred
+```
 
 ## Bottom right
 ```{r}
