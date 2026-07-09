@@ -367,6 +367,9 @@ plot_data <- raw %>%
     upper = `q_0.975`            
   ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == 0) |> 
   filter(location %in% c("austin", "san-antonio",  "el-paso", "baltimore", "denver", "portland")) 
+
+plot_data$location = factor(plot_data$location, levels = c("austin", "san-antonio",  
+                                                                       "el-paso", "baltimore", "denver", "portland"))
 ```
 
 ```{r, fig.width=20, fig.height=10}
@@ -406,6 +409,78 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
   ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
  
 obsvspred_loc
+```
+
+#### Local
+```{r}
+raw_state = read.csv("Data/state_raw.csv")
+```
+
+```{r, fig.width=10, fig.height=10}
+plot_data_state <- raw_state %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = state_value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,  
+    lower = `q_0.025`,           
+    upper = `q_0.975`            
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == 0) |> 
+  filter(location %in% c("austin", "san-antonio",  "el-paso", "baltimore", "denver", "portland")) 
+
+plot_data_state$location = factor(plot_data_state$location, levels = c("austin", "san-antonio",  
+                                                                       "el-paso", "baltimore", "denver", "portland"))
+```
+
+```{r, fig.width=20, fig.height=10}
+obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
+              alpha = 0.4, color = NA) +
+  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
+            linewidth = 1) +
+  geom_point(aes(y = observed, color = "Observed HSA"),
+             size = 2, shape = 16) +
+  facet_wrap(~location, nrow=1) +
+  scale_color_manual(
+    name = NULL,
+    values = c(
+      "Observed HSA" = "#E74C3C",
+      "Predicted HSA" = "black"
+    )
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("Prediction Interval" = "darkgray")
+  ) +
+  labs(
+    x = NULL,
+    y = "Percent Influenza ED Visits",
+    title = "Influenza ED Visits: Observed vs. Predicted"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
+ 
+obsvspred_state
+```
+
+```{r, fig.width=20, fig.height=15}
+obsvspred_loc / obsvspred_state
 ```
 
 ## Bottom right
