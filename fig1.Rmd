@@ -69,8 +69,7 @@ knitr::kable(temp1a)
 figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) + 
   geom_col(position = "dodge", color = "black") + 
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  scale_y_continuous(limits = c(0, 2.5), breaks = c(0.5, 1, 1.5, 2, 2.5, 3),
-                     expand = expansion(mult = 0, add = 0.03)) +
+  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Model", y = "Mean WIS", fill = "Scoring Method") + 
   theme_bw() + theme_bw() +
   theme(
@@ -153,7 +152,7 @@ knitr::kable(temp1b)
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b = ggplot(temp1b, aes(x = model_id, y = location, fill = mean_relative_wis)) + 
+figure1b_loc = ggplot(temp1b, aes(x = model_id, y = location, fill = mean_relative_wis)) + 
   scale_fill_gradient2(
     low = "green",
     mid = "#ffff00",
@@ -177,7 +176,7 @@ figure1b = ggplot(temp1b, aes(x = model_id, y = location, fill = mean_relative_w
     legend.title = element_text(size = 13),
     strip.text = element_text(size = 12)  
   ) 
-figure1b
+figure1b_loc
 ```
 
 ### Version 2
@@ -208,7 +207,7 @@ knitr::kable(temp1b)
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mean_relative_wis)) + 
+figure1b_date = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mean_relative_wis)) + 
   scale_fill_gradient2(
     low = "green",
     mid = "#ffff00",
@@ -219,7 +218,7 @@ figure1b = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mean_rel
   ) +
   geom_tile(col = "black") + 
   geom_text(aes(label = round(mean_relative_wis, 2)), size = 3, color = "black") +
-  labs(x = "Model", y = "Location", fill = "Mean Relative WIS") + 
+  labs(x = "Model", y = "Date", fill = "Mean Relative WIS") + 
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
@@ -394,8 +393,7 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
   ) +
   labs(
     x = NULL,
-    y = "Percent Influenza ED Visits",
-    title = "Influenza ED Visits: Observed vs. Predicted"
+    y = "Percent Influenza ED Visits"
   ) +
   theme_bw() +
   theme(
@@ -462,8 +460,7 @@ obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
   ) +
   labs(
     x = NULL,
-    y = "Percent Influenza ED Visits",
-    title = "Influenza ED Visits: Observed vs. Predicted"
+    y = "Percent Influenza ED Visits"
   ) +
   theme_bw() +
   theme(
@@ -480,7 +477,8 @@ obsvspred_state
 ```
 
 ```{r, fig.width=20, fig.height=15}
-obsvspred_loc / obsvspred_state
+fig1c_timeseries = obsvspred_loc / obsvspred_state
+fig1c_timeseries
 ```
 
 ## Bottom right
@@ -526,12 +524,23 @@ figure1d
 
 # Figure 1
 ```{r, fig.height = 20, fig.width = 20}
-(figure1a + figure1b) / (figure1c + figure1d)
+(figure1a + figure1d) / ((fig1c_timeseries))
+```
+## Figure 5 (1.2, overflow)
+```{r, fig.height = 20, fig.width = 20}
+figure1b_loc + figure1b_date
+
 ```
 
 ## Save to files
 ```{r}
 png("Figures/figure1.png", width = 1920, height = 1920)
-(figure1a + figure1b) / (figure1c + figure1d)
+(figure1a + figure1d) / ((fig1c_timeseries))
+dev.off()
+```
+
+```{r}
+png("Figures/figure5.png", width = 1920, height = 1920)
+(figure1b_loc + figure1b_date)
 dev.off()
 ```
