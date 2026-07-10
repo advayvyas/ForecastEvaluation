@@ -21,6 +21,7 @@ library(ggplot2)
 library(lubridate)
 library(patchwork)
 library(kableExtra)
+library(mgcv)
 
 library(scoringutils)
 library(hubUtils)
@@ -30,10 +31,138 @@ library(hubData)
 
 # Data
 ```{r}
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-# standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-# standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
 ```
 
-# Subfigures
+```{r}
+state_locations <- c("colorado", "georgia", "indiana", "maine", "maryland", "massachusetts", 
+                     "minnesota", "north-carolina", "oregon", "south-carolina", "texas", "utah", "virginia")
+
+standard_wis <- standard_wis %>%
+  mutate(
+    granularity = ifelse(location %in% state_locations, "state", "local"),
+    wis = as.numeric(wis),
+    horizon  = horizon - 1
+  ) %>%
+  filter(wis > 0, !is.infinite(log(wis)), !is.na(wis))
+
+standard_wis$model_id <- as.factor(standard_wis$model_id)
+standard_wis$granularity <- as.factor(standard_wis$granularity)
+standard_wis$horizon <- as.factor(standard_wis$horizon)
+```
+
+# Model effects
+```{r}
+model <- gam(
+  log(wis) ~ s(model_id, bs = "re") + 
+    s(granularity, bs = "re") +
+    s(horizon, bs = "re"),
+  family = gaussian(),
+  data = standard_wis
+)
+
+summary(model)
+```
+
+```{r}
+coefs <- coef(model)
+
+model_coefs <- coefs[grepl("model_id", names(coefs))]
+granularity_coefs <- coefs[grepl("granularity", names(coefs))]
+horizon_coefs <- coefs[grepl("horizon", names(coefs))]
+```
+
+```{r}
+model_effects <- data.frame(
+  model_id = levels(standard_wis$model_id),
+  effect = as.numeric(model_coefs)
+)
+
+granularity_effects <- data.frame(
+  granularity = levels(standard_wis$granularity),
+  effect = as.numeric(granularity_coefs)
+)
+
+horizon_effects <- data.frame(
+  horizon = levels(standard_wis$horizon),
+  effect = as.numeric(horizon_coefs)
+)
+
+knitr::kable(model_effects |> arrange(effect)) 
+
+knitr::kable(granularity_effects |> arrange(effect))
+
+knitr::kable(horizon_effects |> arrange(effect))
+```
+
+# Figure 4
+```{r, fig.height=20, fig.width=20}
+temp4a <- model_effects %>%
+  arrange(effect) %>%
+  mutate(model_id = factor(model_id, levels = model_id))
+
+fig4a <- ggplot(temp4a, aes(x = effect, y = model_id)) +
+  geom_point(size = 5, color = "steelblue") +
+  labs(x = "Effect (log WIS)", y = "Model") +
+  theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
+```
+
+```{r}
+temp4b <- granularity_effects %>%
+  arrange(effect) %>%
+  mutate(granularity = factor(granularity, levels = granularity))
+
+fig4b <- ggplot(temp4b, aes(x = effect, y = granularity)) +
+  geom_col(fill = "coral", color = "black") +
+  labs(x = "Effect (log WIS)", y = "Granularity")  +
+  theme_bw() +  coord_flip() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
+```
+
+```{r}
+temp4c <- horizon_effects %>%
+  arrange(effect) %>%
+  mutate(horizon = factor(horizon, levels = horizon))
+
+fig4c <- ggplot(temp4c, aes(x = effect, y = horizon)) +
+  geom_col(fill = "seagreen", color = "black") +
+  labs(x = "Effect (log WIS)", y = "Horizon") +
+  theme_bw() + coord_flip() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
+```
+
+```{r, fig.height=10, fig.width=15}
+fig4a + fig4b + fig4c
+```
+
+```{r}
+png("Figures/figure4.png", width = 1440, height = 960)
+(fig4a + fig4b + fig4c)
+dev.off()
+```
+
