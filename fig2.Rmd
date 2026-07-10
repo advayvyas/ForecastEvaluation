@@ -114,7 +114,7 @@ temp2a <- model_effects %>%
 
 fig2a <- ggplot(temp2a, aes(x = effect, y = model_id)) +
   geom_point(size = 4, color = "steelblue") +
-  labs(x = "Effect (log WIS)", y = "Model") +
+  labs(x = "Effect (log rWIS)", y = "Model") +
   theme_bw() +
   theme(
     text = element_text(size = 18),
@@ -135,7 +135,7 @@ temp2b <- location_effects %>%
 
 fig2b <- ggplot(temp2b, aes(x = effect, y = location)) +
   geom_point(size = 4, color = "coral") +
-  labs(x = "Effect (log WIS)", y = "Location") +
+  labs(x = "Effect (log rWIS)", y = "Location") +
   theme_bw() +
   theme(
     text = element_text(size = 18),
