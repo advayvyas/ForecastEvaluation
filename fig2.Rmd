@@ -30,10 +30,58 @@ library(hubData)
 
 # Data
 ```{r}
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-# standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
+state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-# standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+state_wis = state_wis |> rename(state_wis = wis)
 ```
 
 # Subfigures
+## Figure 2a
+```{r}
+complete_wis <- state_wis %>%
+  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
+
+complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
+complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+```
+
+```{r}
+sum(is.na(complete_wis)) 
+na <- complete_wis %>%
+  filter(if_any(everything(), is.na))
+
+table(na$location)
+table(na$target_end_date)
+table(na$model_id)
+```
+
+```{r}
+# complete_wis = na.omit(complete_wis)
+```
+
+```{r}
+# complete_wis_summary <- complete_wis %>%
+#   group_by(model_id) %>%
+#   summarise(
+#     mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
+#     count = n(),
+#     .groups = 'drop'
+#   )
+# temp1b = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+# 
+# temp1c$model_id <- factor(temp1c$model_id,
+#   levels = model_ids)
+```
+
+```{r}
+# knitr::kable(temp1c)
+```
+
+## Figure 2b
+```{r}
+
+
+```
+
+
+
