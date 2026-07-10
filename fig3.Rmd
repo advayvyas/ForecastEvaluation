@@ -81,7 +81,8 @@ figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_cat
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    strip.text = element_text(size = 17),
+    legend.position = "top"
   ) 
 figure3a
 ```
@@ -105,7 +106,7 @@ figure3b = ggplot(temp3b) + geom_tile(col='black',aes(y=model_id, x=horizon, fil
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    strip.text = element_text(size = 17), legend.position = "top"
   ) 
 figure3b
 ```
@@ -146,7 +147,8 @@ figure3c = ggplot() +
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    strip.text = element_text(size = 17),
+    legend.position = "bottom"
   )
 
 figure3c
