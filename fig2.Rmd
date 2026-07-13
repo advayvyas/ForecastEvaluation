@@ -68,13 +68,12 @@ complete_wis$location <- droplevels(as.factor(complete_wis$location))
 # Model effects
 ```{r}
 model <- gam(
-  wis ~ s(model_id, bs = "re") + 
-    s(location, bs = "re"),
+  relative_wis ~ s(model_id, bs = "re") + 
+         s(location, bs = "re") +
+         s(horizon, bs = "tp", k = 4),
   family = gaussian(),
   data = complete_wis
 )
-
-summary(model)
 ```
 
 ```{r}

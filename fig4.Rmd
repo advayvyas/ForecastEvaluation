@@ -31,7 +31,7 @@ library(hubData)
 
 # Data
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv")
 ```
 
 ```{r}
@@ -46,17 +46,22 @@ standard_wis <- standard_wis %>%
   ) %>%
   filter(wis > 0, !is.infinite(log(wis)), !is.na(wis))
 
-standard_wis$model_id <- as.factor(standard_wis$model_id)
-standard_wis$granularity <- as.factor(standard_wis$granularity)
-standard_wis$horizon <- as.factor(standard_wis$horizon)
+# standard_wis$model_id <- as.factor(standard_wis$model_id)
+# standard_wis$granularity <- as.factor(standard_wis$granularity)
+# standard_wis$horizon <- as.factor(standard_wis$horizon)
+
+standard_wis$model_id <- droplevels(as.factor(standard_wis$model_id))
+standard_wis$location <- droplevels(as.factor(standard_wis$location))
+standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 ```
 
 # Model effects
 ```{r}
 model <- gam(
-  log(wis) ~ s(model_id, bs = "re") + 
-    s(granularity, bs = "re") +
-    s(horizon, bs = "re"),
+  wis ~ s(model_id, bs = "re") + 
+        s(location, bs = "re") +
+        s(granularity, bs = "re") +
+        s(horizon, bs = "tp", k = 4),
   family = gaussian(),
   data = standard_wis
 )
@@ -84,14 +89,20 @@ granularity_effects <- data.frame(
 )
 
 horizon_effects <- data.frame(
-  horizon = levels(standard_wis$horizon),
-  effect = as.numeric(horizon_coefs)
+  horizon = 0:3,
+  effect = predict(model, newdata = data.frame(
+    horizon = 0:3,
+    model_id = levels(standard_wis$model_id)[1],
+    location = levels(standard_wis$location)[1],
+    granularity = levels(standard_wis$granularity)[1]
+  ), type = "terms")[, "s(horizon)"]
 )
 
 knitr::kable(model_effects |> arrange(effect)) 
 
 knitr::kable(granularity_effects |> arrange(effect))
 
+rownames(horizon_effects) <- NULL
 knitr::kable(horizon_effects |> arrange(effect))
 ```
 
@@ -103,7 +114,7 @@ temp4a <- model_effects %>%
 
 fig4a <- ggplot(temp4a, aes(x = effect, y = model_id)) +
   geom_point(size = 5, color = "steelblue") +
-  labs(x = "Effect (log WIS)", y = "Model") +
+  labs(x = "Effect (WIS)", y = "Model") +
   theme_bw() +
   theme(
     text = element_text(size = 18),
@@ -123,7 +134,7 @@ temp4b <- granularity_effects %>%
 
 fig4b <- ggplot(temp4b, aes(x = effect, y = granularity)) +
   geom_col(fill = "coral", color = "black") +
-  labs(x = "Effect (log WIS)", y = "Granularity")  +
+  labs(x = "Effect (WIS)", y = "Granularity")  +
   theme_bw() +  coord_flip() +
   theme(
     text = element_text(size = 18),
@@ -143,7 +154,7 @@ temp4c <- horizon_effects %>%
 
 fig4c <- ggplot(temp4c, aes(x = effect, y = horizon)) +
   geom_col(fill = "seagreen", color = "black") +
-  labs(x = "Effect (log WIS)", y = "Horizon") +
+  labs(x = "Effect (WIS)", y = "Horizon") +
   theme_bw() + coord_flip() + 
   theme(
     text = element_text(size = 18),
