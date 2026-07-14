@@ -74,8 +74,12 @@ library(hubData)
 ```{r}
 # write_csv(df, "Data/raw_data.csv")
 raw = read.csv("Data/raw_data.csv")
+```
+
+```{r}
 knitr::kable(head(raw))
 ```
+
 
 # Standard scoring
 ## WIS calculation

@@ -77,10 +77,8 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 
 ```{r}
 raw = read.csv("Data/raw_data.csv")
-summary(raw$oracle_value)
 raw$value <- log1p(raw$value)
 raw$oracle_value <- log1p(raw$oracle_value)
-summary(raw$oracle_value)
 ```
 
 ```{r}
@@ -361,3 +359,54 @@ state_coverage_summary = read.csv("Data/state-scoring/state_coverage_summary.csv
 knitr::kable(head(state_coverage_summary |> arrange(-coverage_rate)))
 ```
 
+# Log scale compression analysis
+```{r}
+raw = read.csv("Data/raw_data.csv")
+summary(raw$oracle_value)
+summary(raw$value)
+```
+
+```{r}
+truth_before = ggplot(raw) + geom_density(aes(x=oracle_value), fill="skyblue") +facet_wrap(~horizon) 
+pred_before = ggplot(raw) + geom_density(aes(x=value), fill="skyblue") +facet_wrap(~horizon)  + scale_x_continuous(limits = c(0,40))
+```
+
+```{r}
+raw$value <- log1p(raw$value)
+raw$oracle_value <- log1p(raw$oracle_value)
+summary(raw$oracle_value)
+summary(raw$value)
+```
+
+```{r}
+truth_after = ggplot(raw) + geom_density(aes(x=oracle_value), fill="skyblue") +facet_wrap(~horizon)  + scale_x_continuous(limits = c(0,4))
+pred_after = ggplot(raw) + geom_density(aes(x=value), fill="skyblue") +facet_wrap(~horizon)
+```
+
+```{r, fig.height=8, fig.width=10}
+(truth_before + truth_after) / (pred_before + pred_after)
+```
+
+```{r}
+log <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv")
+original <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+
+summary(original$wis)
+summary(log$wis)
+```
+
+```{r, fig.height = 8, fig.width = 8}
+comparison <- merge(
+  original %>% select(location, target_end_date, horizon, model_id, wis),
+  log %>% select(location, target_end_date, horizon, model_id, wis),
+  by = c("location", "target_end_date", "horizon", "model_id"),
+  suffixes = c("_original", "_log")
+)
+
+ggplot(comparison, aes(x = wis_original, y = wis_log)) +
+  geom_point(alpha = 0.4, color = 'royalblue') +
+  labs(
+    x = "WIS original data",
+    y = "WIS log1p data"
+  ) + facet_wrap(~horizon)
+```
