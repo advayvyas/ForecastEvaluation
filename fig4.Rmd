@@ -31,7 +31,7 @@ library(hubData)
 
 # Data
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 ```
 
 ```{r}

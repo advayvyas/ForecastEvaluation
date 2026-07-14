@@ -31,8 +31,8 @@ library(hubData)
 
 # Data
 ```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/log_state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv")
+state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
 ```
 
@@ -49,17 +49,17 @@ complete_wis <- complete_wis %>%
 
 # NA stuff
 ```{r}
-# sum(is.na(complete_wis)) 
-# na <- complete_wis %>%
-#   filter(if_any(everything(), is.na))
-# 
-# table(na$location)
-# table(na$target_end_date)
-# table(na$model_id)
+sum(is.na(complete_wis$wis))
+na <- complete_wis %>%
+  filter(if_any(everything(), is.na))
+
+table(na$location)
+table(na$target_end_date)
+table(na$model_id)
 ```
 
 ```{r}
-complete_wis = na.omit(complete_wis)
+# complete_wis = na.omit(complete_wis)
 
 complete_wis$model_id <- droplevels(as.factor(complete_wis$model_id))
 complete_wis$location <- droplevels(as.factor(complete_wis$location))
