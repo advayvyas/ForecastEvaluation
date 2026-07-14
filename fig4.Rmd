@@ -112,6 +112,7 @@ fig4a = ggplot(horizon_ci, aes(x = factor(horizon), y = est)) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Effect (WIS)", x = "Horizon") +
   theme_bw() +
+  coord_flip() + 
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16),
