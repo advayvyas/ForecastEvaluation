@@ -16,6 +16,7 @@ knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FAL
 ------------------------------------------------------------------------
 ```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
 library(dplyr)
+library(gratia)
 library(tidyverse)
 library(ggplot2)
 library(lubridate)
@@ -60,8 +61,10 @@ table(na$model_id)
 
 ```{r}
 # complete_wis = na.omit(complete_wis)
+standard_wis$horizon = as.character(standard_wis$horizon)
 
 complete_wis$model_id <- droplevels(as.factor(complete_wis$model_id))
+complete_wis$horizon <- droplevels(as.factor(complete_wis$horizon))
 complete_wis$location <- droplevels(as.factor(complete_wis$location))
 ```
 
@@ -70,7 +73,7 @@ complete_wis$location <- droplevels(as.factor(complete_wis$location))
 model <- gam(
   relative_wis ~ s(model_id, bs = "re") + 
          s(location, bs = "re") +
-         s(horizon, bs = "tp", k = 4),
+         s(horizon, bs = "re"),
   family = gaussian(),
   data = complete_wis
 )
@@ -79,44 +82,49 @@ summary(model)
 ```
 
 ```{r}
-coefs <- coef(model)
+estimates <- smooth_estimates(model)
 
-model_coefs <- coefs[grepl("model_id", names(coefs))]
-head(model_coefs)
+horizon_ci <- estimates |>
+  filter(.smooth == "s(horizon)") |>
+  select(.smooth, horizon, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
 
-location_coefs <- coefs[grepl("location", names(coefs))]
-head(location_coefs)
-```
+model_id_ci <- estimates |>
+  filter(.smooth == "s(model_id)") |>
+  select(.smooth, model_id, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
 
-```{r}
-model_names <- levels(complete_wis$model_id)
-location_names <- levels(complete_wis$location)
+knitr::kable(model_id_ci |> arrange(est) |> select(-.smooth)) 
 
-model_effects <- data.frame(
-  model_id = model_names,
-  effect = as.numeric(model_coefs)
-)
+location_ci <- estimates |>
+  filter(.smooth == "s(location)") |>
+  select(.smooth, location, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
 
-location_effects <- data.frame(
-  location = location_names,
-  effect = as.numeric(location_coefs)
-)
-
-knitr::kable(model_effects |> arrange(effect)) 
-
-knitr::kable(location_effects |> arrange(effect))
+knitr::kable(location_ci |> arrange(est) |> select(-.smooth)) 
 ```
 
 # Figure 2
 ```{r, fig.height=20, fig.width=20}
-temp2a <- model_effects %>%
-  arrange(-effect) %>%
-  mutate(model_id = factor(model_id, levels = model_id))
-
-fig2a <- ggplot(temp2a, aes(x = effect, y = model_id)) +
-  geom_point(size = 4, color = "steelblue") +
-  labs(x = "Effect (rWIS)", y = "Model") +
-  theme_bw() +
+fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "seagreen", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Effect (rWIS)", x = "Model") +
+  theme_bw() + 
+  coord_flip() + 
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16),
@@ -125,19 +133,17 @@ fig2a <- ggplot(temp2a, aes(x = effect, y = model_id)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) +
-  theme(legend.position = "top") + geom_vline(aes(xintercept = 0), col = "black", linetype = "dashed", linewidth = 1.2)
+  )
 ```
 
 ```{r}
-temp2b <- location_effects %>%
-  arrange(-effect) %>%
-  mutate(location = factor(location, levels = location))
-
-fig2b <- ggplot(temp2b, aes(x = effect, y = location)) +
-  geom_point(size = 4, color = "coral") +
-  labs(x = "Effect (rWIS)", y = "Location") +
-  theme_bw() +
+fig2b <- ggplot(location_ci, aes(x = reorder(location, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "coral", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Effect (rWIS)", x = "Model") +
+  theme_bw() + 
+  coord_flip() + 
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16),
@@ -146,8 +152,7 @@ fig2b <- ggplot(temp2b, aes(x = effect, y = location)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) +
-  theme(legend.position = "top") + geom_vline(aes(xintercept = 0), col = "black", linetype = "dashed", linewidth = 1.2)
+  )
 ```
 
 ```{r, fig.height=15, fig.width=20}
