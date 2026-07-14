@@ -22,6 +22,7 @@ library(lubridate)
 library(patchwork)
 library(kableExtra)
 library(mgcv)
+library(gratia)
 
 library(scoringutils)
 library(hubUtils)
@@ -40,28 +41,27 @@ state_locations <- c("colorado", "georgia", "indiana", "maine", "maryland", "mas
 
 standard_wis <- standard_wis %>%
   mutate(
-    granularity = ifelse(location %in% state_locations, "state", "local"),
     wis = as.numeric(wis),
     horizon  = horizon - 1
   ) %>%
   filter(wis > 0, !is.infinite(log(wis)), !is.na(wis))
 
 # standard_wis$model_id <- as.factor(standard_wis$model_id)
-# standard_wis$granularity <- as.factor(standard_wis$granularity)
 # standard_wis$horizon <- as.factor(standard_wis$horizon)
+
+standard_wis$horizon = as.character(standard_wis$horizon)
 
 standard_wis$model_id <- droplevels(as.factor(standard_wis$model_id))
 standard_wis$location <- droplevels(as.factor(standard_wis$location))
-standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
+standard_wis$horizon <- droplevels(as.factor(standard_wis$horizon))
 ```
 
 # Model effects
 ```{r}
 model <- gam(
-  wis ~ s(model_id, bs = "re") + 
+  wis ~ s(model_id, bs = "re") +  
         s(location, bs = "re") +
-        s(granularity, bs = "re") +
-        s(horizon, bs = "tp", k = 4),
+        s(horizon, bs = "re"),
   family = gaussian(),
   data = standard_wis
 )
@@ -70,51 +70,47 @@ summary(model)
 ```
 
 ```{r}
-coefs <- coef(model)
+estimates <- smooth_estimates(model)
 
-model_coefs <- coefs[grepl("model_id", names(coefs))]
-granularity_coefs <- coefs[grepl("granularity", names(coefs))]
-horizon_coefs <- coefs[grepl("horizon", names(coefs))]
+horizon_ci <- estimates |>
+  filter(.smooth == "s(horizon)") |>
+  select(.smooth, horizon, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
+
+knitr::kable(horizon_ci |> arrange(est) |> select(-.smooth)) 
+
+model_id_ci <- estimates |>
+  filter(.smooth == "s(model_id)") |>
+  select(.smooth, model_id, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
+
+knitr::kable(model_id_ci |> arrange(est) |> select(-.smooth)) 
+
+location_ci <- estimates |>
+  filter(.smooth == "s(location)") |>
+  select(.smooth, location, .estimate, .se) |>
+  rename(est = .estimate, se = .se) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se
+  )
 ```
 
+# Subfigures
 ```{r}
-model_effects <- data.frame(
-  model_id = levels(standard_wis$model_id),
-  effect = as.numeric(model_coefs)
-)
-
-granularity_effects <- data.frame(
-  granularity = levels(standard_wis$granularity),
-  effect = as.numeric(granularity_coefs)
-)
-
-horizon_effects <- data.frame(
-  horizon = 0:3,
-  effect = predict(model, newdata = data.frame(
-    horizon = 0:3,
-    model_id = levels(standard_wis$model_id)[1],
-    location = levels(standard_wis$location)[1],
-    granularity = levels(standard_wis$granularity)[1]
-  ), type = "terms")[, "s(horizon)"]
-)
-
-knitr::kable(model_effects |> arrange(effect)) 
-
-knitr::kable(granularity_effects |> arrange(effect))
-
-rownames(horizon_effects) <- NULL
-knitr::kable(horizon_effects |> arrange(effect))
-```
-
-# Figure 4
-```{r, fig.height=20, fig.width=20}
-temp4a <- model_effects %>%
-  arrange(effect) %>%
-  mutate(model_id = factor(model_id, levels = model_id))
-
-fig4a <- ggplot(temp4a, aes(x = effect, y = model_id)) +
+fig4a = ggplot(horizon_ci, aes(x = factor(horizon), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) + 
   geom_point(size = 5, color = "steelblue") +
-  labs(x = "Effect (WIS)", y = "Model") +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Effect (WIS)", x = "Horizon") +
   theme_bw() +
   theme(
     text = element_text(size = 18),
@@ -128,34 +124,22 @@ fig4a <- ggplot(temp4a, aes(x = effect, y = model_id)) +
 ```
 
 ```{r}
-temp4b <- granularity_effects %>%
-  arrange(effect) %>%
-  mutate(granularity = factor(granularity, levels = granularity))
-
-fig4b <- ggplot(temp4b, aes(x = effect, y = granularity)) +
-  geom_col(fill = "coral", color = "black") +
-  labs(x = "Effect (WIS)", y = "Granularity")  +
-  theme_bw() +  coord_flip() +
-  theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) 
+fig4b = ggplot(location_ci, aes(x = reorder(location, est), y = est)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  coord_flip() +
+  labs(x = "Location", y = "Effect on WIS")
 ```
 
 ```{r}
-temp4c <- horizon_effects %>%
-  arrange(effect) %>%
-  mutate(horizon = factor(horizon, levels = horizon))
-
-fig4c <- ggplot(temp4c, aes(x = effect, y = horizon)) +
-  geom_col(fill = "seagreen", color = "black") +
-  labs(x = "Effect (WIS)", y = "Horizon") +
-  theme_bw() + coord_flip() + 
+fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "seagreen", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Effect (WIS)", x = "Model") +
+  theme_bw() + 
+  coord_flip() + 
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16),
@@ -164,16 +148,17 @@ fig4c <- ggplot(temp4c, aes(x = effect, y = horizon)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) 
+  )
 ```
 
+# Figure 4
 ```{r, fig.height=10, fig.width=15}
-fig4a + fig4b + fig4c
+fig4a + fig4c
 ```
 
 ```{r}
 png("Figures/figure4.png", width = 1440, height = 960)
-(fig4a + fig4b + fig4c)
+(fig4a + fig4c)
 dev.off()
 ```
 
