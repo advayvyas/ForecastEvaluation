@@ -231,7 +231,7 @@ figure1b_date = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mea
     legend.title = element_text(size = 13),
     strip.text = element_text(size = 12)  
   ) 
-figure1b
+figure1b_date
 ```
 
 ## Bottom left
@@ -244,11 +244,14 @@ complete_wis <- state_wis %>%
 
 complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
 complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+
+complete_wis <- complete_wis %>%
+  filter(wis > 0)
 ```
 
 ```{r}
 sum(is.na(complete_wis)) 
-complete_wis = na.omit(complete_wis)
+# complete_wis = na.omit(complete_wis)
 ```
 
 ```{r}
@@ -299,6 +302,9 @@ complete_wis <- state_wis %>%
 
 complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
 complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+
+complete_wis <- complete_wis %>%
+  filter(wis > 0)
 ```
 
 ```{r}
