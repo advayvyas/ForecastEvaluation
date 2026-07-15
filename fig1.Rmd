@@ -291,6 +291,11 @@ figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) +
 
 figure1c
 ```
+```{r}
+png("Figures/figure1_model_alt.png", width = 1080, height = 720)
+figure1c
+dev.off()
+```
 
 ### Location version
 ```{r}
@@ -320,7 +325,17 @@ complete_wis_summary <- complete_wis |> filter(model_id != "epiENGAGE-GBQR") |> 
     count = n(),
     .groups = 'drop'
   )
+```
+
+```{r}
 temp1c = complete_wis_summary 
+
+lookup = read.csv("data/lookup.csv")
+temp1c = temp1c |> left_join(lookup, by = "location") 
+
+temp1c = temp1c |>
+  arrange(desc(state), mean_relative_wis) |>
+  mutate(location = factor(location, levels = location))
 ```
 
 ```{r}
@@ -328,8 +343,8 @@ knitr::kable(temp1c)
 ```
 
 ```{r, fig.height=6, fig.width=14}
-figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis)) + 
-  geom_col(fill = "firebrick", color = "black") + 
+figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis, fill = state)) + 
+  geom_col(color = "black") + 
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Location", y = "Mean Relative WIS") + 
    theme_bw() +
@@ -345,6 +360,11 @@ figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis)) +
   theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
 figure1c_loc
+```
+```{r}
+png("Figures/figure1_loc_alt.png", width = 1080, height = 720)
+figure1c_loc
+dev.off()
 ```
 
 ### Observed vs predicted version
