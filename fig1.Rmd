@@ -416,7 +416,7 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
 obsvspred_loc
 ```
 
-#### Local
+#### State
 ```{r}
 raw_state = read.csv("Data/state_raw.csv")
 ```
