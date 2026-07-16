@@ -41,14 +41,15 @@ state_wis = state_wis |> rename(state_wis = wis)
 complete_wis <- state_wis %>%
   left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
 
-complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
-complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+# complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
+complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis")
 
-complete_wis <- complete_wis %>%
-  filter(wis > 0)
+# complete_wis <- complete_wis %>%
+  # filter(wis > 0)
 ```
 
 # NA stuff
+Since I removed relative_wis and the wis cutoff of 0, I essentially added 47 new entries (in a dataset of 58000) which might slightly affect the models. Mainly VTSanghani which had 46 out of the 47 with state_wis and wis = 0.
 ```{r}
 sum(is.na(complete_wis$wis))
 na <- complete_wis %>%
@@ -75,11 +76,13 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
 # Model effects
 ```{r}
 model <- gam(
-  relative_wis ~ s(model_id, bs = "re") + 
-         s(location, bs = "re") +
-         s(horizon, bs = "re"),
+  wis ~ offset(state_wis) +
+        s(model_id, bs = "re") + 
+        s(location, bs = "re") +
+        s(horizon, bs = "re"),
   family = gaussian(),
-  data = complete_wis
+  data = complete_wis,
+  method = "REML"
 )
 
 summary(model)
@@ -126,7 +129,7 @@ fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect (rWIS)", x = "Model") +
+  labs(y = "Effect", x = "Model") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -146,15 +149,6 @@ location_ci = location_ci |> left_join(lookup, by = "location")
 ```
 
 ```{r}
-location_ci <- location_ci %>%
-  mutate(
-    est = est + 1.4044,
-    ci_lower = ci_lower + 1.4044,
-    ci_upper = ci_upper + 1.4044
-  )
-```
-
-```{r}
 state_order = location_ci |>
   distinct(location, state, est) |>
   arrange(state, desc(est))
@@ -168,8 +162,8 @@ state_boundaries = which(diff(as.numeric(factor(state_order$state,
 fig2b <- ggplot(location_ci, aes(x = location, y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "coral", size = 5) + 
-  geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
-  labs(y = "Predicted rWIS (Baseline + effect)", x = "Location") +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Effect", x = "Location") +
   theme_bw() + 
   coord_flip() + 
   theme(
