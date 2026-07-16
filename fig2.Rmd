@@ -141,11 +141,27 @@ fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
 ```
 
 ```{r}
-fig2b <- ggplot(location_ci, aes(x = reorder(location, -est), y = est)) +
+lookup = read.csv("Data/lookup.csv")
+location_ci = location_ci |> left_join(lookup, by = "location")
+```
+
+```{r}
+state_order = location_ci |>
+  distinct(location, state) |>
+  arrange(state, location)
+
+location_ci = location_ci |>
+  left_join(state_order |> select(location), by = "location") |>
+  mutate(location = factor(location, levels = state_order$location))
+
+state_boundaries = which(diff(as.numeric(factor(state_order$state, 
+                                                 levels = unique(state_order$state)))) != 0) + 0.5
+
+fig2b <- ggplot(location_ci, aes(x = location, y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "coral", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect (rWIS)", x = "Model") +
+  labs(y = "Effect (rWIS)", x = "Location") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -156,7 +172,7 @@ fig2b <- ggplot(location_ci, aes(x = reorder(location, -est), y = est)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  )
+  ) + geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 ```
 
 ```{r, fig.height=15, fig.width=20}
