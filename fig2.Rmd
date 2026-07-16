@@ -66,6 +66,10 @@ standard_wis$horizon = as.character(standard_wis$horizon)
 complete_wis$model_id <- droplevels(as.factor(complete_wis$model_id))
 complete_wis$horizon <- droplevels(as.factor(complete_wis$horizon))
 complete_wis$location <- droplevels(as.factor(complete_wis$location))
+
+complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") 
 ```
 
 # Model effects
