@@ -146,12 +146,20 @@ location_ci = location_ci |> left_join(lookup, by = "location")
 ```
 
 ```{r}
+location_ci <- location_ci %>%
+  mutate(
+    est = est + 1.4044,
+    ci_lower = ci_lower + 1.4044,
+    ci_upper = ci_upper + 1.4044
+  )
+```
+
+```{r}
 state_order = location_ci |>
-  distinct(location, state) |>
-  arrange(state, location)
+  distinct(location, state, est) |>
+  arrange(state, desc(est))
 
 location_ci = location_ci |>
-  left_join(state_order |> select(location), by = "location") |>
   mutate(location = factor(location, levels = state_order$location))
 
 state_boundaries = which(diff(as.numeric(factor(state_order$state, 
@@ -160,8 +168,8 @@ state_boundaries = which(diff(as.numeric(factor(state_order$state,
 fig2b <- ggplot(location_ci, aes(x = location, y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "coral", size = 5) + 
-  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect (rWIS)", x = "Location") +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
+  labs(y = "Predicted rWIS (Baseline + effect)", x = "Location") +
   theme_bw() + 
   coord_flip() + 
   theme(
