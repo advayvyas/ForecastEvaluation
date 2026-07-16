@@ -43,7 +43,7 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 
 # Subfigures
 ```{r}
-model_ids <- c("ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu", "NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
+model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
 ```
 
 ## Figure 1a
@@ -55,7 +55,10 @@ temp1a_standard = standard_wis |> group_by(model_id, target) |>  summarise(mean_
 temp1a_standard$type = "standard-scoring"
 
 temp1a = rbind(temp1a_standard, temp1a_state)
-temp1a = temp1a |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+temp1a = temp1a |> 
+  filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble")
 
 temp1a$model_id <- factor(temp1a$model_id,
   levels = model_ids)
@@ -140,10 +143,10 @@ rWIS_location_target <- standard_wis_grouped %>%
   mutate(mean_relative_wis = state_wis / standard_wis) %>%
   filter(!is.infinite(mean_relative_wis), !is.na(mean_relative_wis))
 
-temp1b <- rWIS_location_target %>%
-  filter(target == "Flu ED visits pct") %>%
-  filter(model_id != "epiENGAGE-GBQR") %>%
-  filter(model_id != "FluSight-ensemble") %>%
+temp1b <- rWIS_location_target |> 
+  filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") |> 
   mutate(model_id = factor(model_id, levels = model_ids))
 ```
 
@@ -196,9 +199,9 @@ rWIS_location_target <- standard_wis_grouped %>%
   filter(!is.infinite(mean_relative_wis), !is.na(mean_relative_wis))
 
 temp1b <- rWIS_location_target %>%
-  filter(target == "Flu ED visits pct") %>%
-  filter(model_id != "epiENGAGE-GBQR") %>%
-  filter(model_id != "FluSight-ensemble") %>%
+  filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") |> 
   mutate(model_id = factor(model_id, levels = model_ids))
 ```
 
@@ -262,7 +265,8 @@ complete_wis_summary <- complete_wis %>%
     count = n(),
     .groups = 'drop'
   )
-temp1c = complete_wis_summary |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+temp1c = complete_wis_summary |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") 
 
 temp1c$model_id <- factor(temp1c$model_id,
   levels = model_ids)
@@ -291,11 +295,6 @@ figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) +
 
 figure1c
 ```
-```{r}
-png("Figures/figure1_model_alt.png", width = 1080, height = 720)
-figure1c
-dev.off()
-```
 
 ### Location version
 ```{r}
@@ -318,7 +317,8 @@ complete_wis = na.omit(complete_wis)
 ```
 
 ```{r}
-complete_wis_summary <- complete_wis |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble") %>%
+complete_wis_summary <- complete_wis |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") |>
   group_by(location) %>%
   summarise(
     mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
@@ -343,28 +343,27 @@ knitr::kable(temp1c)
 ```
 
 ```{r, fig.height=6, fig.width=14}
+state_boundaries = which(diff(as.numeric(factor(temp1c$state))) != 0) + 0.5
+
 figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis, fill = state)) + 
   geom_col(color = "black") + 
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Location", y = "Mean Relative WIS") + 
-   theme_bw() +
+  theme_bw() +
   theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16, angle = 50, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
+  theme(legend.position = "top") + 
+  geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) +
+  geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 
 figure1c_loc
-```
-```{r}
-png("Figures/figure1_loc_alt.png", width = 1080, height = 720)
-figure1c_loc
-dev.off()
 ```
 
 ### Observed vs predicted version
@@ -509,6 +508,7 @@ fig1c_timeseries = obsvspred_loc / obsvspred_state
 fig1c_timeseries
 ```
 
+
 ## Bottom right
 ```{r}
 temp1d_state = state_coverage |> group_by(model_id, target) |>  
@@ -520,7 +520,9 @@ temp1d_standard = standard_coverage |> group_by(model_id, target) |>
 temp1d_standard$type = "standard-scoring"
 
 temp1d = rbind(temp1d_standard, temp1d_state)
-temp1d = temp1d |> filter(target == "Flu ED visits pct") |> filter(model_id != "epiENGAGE-GBQR") |> filter(model_id != "FluSight-ensemble")
+temp1d = temp1d |> filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") 
 
 temp1d$model_id <- factor(temp1d$model_id,
   levels = model_ids)
@@ -551,8 +553,8 @@ figure1d
 ```
 
 # Figure 1
-```{r, fig.height = 20, fig.width = 20}
-(figure1a + figure1d) / ((fig1c_timeseries))
+```{r, fig.height =20, fig.width = 25}
+(figure1a + figure1d) / (figure1c + figure1c_loc)
 ```
 ## Figure 5 (1.2, overflow)
 ```{r, fig.height = 20, fig.width = 20}
@@ -563,7 +565,12 @@ figure1b_loc + figure1b_date
 ## Save to files
 ```{r}
 png("Figures/figure1.png", width = 1920, height = 1920)
-(figure1a + figure1d) / ((fig1c_timeseries))
+(figure1a + figure1d) / (figure1c + figure1c_loc)
+dev.off()
+```
+```{r}
+png("Figures/figure6.png", width = 1440, height = 1080)
+fig1c_timeseries
 dev.off()
 ```
 
