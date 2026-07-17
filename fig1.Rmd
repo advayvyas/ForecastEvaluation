@@ -126,7 +126,7 @@ figure1a_loc = ggplot(temp1a, aes(x = location, y = mean_wis, fill = type)) +
 figure1a_loc
 ```
 
-## Figure 1b
+## Figure 5
 ### Version 1
 ```{r}
 state_wis_grouped <- state_wis %>%
@@ -237,50 +237,88 @@ figure1b_date = ggplot(temp1b, aes(x = model_id, y = target_end_date, fill = mea
 figure1b_date
 ```
 
-## Bottom left
+## Figure 1c (SRSS)
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
 
 complete_wis <- state_wis %>%
   left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
 
-complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
-complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
+# complete_wis$relative_wis <- complete_wis$wis / complete_wis$state_wis
+complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis") |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble")
 
-complete_wis <- complete_wis %>%
-  filter(wis > 0)
+# complete_wis <- complete_wis %>%
+#   filter(wis > 0)
 ```
 
 ```{r}
 sum(is.na(complete_wis)) 
 # complete_wis = na.omit(complete_wis)
 ```
-
 ```{r}
-complete_wis_summary <- complete_wis %>%
-  group_by(model_id) %>%
-  summarise(
-    mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
-    count = n(),
-    .groups = 'drop'
-  )
-temp1c = complete_wis_summary |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
+complete_wis_long <- complete_wis %>%
+  pivot_longer(
+    cols = c("wis", "state_wis"),
+    names_to = "method",
+    values_to = "wis_score"
+  ) %>%
+  mutate(method = case_when(
+    method == "wis" ~ "standard",
+    method == "state_wis" ~ "state"
+  ))
 
-temp1c$model_id <- factor(temp1c$model_id,
-  levels = model_ids)
+complete_wis_long <- complete_wis_long %>% rename(wis = wis_score)
+
+class(complete_wis_long) <- c("scores", "data.table", class(complete_wis_long))
+attr(complete_wis_long, "metrics") <- "wis"
+
+head(complete_wis_long)
+```
+```{r}
+comparisons_by_model <- get_pairwise_comparisons(
+  scores = complete_wis_long,
+  compare = "method",
+  by = "model_id",
+  baseline = "state"
+)
+
+head(comparisons_by_model)
+
+comparisons_by_location <- get_pairwise_comparisons(
+  scores = complete_wis_long,
+  compare = "method",
+  by = "location",
+  baseline = "state"
+)
+
+head(comparisons_by_location)
 ```
 
 ```{r}
-knitr::kable(temp1c)
+temp1c_model <- comparisons_by_model %>%
+  filter(method == "standard", compare_against == "state")
+
+knitr::kable(temp1c_model)
+
+temp1c_loc <- comparisons_by_location %>%
+  filter(method == "standard", compare_against == "state")
+
+lookup = read.csv("data/lookup.csv")
+temp1c_loc = temp1c_loc |> left_join(lookup, by = "location") 
+temp1c_loc = temp1c_loc |>
+  arrange(desc(state), wis_scaled_relative_skill) |>
+  mutate(location = factor(location, levels = location))
+
+knitr::kable(temp1c_loc)
 ```
 
 ```{r}
-figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) + 
+figure1c_model = ggplot(temp1c_model, aes(x = model_id, y = wis_scaled_relative_skill)) + 
   geom_col(fill = "firebrick", color = "black") + 
-  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Model", y = "Mean Relative WIS") + 
+  labs(x = "Model", y = "Scaled relative skill score (WIS)") + 
    theme_bw() +
   theme(
     text = element_text(size = 18),
@@ -293,62 +331,15 @@ figure1c = ggplot(temp1c, aes(x = model_id, y = mean_relative_wis)) +
   ) + scale_y_log10() + 
   theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
-figure1c
-```
-
-### Location version
-```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-state_wis = state_wis |> rename(state_wis = wis)
-
-complete_wis <- state_wis %>%
-  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
-
-complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
-complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
-
-complete_wis <- complete_wis %>%
-  filter(wis > 0)
-```
-
-```{r}
-sum(is.na(complete_wis)) 
-complete_wis = na.omit(complete_wis)
-```
-
-```{r}
-complete_wis_summary <- complete_wis |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") |>
-  group_by(location) %>%
-  summarise(
-    mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
-    count = n(),
-    .groups = 'drop'
-  )
-```
-
-```{r}
-temp1c = complete_wis_summary 
-
-lookup = read.csv("data/lookup.csv")
-temp1c = temp1c |> left_join(lookup, by = "location") 
-
-temp1c = temp1c |>
-  arrange(desc(state), mean_relative_wis) |>
-  mutate(location = factor(location, levels = location))
-```
-
-```{r}
-knitr::kable(temp1c)
+figure1c_model
 ```
 
 ```{r, fig.height=6, fig.width=14}
-state_boundaries = which(diff(as.numeric(factor(temp1c$state))) != 0) + 0.5
+state_boundaries = which(diff(as.numeric(factor(temp1c_loc$state))) != 0) + 0.5
 
-figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis, fill = state)) + 
+figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = wis_scaled_relative_skill, fill = state)) + 
   geom_col(color = "black") + 
-  scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Location", y = "Mean Relative WIS") + 
+  labs(x = "Location", y = "Scaled relative skill score (WIS)") + 
   theme_bw() +
   theme(
     text = element_text(size = 18),
@@ -366,8 +357,8 @@ figure1c_loc = ggplot(temp1c, aes(x = location, y = mean_relative_wis, fill = st
 figure1c_loc
 ```
 
-### Observed vs predicted version
-#### Local
+## Figure 5
+### Local
 ```{r}
 raw = read.csv("Data/raw_data.csv")
 ```
@@ -435,7 +426,7 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
 obsvspred_loc
 ```
 
-#### State
+### State
 ```{r}
 raw_state = read.csv("Data/state_raw.csv")
 ```
@@ -509,7 +500,7 @@ fig1c_timeseries
 ```
 
 
-## Bottom right
+## Figure 1d
 ```{r}
 temp1d_state = state_coverage |> group_by(model_id, target) |>  
   summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
@@ -551,7 +542,8 @@ figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) +
 
 figure1d
 ```
-## Combined location model rWIS plot
+## Extra
+### Combined location model rWIS plot
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
@@ -562,7 +554,7 @@ state_wis = state_wis |> rename(state_wis = wis)
 complete_wis <- state_wis %>%
   left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
 
-complete_wis$relative_wis <- complete_wis$state_wis / complete_wis$wis
+complete_wis$relative_wis <- complete_wis$wis / complete_wis$state_wis
 complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
 
 complete_wis <- complete_wis %>%
@@ -614,7 +606,7 @@ ggplot(temp_special) + geom_point(size=5, aes(x=location, y=mean_relative_wis, c
   geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) + geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 ```
 
-# NA stuff
+### NA stuff
 ```{r}
 sum(is.na(complete_wis$wis))
 na <- complete_wis %>%
@@ -639,21 +631,26 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
 ```
 
 
+# Save to files
 
-# Figure 1
+## Figure 1
 ```{r, fig.height =20, fig.width = 25}
-(figure1a + figure1d) / (figure1c + figure1c_loc)
+(figure1a + figure1d) / (figure1c_model + figure1c_loc)
 ```
 ## Figure 5 (1.2, overflow)
 ```{r, fig.height = 20, fig.width = 20}
 figure1b_loc + figure1b_date
-
 ```
 
-## Save to files
+## Figure 6
+```{r, fig.height = 20, fig.width = 20}
+fig1c_timeseries
+```
+
+## Saving
 ```{r}
 png("Figures/figure1.png", width = 1920, height = 1920)
-(figure1a + figure1d) / (figure1c + figure1c_loc)
+(figure1a + figure1d) / (figure1c_model + figure1c_loc)
 dev.off()
 ```
 ```{r}
