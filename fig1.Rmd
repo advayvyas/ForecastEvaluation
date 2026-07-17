@@ -301,6 +301,9 @@ head(comparisons_by_location)
 temp1c_model <- comparisons_by_model %>%
   filter(method == "standard", compare_against == "state")
 
+temp1c_model$model_id <- factor(temp1c_model$model_id,
+  levels = model_ids)
+
 knitr::kable(temp1c_model)
 
 temp1c_loc <- comparisons_by_location %>%
