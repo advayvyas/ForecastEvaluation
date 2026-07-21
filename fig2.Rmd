@@ -129,7 +129,26 @@ fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect", x = "Model") +
+  labs(y = "Estimated random effect", x = "Model") +
+  theme_bw() + 
+  coord_flip() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+```
+
+```{r, fig.height=20, fig.width=20}
+fig2b <- ggplot(horizon_ci, aes(x = reorder(horizon, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "coral", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Estimated random effect", x = "Horizon") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -159,11 +178,12 @@ location_ci = location_ci |>
 state_boundaries = which(diff(as.numeric(factor(state_order$state, 
                                                  levels = unique(state_order$state)))) != 0) + 0.5
 
-fig2b <- ggplot(location_ci, aes(x = location, y = est, color = state)) +
+fig2c <- ggplot(location_ci, aes(x = location, y = est, color = state)) + 
+  geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
-  geom_point( size = 5) + 
+  geom_point(size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect", x = "Location") +
+  labs(y = "Estimated random effect", x = "Location") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -174,16 +194,17 @@ fig2b <- ggplot(location_ci, aes(x = location, y = est, color = state)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) + geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
+  ) 
 ```
 
 ```{r, fig.height=15, fig.width=20}
-fig2a + fig2b + plot_layout(ncol = 2, widths = c(0.4, 0.6))
+fig2_left = (fig2a / fig2b)
+((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))
 ```
 
 ```{r}
 png("Figures/figure2.png", width = 1920, height = 1440)
-(fig2a + fig2b + plot_layout(ncol = 2, widths = c(0.4, 0.6)))
+((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))
 dev.off()
 ```
 
