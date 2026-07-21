@@ -258,6 +258,7 @@ complete_wis = complete_wis |> select("location", "target_end_date", "horizon", 
 sum(is.na(complete_wis)) 
 # complete_wis = na.omit(complete_wis)
 ```
+
 ```{r}
 complete_wis_long <- complete_wis %>%
   pivot_longer(
@@ -277,6 +278,7 @@ attr(complete_wis_long, "metrics") <- "wis"
 
 head(complete_wis_long)
 ```
+
 ```{r}
 comparisons_by_model <- get_pairwise_comparisons(
   scores = complete_wis_long,
@@ -656,6 +658,7 @@ png("Figures/figure1.png", width = 1920, height = 1920)
 (figure1a + figure1d) / (figure1c_model + figure1c_loc)
 dev.off()
 ```
+
 ```{r}
 png("Figures/figure6.png", width = 1440, height = 1080)
 fig1c_timeseries
