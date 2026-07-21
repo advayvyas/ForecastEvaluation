@@ -159,9 +159,9 @@ location_ci = location_ci |>
 state_boundaries = which(diff(as.numeric(factor(state_order$state, 
                                                  levels = unique(state_order$state)))) != 0) + 0.5
 
-fig2b <- ggplot(location_ci, aes(x = location, y = est)) +
+fig2b <- ggplot(location_ci, aes(x = location, y = est, color = state)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
-  geom_point(color = "coral", size = 5) + 
+  geom_point( size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Effect", x = "Location") +
   theme_bw() + 
