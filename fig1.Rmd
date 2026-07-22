@@ -21,6 +21,8 @@ library(ggplot2)
 library(lubridate)
 library(patchwork)
 library(kableExtra)
+library(viridis)
+library(scico)
 
 library(scoringutils)
 library(hubUtils)
@@ -192,8 +194,8 @@ temp1b <- suppressWarnings(
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = wis_scaled_relative_skill)) + 
-  scale_fill_viridis_c(direction = -1, option = "mako", trans = "log10") +
+figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_scaled_relative_skill))) + 
+  scale_fill_scico(palette = "vik",  midpoint = 0) + 
   geom_tile(col = "black") + 
   labs(x = "Model", y = "Location", fill = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
@@ -232,8 +234,8 @@ temp1b_date <- suppressWarnings(
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill = wis_scaled_relative_skill)) + 
-  scale_fill_viridis_c(direction = -1, option = "mako", trans = "log10") +
+figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill = log(wis_scaled_relative_skill))) + 
+  scale_fill_scico(palette = "vik",  midpoint = 0) + 
   geom_tile(col = "black") +
   labs(x = "Model", y = "Date", fill = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
