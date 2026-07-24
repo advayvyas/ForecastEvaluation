@@ -195,20 +195,25 @@ temp1b <- suppressWarnings(
 
 ```{r, fig.height = 10, fig.width = 10}
 figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_scaled_relative_skill))) + 
-  scale_fill_scico(palette = "vik",  midpoint = 0) + 
+  scale_fill_gradient2(
+  low = "#2166ac", 
+  mid = "grey90", 
+  high = "#d73027", 
+  midpoint = 0
+) + 
   geom_tile(col = "black") + 
   labs(x = "Model", y = "Location", fill = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
     text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 10),
     axis.title = element_text(size = 14),
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     strip.text = element_text(size = 12)  
-  )
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
 figure1b_loc
 ```
@@ -235,44 +240,49 @@ temp1b_date <- suppressWarnings(
 
 ```{r, fig.height = 10, fig.width = 10}
 figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill = log(wis_scaled_relative_skill))) + 
-  scale_fill_scico(palette = "vik",  midpoint = 0) + 
+  scale_fill_gradient2(
+  low = "#2166ac", 
+  mid = "grey90", 
+  high = "#d73027", 
+  midpoint = 0
+) +  
   geom_tile(col = "black") +
   labs(x = "Model", y = "Date", fill = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
     text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 10),
     axis.title = element_text(size = 14),
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     strip.text = element_text(size = 12)  
-  )
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 figure1b_date
 ```
 
 ### Date line
 ```{r}
-temp1b_date_overall <- suppressWarnings(
-  complete_wis_long %>%
-    filter(
-      target == "Flu ED visits pct",
-      !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-      model_id != "FluSight-ensemble"
-    ) %>%
-    get_pairwise_comparisons(
-      compare = "method",
-      by = "target_end_date",
-      baseline = "state"
-    ) %>%
-    filter(
-      method == "standard",
-      compare_against == "state"
-    )
-)
+# temp1b_date_overall <- suppressWarnings(
+#   complete_wis_long %>%
+#     filter(
+#       target == "Flu ED visits pct",
+#       !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+#       model_id != "FluSight-ensemble"
+#     ) %>%
+#     get_pairwise_comparisons(
+#       compare = "method",
+#       by = "target_end_date",
+#       baseline = "state"
+#     ) %>%
+#     filter(
+#       method == "standard",
+#       compare_against == "state"
+#     )
+# )
 
-figure1b_date_line <- ggplot(temp1b_date_overall, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill)) + 
+figure1b_date_line <- ggplot(temp1b_date, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
   geom_line() +
   geom_point() +
   geom_hline(yintercept = 1,linetype = "dashed", color = "black") +
@@ -728,7 +738,7 @@ dev.off()
 ```
 
 ```{r}
-#png("Figures/figure7.png", height = 1200, width = 1800)
+png("Figures/figure7.png", width = 1575, height = 973)
 (figure1b_date_line) # i just save it manually, it looks better
 dev.off()
 ```
