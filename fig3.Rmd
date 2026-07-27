@@ -38,9 +38,7 @@ standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/s
 
 # Subfigures
 ```{r}
-model_ids <- c("UT-GBQR", "epiforecasts-dyngam", "NAU-Copycat", "UMass-alloy",
-               "NAU-INFLAenza", "UMass-SAR", "VTSanghani-PRIME",
-               "epiENGAGE-baseline", "epiENGAGE-ensemble_mean")
+model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiforecasts-dyngam")
 ```
 
 ## Left
@@ -66,7 +64,7 @@ plot_df <- temp3a %>%
   summarise(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop") %>%
   group_by(model_id) %>%
   mutate(total_wis = sum(mean_wis)) %>%
-  ungroup()
+  ungroup() 
 
 plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("over", "on-target", "under"))
 ```
@@ -94,20 +92,20 @@ temp3b = standard_coverage |> group_by(model_id, horizon) |>
   group_by(model_id) %>%
   ungroup() %>% filter(model_id %in% model_ids)
 
-temp3b$model_id <- factor(temp3b$model_id,
-  levels = model_ids)
+temp3b <- temp3b |> mutate(model_id = factor(model_id, levels = model_ids))
 ```
 
 ```{r}
-figure3b = ggplot(temp3b) + geom_tile(col='black',aes(y=model_id, x=horizon, fill = mean_coverage)) + scale_fill_viridis_c(option = "plasma", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + theme(
+figure3b = ggplot(temp3b, aes(y=model_id, x=horizon, fill = mean_coverage)) + geom_tile(col='black') + scale_fill_viridis_c(option = "mako", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17), legend.position = "top"
-  ) 
+    strip.text = element_text(size = 17), 
+    legend.position = "top"
+  ) + geom_text(aes(label = round(mean_coverage, 2)), size = 5, color = "white") + coord_cartesian(expand = FALSE)
 figure3b
 ```
 

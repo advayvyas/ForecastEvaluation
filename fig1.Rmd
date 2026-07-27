@@ -302,7 +302,7 @@ figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date),
                          setdiff(unique(temp1b_date_line$model_id), "epiENGAGE-ensemble_mean")),
                 "epiENGAGE-ensemble_mean" = "black")
   ) +
-  labs(x = "Date", y = "Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Date", y = "Scaled Relative Skill Score") + 
   theme_bw() + 
   theme(
     legend.position = "top",
