@@ -264,33 +264,48 @@ figure1b_date
 
 ### Date line
 ```{r}
-# temp1b_date_overall <- suppressWarnings(
-#   complete_wis_long %>%
-#     filter(
-#       target == "Flu ED visits pct",
-#       !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-#       model_id != "FluSight-ensemble"
-#     ) %>%
-#     get_pairwise_comparisons(
-#       compare = "method",
-#       by = "target_end_date",
-#       baseline = "state"
-#     ) %>%
-#     filter(
-#       method == "standard",
-#       compare_against == "state"
-#     )
-# )
+temp1b_date_line <- suppressWarnings(
+  complete_wis_long %>%
+    filter(target == "Flu ED visits pct") %>%
+    get_pairwise_comparisons(
+      compare = "method",
+      by = c("model_id", "target_end_date", "horizon"),
+      baseline = "state"
+    ) %>%
+    filter(
+      method == "standard",
+      compare_against == "state",
+      !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+      model_id != "FluSight-ensemble"
+    ) %>%
+    mutate(model_id = factor(model_id, levels = model_ids))
+)
+```
 
-figure1b_date_line <- ggplot(temp1b_date, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
+```{r}
+horizon_labels <- c(
+  "1" = "Horizon 1",
+  "2" = "Horizon 2",
+  "3" = "Horizon 3",
+  "4" = "Horizon 4"
+)
+```
+
+```{r}
+figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
   geom_line() +
   geom_point() +
   geom_hline(yintercept = 1,linetype = "dashed", color = "black") +
   scale_y_log10() +
+  scale_color_manual(
+    values = c(setNames(scales::hue_pal()(length(unique(temp1b_date_line$model_id)) - 1),
+                         setdiff(unique(temp1b_date_line$model_id), "epiENGAGE-ensemble_mean")),
+                "epiENGAGE-ensemble_mean" = "black")
+  ) +
   labs(x = "Date", y = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
-    legend.position = "right",
+    legend.position = "top",
     text = element_text(size = 14),
     axis.text.x = element_text(size = 11),
     axis.text.y = element_text(size = 10),
@@ -301,7 +316,7 @@ figure1b_date_line <- ggplot(temp1b_date, aes(x = as.Date(target_end_date), y = 
   scale_x_date(
   date_breaks = "1 month",
   date_labels = "%b %Y"
-)
+) + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
 figure1b_date_line
 ```
 
