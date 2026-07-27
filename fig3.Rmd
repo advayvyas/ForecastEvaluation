@@ -43,36 +43,27 @@ model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-G
 
 ## Left
 ```{r}
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-standard_coverage <- standard_coverage |> 
-  select(location, target_end_date, horizon, reference_date, model_id, target, coverage_95, prediction_category) |>
-  mutate(horizon = horizon + 1)
-
-temp3a <- standard_wis %>% 
-  left_join(standard_coverage, 
-            by = join_by(location, target_end_date, horizon, reference_date, model_id, target)) %>% filter(model_id %in% model_ids)
-
-table(is.na(temp3a$prediction_category))
-
-temp3a$model_id <- factor(temp3a$model_id,
-  levels = model_ids)
-```
-
-```{r}
-plot_df <- temp3a %>%
-  group_by(model_id, prediction_category) %>%
-  summarise(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop") %>%
+temp3a <- standard_wis %>%
+  pivot_longer(
+    cols = c(overprediction, underprediction, dispersion),
+    names_to = "component",
+    values_to = "value"
+  ) %>%
+  group_by(model_id, component) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE), .groups = "drop") %>%
   group_by(model_id) %>%
-  mutate(total_wis = sum(mean_wis)) %>%
-  ungroup() 
+  mutate(total_wis = sum(mean_value)) %>%
+  ungroup()
 
-plot_df$prediction_category <- factor(plot_df$prediction_category, levels = c("over", "on-target", "under"))
+temp3a$component <- factor(temp3a$component, levels = c("overprediction", "dispersion", "underprediction"))
 ```
 
 ```{r}
-figure3a = ggplot(plot_df, aes(x = model_id, y = mean_wis, fill = prediction_category)) +
+figure3a = ggplot(temp3a, aes(x = model_id, y = mean_value, fill = component)) +
   geom_col(col = "black") +
-  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Prediction Category") + theme_bw(base_size = 18)+ theme(
+  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Component") + 
+  theme_bw(base_size = 18) + 
+  theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 16),
