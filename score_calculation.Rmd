@@ -44,7 +44,8 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
     ) |>
     score() |>
     mutate(horizon = horizon + 1) |>
-    dplyr::select(location, target_end_date, horizon, wis)   # reference_date dropped here, rejoined below
+    dplyr::select(location, target_end_date, horizon,
+                  wis, overprediction, underprediction, dispersion)
   return(df_wis)
 }
 ```
