@@ -62,7 +62,7 @@ table(na$model_id)
 
 ```{r}
 # complete_wis = na.omit(complete_wis)
-standard_wis$horizon = as.character(standard_wis$horizon)
+standard_wis$horizon = (as.character(standard_wis$horizon))
 
 complete_wis$model_id <- droplevels(as.factor(complete_wis$model_id))
 complete_wis$horizon <- droplevels(as.factor(complete_wis$horizon))
@@ -86,6 +86,12 @@ model <- gam(
 )
 
 summary(model)
+```
+
+```{r, fig.height = 6, fig.width = 6}
+par(mfrow = c(2, 2))
+gam.check(model)
+par(mfrow = c(1, 1))
 ```
 
 ```{r}
