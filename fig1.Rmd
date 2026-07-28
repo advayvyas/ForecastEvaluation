@@ -86,7 +86,7 @@ figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) +
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) +
-  theme(legend.position = "top") 
+  theme(legend.position = "top") + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
 figure1a
 ```
@@ -416,7 +416,7 @@ figure1c_model = ggplot(temp1c_model, aes(x = model_id, y = wis_scaled_relative_
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) + scale_y_log10() + 
+  ) + scale_y_log10() + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
   theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
 figure1c_model
@@ -617,14 +617,16 @@ figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) +
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13),
-    strip.text = element_text(size = 12)  
-  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03))
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+
 
 figure1d
 ```
