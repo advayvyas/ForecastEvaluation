@@ -69,7 +69,8 @@ model <- gam(
         s(location, bs = "re") +
         s(horizon, bs = "re"),
   family = gaussian(),
-  data = standard_wis
+  data = standard_wis,
+  method = "REML"
 )
 
 summary(model)
