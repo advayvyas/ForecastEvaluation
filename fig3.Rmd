@@ -65,14 +65,14 @@ figure3a = ggplot(temp3a, aes(x = model_id, y = mean_value, fill = component)) +
   theme_bw(base_size = 18) + 
   theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16, angle = 40, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17),
     legend.position = "top"
-  ) 
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 figure3a
 ```
 
@@ -96,7 +96,8 @@ figure3b = ggplot(temp3b, aes(y=model_id, x=horizon, fill = mean_coverage)) + ge
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17), 
     legend.position = "top"
-  ) + geom_text(aes(label = round(mean_coverage, 2)), size = 5, color = "white") + coord_cartesian(expand = FALSE)
+  ) + geom_text(aes(label = round(mean_coverage, 2)), size = 5, color = "white") + 
+  coord_cartesian(expand = FALSE) + scale_y_discrete(labels = function(x) gsub("-", "-\n", x))
 figure3b
 ```
 
