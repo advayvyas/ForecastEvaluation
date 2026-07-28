@@ -65,7 +65,7 @@ standard_wis = standard_wis %>% filter(model_id %in% model_ids)
 # Model effects
 ```{r}
 model <- gam(
-  wis ~ s(model_id, bs = "re") +  
+  log(wis) ~ s(model_id, bs = "re") +  
         s(location, bs = "re") +
         s(horizon, bs = "re"),
   family = gaussian(),
@@ -76,39 +76,38 @@ model <- gam(
 summary(model)
 ```
 
+```{r, fig.height = 6, fig.width = 6}
+par(mfrow = c(2, 2))
+gam.check(model)
+par(mfrow = c(1, 1))
+```
+
 ```{r}
 estimates <- smooth_estimates(model)
 
-horizon_ci <- estimates |>
-  filter(.smooth == "s(horizon)") |>
-  select(.smooth, horizon, .estimate, .se) |>
-  rename(est = .estimate, se = .se) |>
-  mutate(
-    ci_lower = est - 1.96 * se,
-    ci_upper = est + 1.96 * se
-  )
+make_ci_table <- function(smooth_name, group_var) {
+  estimates |>
+    filter(.smooth == smooth_name) |>
+    select(.smooth, {{ group_var }}, .estimate, .se) |>
+    rename(est = .estimate, se = .se) |>
+    mutate(
+      ci_lower = est - 1.96 * se,
+      ci_upper = est + 1.96 * se,
+      pct_est   = (exp(est) - 1) * 100,
+      pct_lower = (exp(ci_lower) - 1) * 100,
+      pct_upper = (exp(ci_upper) - 1) * 100,
+      excludes_zero = ci_lower > 0 | ci_upper < 0
+    ) |>
+    arrange(est)
+}
 
-knitr::kable(horizon_ci |> arrange(est) |> select(-.smooth)) 
+model_id_ci  <- make_ci_table("s(model_id)", model_id)
+location_ci  <- make_ci_table("s(location)", location)
+horizon_ci   <- make_ci_table("s(horizon)", horizon)
 
-model_id_ci <- estimates |>
-  filter(.smooth == "s(model_id)") |>
-  select(.smooth, model_id, .estimate, .se) |>
-  rename(est = .estimate, se = .se) |>
-  mutate(
-    ci_lower = est - 1.96 * se,
-    ci_upper = est + 1.96 * se
-  )
-
-knitr::kable(model_id_ci |> arrange(est) |> select(-.smooth)) 
-
-location_ci <- estimates |>
-  filter(.smooth == "s(location)") |>
-  select(.smooth, location, .estimate, .se) |>
-  rename(est = .estimate, se = .se) |>
-  mutate(
-    ci_lower = est - 1.96 * se,
-    ci_upper = est + 1.96 * se
-  )
+knitr::kable(model_id_ci |> select(-.smooth))
+knitr::kable(location_ci |> select(-.smooth))
+knitr::kable(horizon_ci |> select(-.smooth))
 ```
 
 # Subfigures
@@ -137,7 +136,7 @@ fig4b = ggplot(location_ci, aes(x = reorder(location, est), y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   coord_flip() +
-  labs(x = "Location", y = "Effect on WIS")
+  labs(x = "Location", y = "Estimated random effect (% diff on WIS)")
 ```
 
 ```{r}
@@ -145,7 +144,7 @@ fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect (WIS)", x = "Model") +
+  labs(y = "Estimated random effect (% diff on WIS)", x = "Model") +
   theme_bw() + 
   coord_flip() + 
   theme(
