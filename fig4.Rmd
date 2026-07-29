@@ -104,6 +104,8 @@ make_ci_table <- function(smooth_name, group_var) {
 model_id_ci  <- make_ci_table("s(model_id)", model_id)
 location_ci  <- make_ci_table("s(location)", location)
 horizon_ci   <- make_ci_table("s(horizon)", horizon)
+horizon_ci$horizon = as.numeric(horizon_ci$horizon)
+horizon_ci$horizon = horizon_ci$horizon 
 
 knitr::kable(model_id_ci |> select(-.smooth))
 knitr::kable(location_ci |> select(-.smooth))
@@ -112,11 +114,11 @@ knitr::kable(horizon_ci |> select(-.smooth))
 
 # Subfigures
 ```{r}
-fig4a = ggplot(horizon_ci, aes(x = factor(horizon), y = est)) +
+fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -est), y = est)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) + 
   geom_point(size = 5, color = "steelblue") +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Effect (WIS)", x = "Horizon") +
+  labs(y = "Estimated random effect (% diff on WIS)", x = "Horizon") +
   theme_bw() +
   coord_flip() + 
   theme(
@@ -128,6 +130,8 @@ fig4a = ggplot(horizon_ci, aes(x = factor(horizon), y = est)) +
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
   ) 
+
+fig4a
 ```
 
 ```{r}
@@ -155,7 +159,9 @@ fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  )
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+fig4c
 ```
 
 # Figure 4
