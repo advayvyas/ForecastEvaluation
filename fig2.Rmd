@@ -206,6 +206,11 @@ fig2_left = (fig2a / fig2b)
 ((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))
 ```
 
+```{r, fig.height = 10, fig.width = 15}
+(fig2a | fig2b)
+
+```
+
 ```{r}
 png("Figures/figure2.png", width = 1920, height = 1440)
 ((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))

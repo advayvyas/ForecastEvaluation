@@ -65,7 +65,7 @@ figure3a = ggplot(temp3a, aes(x = model_id, y = mean_value, fill = component)) +
   theme_bw(base_size = 18) + 
   theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 40, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
