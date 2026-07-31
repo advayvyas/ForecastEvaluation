@@ -171,6 +171,28 @@ coverage = read.csv("Data/standard-scoring/standard_coverage.csv")
 knitr::kable(head(coverage))
 ```
 
+```{r}
+coverage_50 <- raw %>%
+  filter(!is.na(oracle_value)) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "quantile_"
+  ) %>%
+  mutate(
+    coverage_50 = as.numeric(`oracle_value` >= `quantile_0.25` & `oracle_value` <= `quantile_0.75`)
+  ) %>%
+  select(model_id, location, target_end_date, horizon, target,
+         reference_date, output_type, oracle_value,
+         `quantile_0.25`, `quantile_0.75`, coverage_50)
+
+
+write_csv(coverage_50, "Data/standard-scoring/standard_coverage_50.csv")
+
+coverage_50 = read.csv("Data/standard-scoring/standard_coverage_50.csv")
+knitr::kable(head(coverage_50))
+```
+
 ```{r coverage_summary}
 # coverage_summary <- coverage %>%
 #   group_by(model_id, horizon, target) %>%
@@ -339,6 +361,27 @@ knitr::kable(head(state_wis_summary |> arrange(mean_wis)))
 
 state_coverage = read.csv("Data/state-scoring/state_coverage.csv")
 knitr::kable(head(state_coverage))
+```
+
+```{r}
+state_coverage_50 <- state_raw %>%
+  filter(!is.na(state_value)) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = state_value,
+    names_prefix = "quantile_"
+  ) %>%
+  mutate(
+    coverage_50 = as.numeric(oracle_value >= quantile_0.25 & oracle_value <= quantile_0.75)
+  ) %>%
+  select(model_id, location, target_end_date, horizon, target,
+         reference_date, output_type, oracle_value,
+         quantile_0.25, quantile_0.75, coverage_50)
+
+write_csv(state_coverage_50, "Data/state-scoring/state_coverage_50.csv")
+
+state_coverage_50 = read.csv("Data/state-scoring/state_coverage_50.csv")
+knitr::kable(head(state_coverage_50))
 ```
 
 ```{r}
