@@ -473,9 +473,9 @@ plot_data <- raw %>%
     lower = `q_0.025`,           
     upper = `q_0.975`            
   ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) |> 
-  filter(location %in% c("austin", "san-antonio",  "el-paso", "indianapolis", "pittsfield", "portland")) 
+  filter(location %in% c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder")) 
 
-plot_data$location = factor(plot_data$location, levels = c("austin", "san-antonio",  "el-paso", "indianapolis", "pittsfield", "portland"))
+plot_data$location = factor(plot_data$location, levels = c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder"))
 ```
 
 ```{r, fig.width=20, fig.height=10}
@@ -538,9 +538,9 @@ plot_data_state <- raw_state %>%
     lower = `q_0.025`,           
     upper = `q_0.975`            
   ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) |> 
-  filter(location %in% c("austin", "san-antonio",  "el-paso", "indianapolis", "pittsfield", "portland")) 
+  filter(location %in% c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder")) 
 
-plot_data_state$location = factor(plot_data_state$location, levels = c("austin", "san-antonio",  "el-paso", "indianapolis", "pittsfield", "portland"))
+plot_data_state$location = factor(plot_data_state$location, levels = c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder"))
 ```
 
 ```{r, fig.width=20, fig.height=10}
