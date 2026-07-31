@@ -452,7 +452,7 @@ raw = read.csv("Data/raw_data.csv")
 ```
 
 ```{r}
-set_horizon = 3
+set_horizon = 2
 ```
 
 ```{r, fig.width=10, fig.height=10}
