@@ -624,13 +624,100 @@ figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) +
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 17),
     strip.text = element_text(size = 17)  
-  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1)
 
 
 
 figure1d
 ```
+
+```{r, fig.height = 10, fig.width = 10}
+temp1d_state = state_coverage |> group_by(model_id, target, horizon) |>  
+  summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
+temp1d_state$type = "state-scoring"
+
+temp1d_standard = standard_coverage |> group_by(model_id, target, horizon) |> 
+  summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
+temp1d_standard$type = "standard-scoring"
+
+temp1d = rbind(temp1d_standard, temp1d_state)
+temp1d = temp1d |> filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") 
+
+temp1d$model_id <- factor(temp1d$model_id,
+  levels = model_ids)
+
+figure1d_split = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) + 
+  geom_col(col = "black", position = "dodge") + 
+  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
+  labs(x = "Model", y = "Mean Coverage (95%)", fill = "Scoring Method") + 
+  theme_bw() + 
+  theme(legend.position = "top") + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + 
+  scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
+
+figure1d_split
+```
+
+
 ## Extra
+### 50% coverage rate
+```{r}
+standard_coverage_50 = read.csv("Data/standard-scoring/standard_coverage_50.csv")
+state_coverage_50 = read.csv("Data/state-scoring/state_coverage_50.csv")
+
+temp50_stat = state_coverage_50 |> group_by(model_id, target, horizon) |>  
+  summarise(mean_coverage = mean(coverage_50), count = n(), .groups = 'drop')
+temp50_stat$type = "state-scoring"
+
+temp50_stan = standard_coverage_50 |> group_by(model_id, target, horizon) |> 
+  summarise(mean_coverage = mean(coverage_50), count = n(), .groups = 'drop')
+temp50_stan$type = "standard-scoring"
+
+temp50 = rbind(temp50_stan, temp50_stat)
+temp50 = temp50 |> filter(target == "Flu ED visits pct",
+         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble") 
+
+temp50$model_id <- factor(temp50$model_id,
+  levels = model_ids)
+```
+
+```{r}
+knitr::kable(temp50)
+```
+
+```{r, fig.height = 10, fig.width = 10}
+figure_50_split = ggplot(temp50, aes(x = model_id, y = mean_coverage, fill = type)) + 
+  geom_col(col = "black", position = "dodge") + 
+  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
+  labs(x = "Model", y = "Mean Coverage (50%)", fill = "Scoring Method") + 
+  theme_bw() + 
+  theme(legend.position = "top") + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
+  geom_hline(yintercept = 0.5, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,  labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
+
+figure_50_split
+```
+
+
 ### Combined location model rWIS plot
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
@@ -757,5 +844,17 @@ dev.off()
 ```{r}
 png("Figures/figure7.png", width = 1575, height = 973)
 (figure1b_date_line) # i just save it manually, it looks better
+dev.off()
+```
+
+```{r}
+png("Figures/figure8.png", width = 1575, height = 973)
+(figure_50_split) # i just save it manually, it looks better
+dev.off()
+```
+
+```{r}
+png("Figures/figure9.png", width = 1575, height = 973)
+(figure1d_split) # i just save it manually, it looks better
 dev.off()
 ```
