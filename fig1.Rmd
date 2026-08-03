@@ -320,6 +320,168 @@ figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date),
 figure1b_date_line
 ```
 
+#### Figure 11
+```{r}
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble")
+
+# complete_wis <- complete_wis %>%
+#   filter(wis > 0)
+```
+
+```{r}
+sum(is.na(standard_wis)) 
+# complete_wis = na.omit(complete_wis)
+```
+
+```{r}
+# standard_wis <- standard_wis %>% rename(wis = wis_score)
+
+class(standard_wis) <- c("scores", "data.table", class(standard_wis))
+attr(standard_wis, "metrics") <- "wis"
+
+head(standard_wis)
+```
+
+```{r}
+comparisons_by_location <- get_pairwise_comparisons(
+  scores = standard_wis,
+  compare = "model_id",
+  by = "location",
+  baseline = "epiENGAGE-baseline"
+)
+
+head(comparisons_by_location)
+
+temp11_loc <- comparisons_by_location %>%
+  filter(compare_against == "epiENGAGE-baseline")
+
+temp11_loc = temp11_loc |> filter(model_id != "epiENGAGE-baseline")
+```
+
+```{r}
+figure11_loc <- ggplot(temp11_loc, aes(x = model_id, y = location, fill = log(wis_scaled_relative_skill))) + 
+  scale_fill_gradient2(
+    low = "#2166ac", 
+    mid = "grey90", 
+    high = "#d73027", 
+    midpoint = 0
+  ) + 
+  geom_tile(col = "black") + 
+  labs(x = "Model", y = "Location", fill = "Log Relative Skill Score (WIS)") + 
+  theme_bw() + 
+  theme(
+    legend.position = "top",
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 12)  
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+figure11_loc
+```
+
+
+```{r}
+comparisons_by_date <- get_pairwise_comparisons(
+  scores = standard_wis,
+  compare = "model_id",
+  by = "target_end_date",
+  baseline = "epiENGAGE-baseline"
+)
+
+head(comparisons_by_date)
+
+temp11_date <- comparisons_by_date %>%
+  filter(compare_against == "epiENGAGE-baseline")
+
+temp11_date = temp11_date |> filter(model_id != "epiENGAGE-baseline")
+```
+
+```{r}
+figure11_date <- ggplot(temp11_date, aes(x = model_id, y = target_end_date, fill = log(wis_scaled_relative_skill))) + 
+  scale_fill_gradient2(
+    low = "#2166ac", 
+    mid = "grey90", 
+    high = "#d73027", 
+    midpoint = 0
+  ) +  
+  geom_tile(col = "black") +
+  labs(x = "Model", y = "Date", fill = "Log Relative Skill Score (WIS)") + 
+  theme_bw() + 
+  theme(
+    legend.position = "top",
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 12)  
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+figure11_date
+
+```
+
+
+```{r}
+temp11_date_line <- suppressWarnings(
+  standard_wis %>%
+    filter(target == "Flu ED visits pct") %>%
+    get_pairwise_comparisons(
+      compare = "model_id",
+      by = c("target_end_date", "horizon"),
+      baseline = "epiENGAGE-baseline"
+    ) %>%
+    filter(
+      compare_against == "epiENGAGE-baseline",
+      model_id != "epiENGAGE-baseline",
+      !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+      model_id != "FluSight-ensemble"
+    ) %>%
+    mutate(model_id = factor(model_id, levels = model_ids))
+)
+
+horizon_labels <- c(
+  "1" = "Horizon 1",
+  "2" = "Horizon 2",
+  "3" = "Horizon 3",
+  "4" = "Horizon 4"
+)
+
+figure11_date_line <- ggplot(temp11_date_line, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "black") +
+  scale_y_log10() +
+  scale_color_manual(
+    values = c(setNames(scales::hue_pal()(length(unique(temp11_date_line$model_id)) - 1),
+                         setdiff(unique(temp11_date_line$model_id), "epiENGAGE-ensemble_mean")),
+                "epiENGAGE-ensemble_mean" = "black")
+  ) +
+  labs(x = "Date", y = "Relative Skill Score") + 
+  theme_bw() + 
+  theme(
+    legend.position = "top",
+    text = element_text(size = 14),
+    axis.text.x = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13)
+  ) + 
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b %Y"
+  ) + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
+figure11_date_line
+```
+
 ## Figure 1c (SRSS)
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
@@ -443,6 +605,122 @@ figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = wis_scaled_relative_skil
   geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 
 figure1c_loc
+```
+
+### Figure 10
+```{r}
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+         model_id != "FluSight-ensemble")
+
+# complete_wis <- complete_wis %>%
+#   filter(wis > 0)
+```
+
+```{r}
+sum(is.na(standard_wis)) 
+# complete_wis = na.omit(complete_wis)
+```
+
+```{r}
+# standard_wis <- standard_wis %>% rename(wis = wis_score)
+
+class(standard_wis) <- c("scores", "data.table", class(standard_wis))
+attr(standard_wis, "metrics") <- "wis"
+
+head(standard_wis)
+```
+
+```{r}
+comparisons_by_model <- get_pairwise_comparisons(
+  scores = standard_wis,
+  compare = "model_id",
+  baseline = "epiENGAGE-baseline"
+)
+
+head(comparisons_by_model)
+
+temp10_model <- comparisons_by_model %>%
+  filter(compare_against == "epiENGAGE-baseline")
+
+temp10_model$model_id <- factor(temp10_model$model_id, levels = model_ids) 
+temp10_model = temp10_model |> filter(model_id != 'epiENGAGE-baseline')
+(temp10_model) 
+```
+
+```{r}
+figure10_model = ggplot(temp10_model, aes(x = model_id, y = wis_scaled_relative_skill)) + 
+  geom_col(fill = "firebrick", color = "black") + 
+  labs(x = "Model", y = "Relative skill score (WIS)") + 
+   theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_y_log10() + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
+  theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
+
+figure10_model
+```
+
+```{r}
+comparisons_by_location <- get_pairwise_comparisons(
+  scores = standard_wis,
+  compare = "model_id",
+  by = "location",
+  baseline = "epiENGAGE-baseline"
+)
+
+head(comparisons_by_location)
+
+temp10_loc <- comparisons_by_location %>%
+  filter(compare_against == "epiENGAGE-baseline")
+
+temp10_loc
+```
+
+```{r}
+temp10_loc_avg <- temp10_loc %>%
+  group_by(location) %>%
+  summarize(
+    wis_scaled_relative_skill = exp(mean(log(wis_scaled_relative_skill))),
+    .groups = "drop"
+  ) 
+
+lookup = read.csv("data/lookup.csv")
+temp10_loc_avg = temp10_loc_avg |> left_join(lookup, by = "location") 
+temp10_loc_avg = temp10_loc_avg |>
+  arrange(desc(state), wis_scaled_relative_skill) |>
+  mutate(location = factor(location, levels = location))
+
+(temp10_loc_avg)
+```
+
+```{r, fig.height=6, fig.width=14}
+state_boundaries = which(diff(as.numeric(factor(temp10_loc_avg$state))) != 0) + 0.5
+
+figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_skill, fill = state)) + 
+  geom_col(color = "black") + 
+  labs(x = "Location", y = "Relative skill score (WIS)") + 
+  theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16, angle = 50, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) +
+  theme(legend.position = "top") + scale_y_log10() + 
+  geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) +
+  geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
+
+figure10_loc
 ```
 
 ## Figure 6
