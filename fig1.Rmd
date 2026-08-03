@@ -430,22 +430,20 @@ figure11_date
 
 
 ```{r}
-temp11_date_line <- suppressWarnings(
-  standard_wis %>%
-    filter(target == "Flu ED visits pct") %>%
-    get_pairwise_comparisons(
-      compare = "model_id",
-      by = c("target_end_date", "horizon"),
-      baseline = "epiENGAGE-baseline"
-    ) %>%
-    filter(
-      compare_against == "epiENGAGE-baseline",
-      model_id != "epiENGAGE-baseline",
-      !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-      model_id != "FluSight-ensemble"
-    ) %>%
-    mutate(model_id = factor(model_id, levels = model_ids))
+comparisons_by_line <- get_pairwise_comparisons(
+  scores = standard_wis,
+  compare = "model_id",
+  by = c("target_end_date", "horizon"),
+  baseline = "epiENGAGE-baseline"
 )
+
+head(comparisons_by_line)
+
+temp11_date_line <- comparisons_by_line %>%
+  filter(compare_against == "epiENGAGE-baseline")
+
+temp11_date_line = temp11_date_line |> filter(model_id != "epiENGAGE-baseline")  %>%
+    mutate(model_id = factor(model_id, levels = model_ids))
 
 horizon_labels <- c(
   "1" = "Horizon 1",
@@ -678,7 +676,7 @@ comparisons_by_location <- get_pairwise_comparisons(
 head(comparisons_by_location)
 
 temp10_loc <- comparisons_by_location %>%
-  filter(compare_against == "epiENGAGE-baseline")
+  filter(compare_against == "epiENGAGE-baseline") |> filter(model_id != 'epiENGAGE-baseline')
 
 temp10_loc
 ```
