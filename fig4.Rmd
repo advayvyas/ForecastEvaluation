@@ -54,7 +54,7 @@ standard_wis <- standard_wis %>%
 # standard_wis$model_id <- as.factor(standard_wis$model_id)
 # standard_wis$horizon <- as.factor(standard_wis$horizon)
 
-standard_wis = standard_wis %>% filter(model_id %in% model_ids)
+standard_wis = standard_wis %>% filter(model_id %in% model_ids) |> filter(location != 'nyc')
 ```
 
 ## Epidemic phase
@@ -180,8 +180,8 @@ knitr::kable(granularity_ci |> select(-.smooth))
 
 # Subfigures
 ```{r}
-fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -est), y = est)) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) + 
+fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
+  geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) + 
   geom_point(size = 5, color = "steelblue") +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Estimated random effect (% diff on WIS)", x = "Horizon") +
@@ -201,9 +201,9 @@ fig4a
 ```
 
 ```{r}
-fig4b = ggplot(location_ci, aes(x = reorder(location, est), y = est)) +
+fig4b = ggplot(location_ci, aes(x = reorder(location, pct_est), y = pct_est)) +
   geom_point(size = 5, color = "coral") +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(x = "Location", y = "Estimated random effect (% diff on WIS)") +
   theme_bw() +
@@ -222,8 +222,8 @@ fig4b
 ```
 
 ```{r}
-fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) +
+  geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Estimated random effect (% diff on WIS)", x = "Model") +
@@ -243,8 +243,8 @@ fig4c
 ```
 
 ```{r}
-fig4d = ggplot(trend_ci, aes(x = reorder(trend, -est), y = est)) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+fig4d = ggplot(trend_ci, aes(x = reorder(trend, -pct_est), y = pct_est)) +
+  geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "violet", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Estimated random effect (% diff on WIS)", x = "Trend") +
@@ -264,8 +264,8 @@ fig4d
 ```
 
 ```{r}
-fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -est), y = est)) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_est)) +
+  geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "firebrick", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(y = "Estimated random effect (% diff on WIS)", x = "Granularity") +
