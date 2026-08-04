@@ -23,6 +23,7 @@ library(patchwork)
 library(kableExtra)
 library(mgcv)
 library(gratia)
+library(zoo)
 
 library(scoringutils)
 library(hubUtils)
@@ -53,13 +54,70 @@ standard_wis <- standard_wis %>%
 # standard_wis$model_id <- as.factor(standard_wis$model_id)
 # standard_wis$horizon <- as.factor(standard_wis$horizon)
 
+standard_wis = standard_wis %>% filter(model_id %in% model_ids)
+```
+
+## Epidemic phase
+```{r}
+raw = read.csv("Data/raw_data.csv")
+```
+
+```{r}
+oracle <- raw %>%
+  group_by(location, target_end_date) %>%
+  slice_max(reference_date, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  distinct(location, target_end_date, oracle_value) %>%
+  arrange(location, target_end_date)
+
+trend_df <- oracle %>%
+  group_by(location) %>%
+  mutate(
+    MA3        = rollmean(oracle_value, k = 3, fill = NA, align = "right"),
+    pct_change = (MA3 - lag(MA3)) / lag(MA3) * 100,
+    trend = case_when(
+      pct_change > 5  ~ "Increasing",
+      pct_change < -5 ~ "Decreasing",
+      TRUE            ~ "Stable"
+    ),
+    trend = factor(trend, levels = c("Decreasing", "Stable", "Increasing"))
+  ) %>%
+  ungroup() %>%
+  select(location, target_end_date, trend)
+
+standard_wis <- standard_wis %>%
+  left_join(trend_df, by = c("location", "target_end_date"))
+
+sum(is.na(standard_wis$trend))
+nrow(standard_wis) 
+```
+## Granularity
+```{r}
+state_locations <- c(
+  "colorado", "georgia", "indiana", "maine", "maryland",
+  "massachusetts", "minnesota", "north-carolina", "oregon",
+  "south-carolina", "texas", "utah", "virginia"
+)
+
+standard_wis <- standard_wis %>%
+  mutate(
+    granularity = if_else(location %in% state_locations, "state", "local"),
+    granularity = factor(granularity, levels = c("local", "state"))
+  )
+
+table(standard_wis$granularity)
+standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
+
+```
+## Levels
+```{r}
 standard_wis$horizon = as.character(standard_wis$horizon)
 
 standard_wis$model_id <- droplevels(as.factor(standard_wis$model_id))
 standard_wis$location <- droplevels(as.factor(standard_wis$location))
 standard_wis$horizon <- droplevels(as.factor(standard_wis$horizon))
-
-standard_wis = standard_wis %>% filter(model_id %in% model_ids)
+standard_wis$trend <- droplevels(as.factor(standard_wis$trend))
+standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 ```
 
 # Model effects
@@ -67,7 +125,9 @@ standard_wis = standard_wis %>% filter(model_id %in% model_ids)
 model <- gam(
   log(wis) ~ s(model_id, bs = "re") +  
         s(location, bs = "re") +
-        s(horizon, bs = "re"),
+        s(horizon, bs = "re") + 
+        s(trend, bs = "re") + 
+        s(granularity, bs = "re"),
   family = gaussian(),
   data = standard_wis,
   method = "REML"
@@ -103,13 +163,19 @@ make_ci_table <- function(smooth_name, group_var) {
 
 model_id_ci  <- make_ci_table("s(model_id)", model_id)
 location_ci  <- make_ci_table("s(location)", location)
+
 horizon_ci   <- make_ci_table("s(horizon)", horizon)
 horizon_ci$horizon = as.numeric(horizon_ci$horizon)
-horizon_ci$horizon = horizon_ci$horizon 
+horizon_ci$horizon = horizon_ci$horizon
+
+trend_ci <- make_ci_table("s(trend)", trend)
+granularity_ci <- make_ci_table("s(granularity)", granularity)
 
 knitr::kable(model_id_ci |> select(-.smooth))
 knitr::kable(location_ci |> select(-.smooth))
 knitr::kable(horizon_ci |> select(-.smooth))
+knitr::kable(trend_ci |> select(-.smooth))
+knitr::kable(granularity_ci |> select(-.smooth))
 ```
 
 # Subfigures
@@ -136,11 +202,23 @@ fig4a
 
 ```{r}
 fig4b = ggplot(location_ci, aes(x = reorder(location, est), y = est)) +
-  geom_point() +
+  geom_point(size = 5, color = "coral") +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  coord_flip() +
-  labs(x = "Location", y = "Estimated random effect (% diff on WIS)")
+  labs(x = "Location", y = "Estimated random effect (% diff on WIS)") +
+  theme_bw() +
+  coord_flip() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) 
+
+fig4b
 ```
 
 ```{r}
@@ -164,9 +242,52 @@ fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -est), y = est)) +
 fig4c
 ```
 
+```{r}
+fig4d = ggplot(trend_ci, aes(x = reorder(trend, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "violet", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Estimated random effect (% diff on WIS)", x = "Trend") +
+  theme_bw() + 
+  coord_flip() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+fig4d
+```
+
+```{r}
+fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -est), y = est)) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  geom_point(color = "firebrick", size = 5) + 
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  labs(y = "Estimated random effect (% diff on WIS)", x = "Granularity") +
+  theme_bw() + 
+  coord_flip() + 
+  theme(
+    text = element_text(size = 18),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17)  
+  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+fig4e
+```
+
 # Figure 4
-```{r, fig.height=10, fig.width=15}
-fig4a + fig4c
+```{r, fig.height=20, fig.width=25}
+((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
+  plot_layout(widths = c(0.6, 0.05, 0.4))
 ```
 
 ```{r}
