@@ -202,7 +202,7 @@ figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_sc
   midpoint = 0
 ) + 
   geom_tile(col = "black") + 
-  labs(x = "Model", y = "Location", fill = "Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Location", fill = "Log Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -247,7 +247,7 @@ figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill
   midpoint = 0
 ) +  
   geom_tile(col = "black") +
-  labs(x = "Model", y = "Date", fill = "Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Date", fill = "Log Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -302,7 +302,7 @@ figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date),
                          setdiff(unique(temp1b_date_line$model_id), "epiENGAGE-ensemble_mean")),
                 "epiENGAGE-ensemble_mean" = "black")
   ) +
-  labs(x = "Date", y = "Scaled Relative Skill Score") + 
+  labs(x = "Date", y = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
