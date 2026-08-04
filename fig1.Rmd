@@ -1134,3 +1134,15 @@ png("Figures/figure9.png", width = 1575, height = 973)
 (figure1d_split) # i just save it manually, it looks better
 dev.off()
 ```
+
+```{r}
+png("Figures/figure10.png", width = 1920, height = 1024)
+(figure10_model + figure10_loc)
+dev.off()
+```
+
+```{r}
+png("Figures/figure11.png", width = 1920, height = 1920)
+(figure11_loc + figure11_date)
+dev.off()
+```

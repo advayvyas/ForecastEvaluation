@@ -149,12 +149,12 @@ figure3c
 
 # Figure 3
 ```{r, fig.height = 20, fig.width = 20}
-(figure3a + figure3b) / (figure3c)
+(figure3a + figure3b) / (figure11_date_line)
 ```
 
 ## Save to file
 ```{r}
 png("Figures/figure3.png", width = 1920, height = 1920)
-(figure3a + figure3b) / (figure3c)
+(figure3a + figure3b) / (figure11_date_line)
 dev.off()
 ```
