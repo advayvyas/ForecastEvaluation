@@ -462,7 +462,7 @@ figure11_date_line <- ggplot(temp11_date_line, aes(x = as.Date(target_end_date),
                          setdiff(unique(temp11_date_line$model_id), "epiENGAGE-ensemble_mean")),
                 "epiENGAGE-ensemble_mean" = "black")
   ) +
-  labs(x = "Date", y = "Relative Skill Score") + 
+  labs(x = "Date", y = "Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -692,7 +692,7 @@ temp10_loc_avg <- temp10_loc %>%
 lookup = read.csv("data/lookup.csv")
 temp10_loc_avg = temp10_loc_avg |> left_join(lookup, by = "location") 
 temp10_loc_avg = temp10_loc_avg |>
-  arrange(desc(state), wis_scaled_relative_skill) |>
+  arrange(desc(state == 'state'), desc(state), wis_scaled_relative_skill) |>
   mutate(location = factor(location, levels = location))
 
 (temp10_loc_avg)
@@ -1137,12 +1137,12 @@ dev.off()
 
 ```{r}
 png("Figures/figure10.png", width = 1920, height = 1024)
-(figure10_model + figure10_loc)
+(figure10_model + figure10_loc) + plot_layout(ncol = 2, widths = c(0.4, 0.6))
 dev.off()
 ```
 
 ```{r}
 png("Figures/figure11.png", width = 1920, height = 1920)
-(figure11_loc + figure11_date)
+(figure11_loc + figure11_date) 
 dev.off()
 ```
