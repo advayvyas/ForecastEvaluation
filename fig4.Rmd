@@ -171,11 +171,11 @@ horizon_ci$horizon = horizon_ci$horizon
 trend_ci <- make_ci_table("s(trend)", trend)
 granularity_ci <- make_ci_table("s(granularity)", granularity)
 
-knitr::kable(model_id_ci |> select(-.smooth))
-knitr::kable(location_ci |> select(-.smooth))
-knitr::kable(horizon_ci |> select(-.smooth))
-knitr::kable(trend_ci |> select(-.smooth))
-knitr::kable(granularity_ci |> select(-.smooth))
+# knitr::kable(model_id_ci |> select(-.smooth))
+# knitr::kable(location_ci |> select(-.smooth))
+# knitr::kable(horizon_ci |> select(-.smooth))
+# knitr::kable(trend_ci |> select(-.smooth))
+# knitr::kable(granularity_ci |> select(-.smooth))
 ```
 
 # Subfigures
@@ -201,13 +201,37 @@ fig4a
 ```
 
 ```{r}
-fig4b = ggplot(location_ci, aes(x = reorder(location, pct_est), y = pct_est)) +
-  geom_point(size = 5, color = "coral") +
+lookup = read.csv("Data/lookup.csv")
+location_ci = location_ci |> left_join(lookup, by = "location")
+
+location_ci$state_level = ifelse(location_ci$state == 'state', 'state', 'not-state')
+
+location_ci = location_ci |> 
+  mutate(state = ifelse(state == 'state', as.character(location), state))
+
+state_order = location_ci |>
+  distinct(location, state, pct_est) |>
+  arrange(state, desc(pct_est))
+
+location_ci = location_ci |> 
+  arrange(desc(state_level == 'state'), state, pct_est) |> 
+  mutate(location = factor(location, levels = state_order$location))
+
+state_boundaries = which(diff(as.numeric(factor(state_order$state, 
+                                                 levels = unique(state_order$state)))) != 0) + 0.5
+```
+
+```{r}
+fig4b = ggplot(location_ci, aes(x = location, y = pct_est, color = state)) +
+  geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0) +
+  geom_point(size = 5) +
+  geom_point(data = subset(location_ci, state_level == "state"), 
+             size = 5, shape = 21, fill = NA, color = "black", stroke = 1.5) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
   labs(x = "Location", y = "Estimated random effect (% diff on WIS)") +
   theme_bw() +
-  coord_flip() + 
+  coord_flip() +
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(size = 16),
@@ -291,8 +315,9 @@ fig4e
 ```
 
 ```{r}
-png("Figures/figure4.png", width = 1440, height = 960)
-(fig4a + fig4c)
+png("Figures/figure4.png", width = 1440, height = 1080)
+((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
+  plot_layout(widths = c(0.6, 0.05, 0.4))
 dev.off()
 ```
 
