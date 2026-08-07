@@ -957,6 +957,7 @@ figure1d_split
 ```{r}
 standard_coverage_50 = read.csv("Data/standard-scoring/standard_coverage_50.csv")
 state_coverage_50 = read.csv("Data/state-scoring/state_coverage_50.csv")
+standard_coverage_50 = standard_coverage_50 |> filter(location != 'nyc')
 
 temp50_stat = state_coverage_50 |> group_by(model_id, target, horizon) |>  
   summarise(mean_coverage = mean(coverage_50), count = n(), .groups = 'drop')
