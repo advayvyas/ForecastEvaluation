@@ -324,7 +324,7 @@ figure1b_date_line
 ```{r}
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble")
+         model_id != "FluSight-ensemble") |> filter(location != 'nyc')
 
 # complete_wis <- complete_wis %>%
 #   filter(wis > 0)
@@ -609,7 +609,7 @@ figure1c_loc
 ```{r}
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble")
+         model_id != "FluSight-ensemble") |> filter(location != 'nyc')
 
 # complete_wis <- complete_wis %>%
 #   filter(wis > 0)
@@ -691,8 +691,8 @@ temp10_loc_avg <- temp10_loc %>%
 
 lookup = read.csv("data/lookup.csv")
 temp10_loc_avg = temp10_loc_avg |> left_join(lookup, by = "location") 
-temp10_loc_avg = temp10_loc_avg |>
-  arrange(desc(state == 'state'), desc(state), wis_scaled_relative_skill) |>
+temp10_loc_avg = temp10_loc_avg |> mutate(state = ifelse(state == 'state', location, state))
+temp10_loc_avg = temp10_loc_avg |>arrange(desc(state == 'state'), desc(state), wis_scaled_relative_skill) |>
   mutate(location = factor(location, levels = location))
 
 (temp10_loc_avg)
@@ -707,7 +707,7 @@ figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_
   theme_bw() +
   theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 50, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.5),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
