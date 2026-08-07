@@ -613,7 +613,7 @@ figure1c_loc
 ```{r}
 standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") |> filter(location != 'nyc')
+         model_id != "FluSight-ensemble") |> filter(location != 'nyc') 
 
 # complete_wis <- complete_wis %>%
 #   filter(wis > 0)
@@ -695,18 +695,22 @@ temp10_loc_avg <- temp10_loc %>%
 
 lookup = read.csv("data/lookup.csv")
 temp10_loc_avg = temp10_loc_avg |> left_join(lookup, by = "location") 
+temp10_loc_avg$state_classification = ifelse(temp10_loc_avg$state == 'state', 'state', 'not-state')
 temp10_loc_avg = temp10_loc_avg |> mutate(state = ifelse(state == 'state', location, state))
 temp10_loc_avg = temp10_loc_avg |> arrange(desc(state == 'state'), desc(state), wis_scaled_relative_skill) |>
   mutate(location = factor(location, levels = location))
+
+
+state_boundaries = which(diff(as.numeric(factor(temp10_loc_avg$state, 
+                                                 levels = unique(temp10_loc_avg$state)))) != 0) + 0.5
 
 (temp10_loc_avg)
 ```
 
 ```{r, fig.height=6, fig.width=14}
-state_boundaries = which(diff(as.numeric(factor(temp10_loc_avg$state))) != 0) + 0.5
-
 figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_skill, fill = state)) + 
-  geom_col(color = "black") + 
+  geom_col(aes(alpha = state_classification), width = 0.7, color = "black") +
+  scale_alpha_manual(values = c("state" = 1.2, "not-state" = 0.2)) +
   labs(x = "Location", y = "Relative skill score (WIS)") + 
   theme_bw() +
   theme(
