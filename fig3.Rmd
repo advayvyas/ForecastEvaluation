@@ -43,6 +43,8 @@ model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-G
 
 ## Left
 ```{r}
+standard_wis = standard_wis |> filter(location != 'nyc')
+
 temp3a <- standard_wis %>%
   pivot_longer(
     cols = c(overprediction, underprediction, dispersion),
@@ -81,6 +83,8 @@ figure3a
 
 ## Top right
 ```{r}
+standard_coverage = standard_coverage  |> filter(location != 'nyc')
+
 temp3b = standard_coverage |> group_by(model_id, horizon) |> 
   summarise(mean_coverage = mean(coverage_95, na.rm = TRUE), .groups = "drop") %>%
   group_by(model_id) %>%
