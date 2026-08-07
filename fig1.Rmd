@@ -50,6 +50,9 @@ model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-G
 
 ## Figure 1a
 ```{r}
+standard_wis = standard_wis |> filter(location != 'nyc')
+state_wis = state_wis |> filter(location != 'nyc')
+
 temp1a_state = state_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 temp1a_state$type = "state-scoring"
 
@@ -483,7 +486,8 @@ figure11_date_line
 ## Figure 1c (SRSS)
 ```{r}
 state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
+standard_wis = standard_wis |> filter(location != 'nyc')
 state_wis = state_wis |> rename(state_wis = wis)
 
 complete_wis <- state_wis %>%
@@ -591,7 +595,7 @@ figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = wis_scaled_relative_skil
   theme_bw() +
   theme(
     text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 50, hjust = 1, vjust = 1),
+    axis.text.x = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.5),
     axis.text.y = element_text(size = 16),
     axis.title = element_text(size = 18),
     legend.text = element_text(size = 16),
@@ -864,6 +868,9 @@ fig1c_timeseries
 
 ## Figure 1d
 ```{r}
+state_coverage = state_coverage |> filter(location != 'nyc')
+standard_coverage = standard_coverage |> filter(location != 'nyc')
+
 temp1d_state = state_coverage |> group_by(model_id, target) |>  
   summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
 temp1d_state$type = "state-scoring"
@@ -875,7 +882,7 @@ temp1d_standard$type = "standard-scoring"
 temp1d = rbind(temp1d_standard, temp1d_state)
 temp1d = temp1d |> filter(target == "Flu ED visits pct",
          !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
+         model_id != "FluSight-ensemble")
 
 temp1d$model_id <- factor(temp1d$model_id,
   levels = model_ids)
