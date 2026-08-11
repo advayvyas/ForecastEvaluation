@@ -184,20 +184,18 @@ fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) + 
   geom_point(size = 5, color = "steelblue") +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Horizon") +
+  labs(y = "Random effect (% diff on WIS)", x = "Horizon") +
   theme_bw() +
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) 
-
-fig4a
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
+  )  
 ```
 
 ```{r}
@@ -229,20 +227,18 @@ fig4b = ggplot(location_ci, aes(x = location, y = pct_est, color = state)) +
              size = 5, shape = 21, fill = NA, color = "black", stroke = 1.5) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(x = "Location", y = "Estimated random effect (% diff on WIS)") +
+  labs(x = "Location", y = "Random effect (% diff on WIS)") +
   theme_bw() +
   coord_flip() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) 
-
-fig4b
 ```
 
 ```{r}
@@ -250,20 +246,18 @@ fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Model") +
+  labs(y = "Random effect (% diff on WIS)", x = "Model") +
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
-
-fig4c
 ```
 
 ```{r}
@@ -271,20 +265,18 @@ fig4d = ggplot(trend_ci, aes(x = reorder(trend, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "violet", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Trend") +
+  labs(y = "Random effect (% diff on WIS)", x = "Trend") +
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
-
-fig4d
 ```
 
 ```{r}
@@ -292,20 +284,18 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "firebrick", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Granularity") +
+  labs(y = "Random effect (% diff on WIS)", x = "Granularity") +
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
-
-fig4e
 ```
 
 # Figure 4
@@ -314,9 +304,10 @@ fig4e
   plot_layout(widths = c(0.6, 0.05, 0.4))
 ```
 
+
 ```{r}
-png("Figures/figure4.png", width = 1440, height = 1080)
-((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
+png("Figures/figure4.png", width = 2080, height = 1440)
+((fig4c + fig4a + fig4d + fig4e) | plot_spacer() | fig4b) +
   plot_layout(widths = c(0.6, 0.05, 0.4))
 dev.off()
 ```
