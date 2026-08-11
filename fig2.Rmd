@@ -133,7 +133,7 @@ fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) 
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Model") +
+  labs(y = "Random effect (% diff on WIS)", x = "Model") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -152,7 +152,7 @@ fig2b <- ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "coral", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Horizon") +
+  labs(y = "Random effect (% diff on WIS)", x = "Horizon") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -187,7 +187,7 @@ fig2c <- ggplot(location_ci, aes(x = location, y = pct_est, color = state)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Estimated random effect (% diff on WIS)", x = "Location") +
+  labs(y = "Random effect (% diff on WIS)", x = "Location") +
   theme_bw() + 
   coord_flip() + 
   theme(
