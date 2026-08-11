@@ -79,15 +79,15 @@ figure1a = ggplot(temp1a, aes(x = model_id, y = mean_wis, fill = type)) +
   scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
   scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) +
   labs(x = "Model", y = "Mean WIS", fill = "Scoring Method") + 
-  theme_bw() + theme_bw() +
+  theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) +
   theme(legend.position = "top") + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
@@ -573,13 +573,13 @@ figure1c_model = ggplot(temp1c_model, aes(x = model_id, y = wis_scaled_relative_
   labs(x = "Model", y = "Scaled relative skill score (WIS)") + 
    theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_y_log10() + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
   theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
@@ -594,13 +594,13 @@ figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = wis_scaled_relative_skil
   labs(x = "Location", y = "Scaled relative skill score (WIS)") + 
   theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.5),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 90, hjust = 1, vjust = 0.5),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) +
   theme(legend.position = "top") + scale_y_log10() + 
   geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) +
@@ -788,14 +788,14 @@ obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
   ) +
   theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
     legend.position = "bottom",
-    strip.text = element_text(size = 17)  
   ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
 ```
 
@@ -853,14 +853,14 @@ obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
   ) +
   theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
     legend.position = "bottom",
-    strip.text = element_text(size = 17)  
   ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
 ```
 
@@ -904,13 +904,13 @@ figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) +
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 45, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1)
 
 
@@ -1098,7 +1098,7 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
 
 ## Figure 1
 ```{r, fig.height =20, fig.width = 25}
-(figure1a + figure1d) / (figure1c_model + figure1c_loc)
+(figure1a + figure1d) / (figure1c_model + figure1c_loc + plot_layout(widths = c(0.4, 0.6)))
 ```
 ## Figure 5 (1.2, overflow)
 ```{r, fig.height = 20, fig.width = 20}
@@ -1113,7 +1113,7 @@ fig1c_timeseries
 ## Saving
 ```{r}
 png("Figures/figure1.png", width = 1920, height = 1920)
-(figure1a + figure1d) / (figure1c_model + figure1c_loc)
+(figure1a + figure1d) / (figure1c_model + figure1c_loc + plot_layout(widths = c(0.4, 0.6)))
 dev.off()
 ```
 
