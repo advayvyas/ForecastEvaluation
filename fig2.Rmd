@@ -137,13 +137,13 @@ fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) 
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 ```
 
@@ -156,13 +156,13 @@ fig2b <- ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   )
 ```
 
@@ -191,13 +191,13 @@ fig2c <- ggplot(location_ci, aes(x = location, y = pct_est, color = state)) +
   theme_bw() + 
   coord_flip() + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) 
 ```
 
