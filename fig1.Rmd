@@ -209,14 +209,22 @@ figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_sc
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13),
-    strip.text = element_text(size = 12)  
-  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
 figure1b_loc
 ```
@@ -254,14 +262,22 @@ figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13),
-    strip.text = element_text(size = 12)  
-  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 figure1b_date
 ```
 
@@ -309,17 +325,18 @@ figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date),
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13)
-  ) + 
-  scale_x_date(
-  date_breaks = "1 month",
-  date_labels = "%b %Y"
-) + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.size = unit(1, "cm")  
+    ) +
+    guides(color = guide_legend(override.aes = list(linewidth = 2)))+ 
+    scale_x_date(date_breaks = "1 month",
+    date_labels = "%b '%y") + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
 figure1b_date_line
 ```
 
@@ -376,14 +393,22 @@ figure11_loc <- ggplot(temp11_loc, aes(x = model_id, y = location, fill = log(wi
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13),
-    strip.text = element_text(size = 12)  
-  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
 figure11_loc
 ```
@@ -418,14 +443,22 @@ figure11_date <- ggplot(temp11_date, aes(x = model_id, y = target_end_date, fill
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11, angle = 30, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13),
-    strip.text = element_text(size = 12)  
-  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(8, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 
 figure11_date
 
@@ -454,7 +487,9 @@ horizon_labels <- c(
   "3" = "Horizon 3",
   "4" = "Horizon 4"
 )
+```
 
+```{r}
 figure11_date_line <- ggplot(temp11_date_line, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
   geom_line() +
   geom_point() +
@@ -469,17 +504,18 @@ figure11_date_line <- ggplot(temp11_date_line, aes(x = as.Date(target_end_date),
   theme_bw() + 
   theme(
     legend.position = "top",
-    text = element_text(size = 14),
-    axis.text.x = element_text(size = 11),
-    axis.text.y = element_text(size = 10),
-    axis.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 13)
-  ) + 
-  scale_x_date(
-    date_breaks = "1 month",
-    date_labels = "%b %Y"
-  ) + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.key.size = unit(1, "cm")  
+    ) +
+    guides(color = guide_legend(override.aes = list(linewidth = 2)))+ 
+    scale_x_date(date_breaks = "1 month",
+    date_labels = "%b '%y") + facet_wrap(~horizon, ncol = 2, labeller = as_labeller(horizon_labels))
 figure11_date_line
 ```
 
@@ -656,14 +692,14 @@ figure10_model = ggplot(temp10_model, aes(x = model_id, y = wis_scaled_relative_
   labs(x = "Model", y = "Relative skill score (WIS)") + 
    theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) + scale_y_log10() + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top") + scale_y_log10() + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
   theme(legend.position = "top") + geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2)
 
 figure10_model
@@ -714,15 +750,23 @@ figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_
   labs(x = "Location", y = "Relative skill score (WIS)") + 
   theme_bw() +
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.5),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 90, hjust = 1, vjust = 0.5),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 16),      # smaller so it fits
+    legend.title    = element_text(size = 18),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top",
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.x = unit(0.2, "cm"),
+    plot.margin     = margin(t = 5, r = 15, b = 5, l = 5)
   ) +
-  theme(legend.position = "top") + scale_y_log10() + 
+  guides(
+    fill  = guide_legend(nrow = 3, byrow = TRUE),   # wrap into 3 rows
+    alpha = guide_legend(nrow = 1)
+  ) +
+  scale_y_log10() + 
   geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) +
   geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 
@@ -942,13 +986,13 @@ figure1d_split = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + 
   scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
 
@@ -992,13 +1036,13 @@ figure_50_split = ggplot(temp50, aes(x = model_id, y = mean_coverage, fill = typ
   theme_bw() + 
   theme(legend.position = "top") + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5)
   ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
   geom_hline(yintercept = 0.5, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,  labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
 
@@ -1148,8 +1192,8 @@ dev.off()
 ```
 
 ```{r}
-png("Figures/figure10.png", width = 1920, height = 1024)
-(figure10_model + figure10_loc) + plot_layout(ncol = 2, widths = c(0.4, 0.6))
+png("Figures/figure10.png", width = 2080, height = 1024)
+(figure10_model + figure10_loc) + plot_layout(ncol = 2, widths = c(0.3, 0.7))
 dev.off()
 ```
 

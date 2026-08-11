@@ -69,15 +69,14 @@ figure3a = ggplot(temp3a, aes(x = model_id, y = mean_value, fill = component)) +
   labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Component") + 
   theme_bw(base_size = 18) + 
   theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17),
-    legend.position = "top"
-  ) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top") + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
 figure3a
 ```
 
@@ -94,16 +93,25 @@ temp3b <- temp3b |> mutate(model_id = factor(model_id, levels = model_ids))
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure3b = ggplot(temp3b, aes(y=model_id, x=horizon+1, fill = mean_coverage)) + geom_tile(col='black') + scale_fill_viridis_c(option = "mako", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17), 
-    legend.position = "top"
-  ) + geom_text(aes(label = round(mean_coverage, 2)), size = 5, color = "white") + 
+figure3b = ggplot(temp3b, aes(y=model_id, x=horizon+1, fill = mean_coverage)) + geom_tile(col='black') + scale_fill_viridis_c(option = "mako", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + 
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top",
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + geom_text(aes(label = round(mean_coverage, 2)), size = 10, color = "white") + 
   coord_cartesian(expand = FALSE) + scale_y_discrete(labels = function(x) gsub("-", "-\n", x))
 figure3b
 ```
