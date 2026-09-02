@@ -1307,7 +1307,7 @@ dev.off()
 ```
 
 ```{r}
-png("Figures/figure6two.png", width = 1440, height = 1080)
+png("Figures/figure6two.png", width = 1440, height = 720)
 fig1a_forecasts
 dev.off()
 ```
