@@ -999,6 +999,145 @@ figure1d_split = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type
 figure1d_split
 ```
 
+# Figure 6.2 
+(other way, horizon)
+```{r}
+raw = read.csv("Data/raw_data.csv")
+raw_state = read.csv("Data/state_raw.csv")
+```
+
+```{r}
+set_horizons_A <- 0:3
+ref_dates_A <- as.Date(c("2025-11-22", "2026-01-03",
+                          "2026-02-14", "2026-03-28"))
+```
+
+```{r}
+plot_data_A <- raw %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date),
+    reference_date = as.Date(reference_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,
+    lower = `q_0.025`,
+    upper = `q_0.975`
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |>
+  filter(horizon %in% set_horizons_A) |>
+  filter(reference_date %in% ref_dates_A) |>
+  filter(location %in% c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder"))
+
+plot_data_A$location <- factor(plot_data_A$location,
+  levels = c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder"))
+```
+
+```{r}
+plot_data_state_A <- raw_state %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date),
+    reference_date = as.Date(reference_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = state_value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,
+    lower = `q_0.025`,
+    upper = `q_0.975`
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |>
+  filter(horizon %in% set_horizons_A) |>
+  filter(reference_date %in% ref_dates_A) |>
+  filter(location %in% c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder"))
+
+plot_data_state_A$location <- factor(plot_data_state_A$location,
+  levels = c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder"))
+```
+
+```{r}
+combined_A <- bind_rows(
+  plot_data_A %>% mutate(source = "Standard-scoring"),
+  plot_data_state_A %>% mutate(source = "State-scoring")
+)
+
+# observed points, deduped so they don't overplot across horizons/reference_dates
+observed_A <- plot_data_A %>%
+  distinct(location, date, observed)
+```
+
+```{r}
+fig1a_forecasts <- ggplot() +
+  geom_ribbon(data = combined_A,
+              aes(x = date, ymin = lower, ymax = upper,
+                  group = interaction(reference_date, source),
+                  fill = source),
+              alpha = 0.3, color = NA, show.legend = FALSE) +
+  geom_line(data = combined_A,
+            aes(x = date, y = predicted_value,
+                group = interaction(reference_date, source),
+                color = source),
+            linewidth = 1) +
+  geom_point(data = combined_A,
+             aes(x = date, y = predicted_value,
+                 color = source),
+             size = 2, shape = 16) +
+  geom_point(data = observed_A,
+             aes(x = date, y = observed, color = "Observed HSA"),
+             size = 2, shape = 16) +
+  facet_wrap(~location, nrow = 1) +
+  scale_color_manual(
+    name = NULL,
+    breaks = c("Observed HSA", "Standard-scoring", "State-scoring"),
+    values = c(
+      "Observed HSA"     = "#E74C3C",
+      "Standard-scoring" = "#F39C12",
+      "State-scoring"    = "black"
+    ),
+    guide = guide_legend(
+      override.aes = list(
+        linetype = c(0, 1, 1),   # no line for Observed, solid line for the other two
+        shape    = c(16, 16, 16) # dot for all three
+      )
+    )
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c(
+      "Standard-scoring" = "#F39C12",
+      "State-scoring"    = "darkgray"
+    ),
+    guide = "none"   # hide separate ribbon legend; ribbons still shade correctly on the plot
+  ) +
+  labs(x = NULL, y = "Percent Influenza ED Visits") +
+  theme_bw() +
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "bottom"
+  ) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b")
+```
+
+```{r, fig.width=20, fig.height=10}
+fig1a_forecasts
+```
 
 ## Extra
 ### 50% coverage rate
@@ -1164,6 +1303,12 @@ dev.off()
 ```{r}
 png("Figures/figure6.png", width = 1440, height = 1080)
 fig1c_timeseries
+dev.off()
+```
+
+```{r}
+png("Figures/figure6two.png", width = 1440, height = 1080)
+fig1a_forecasts
 dev.off()
 ```
 
