@@ -1,0 +1,172 @@
+---
+title: "Figure 3"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "C:/Projects/ForecastEvaluation/HTML", encoding = encoding) })
+urlcolor: blue
+linkcolor: red
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FALSE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+------------------------------------------------------------------------
+```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+library(kableExtra)
+
+library(scoringutils)
+library(hubUtils)
+library(hubEnsembles)
+library(hubData)
+```
+
+# Data
+```{r}
+standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
+# standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
+standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+# standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+```
+
+# Subfigures
+```{r}
+model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiforecasts-dyngam")
+```
+
+## Left
+```{r}
+standard_wis = standard_wis |> filter(location != 'nyc')
+
+temp3a <- standard_wis %>%
+  pivot_longer(
+    cols = c(overprediction, underprediction, dispersion),
+    names_to = "component",
+    values_to = "value"
+  ) %>%
+  group_by(model_id, component) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE), .groups = "drop") %>%
+  group_by(model_id) %>%
+  mutate(total_wis = sum(mean_value)) %>%
+  ungroup()
+
+temp3a$component <- factor(temp3a$component, levels = c("overprediction", "dispersion", "underprediction"))
+
+temp3a = temp3a %>% filter(model_id %in% model_ids)
+temp3a <- temp3a |> mutate(model_id = factor(model_id, levels = model_ids))
+```
+
+```{r, fig.height = 10, fig.width = 10}
+figure3a = ggplot(temp3a, aes(x = model_id, y = mean_value, fill = component)) +
+  geom_col(col = "black") +
+  labs(x = "Model (all horizons)", y = "Mean WIS", fill = "Component") + 
+  theme_bw(base_size = 18) + 
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top") + scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+figure3a
+```
+
+## Top right
+```{r}
+standard_coverage = standard_coverage  |> filter(location != 'nyc')
+
+temp3b = standard_coverage |> group_by(model_id, horizon) |> 
+  summarise(mean_coverage = mean(coverage_95, na.rm = TRUE), .groups = "drop") %>%
+  group_by(model_id) %>%
+  ungroup() %>% filter(model_id %in% model_ids)
+
+temp3b <- temp3b |> mutate(model_id = factor(model_id, levels = model_ids))
+```
+
+```{r, fig.height = 10, fig.width = 10}
+figure3b = ggplot(temp3b, aes(y=model_id, x=horizon+1, fill = mean_coverage)) + geom_tile(col='black') + scale_fill_viridis_c(option = "mako", direction = -1) + theme_bw(base_size = 18) + labs(x="Horizon (1-4)", y = "Model", fill = "Mean Coverage (95%)") + coord_flip() + 
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "top",
+    legend.key.width  = unit(3, "cm"),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    title.hjust = 0.5,
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.6, "cm")
+  )) + geom_text(aes(label = round(mean_coverage, 2)), size = 10, color = "white") + 
+  coord_cartesian(expand = FALSE) + scale_y_discrete(labels = function(x) gsub("-", "-\n", x))
+figure3b
+```
+
+
+## Bottom right
+```{r}
+temp3c = standard_wis |>
+    group_by(target_end_date, model_id, horizon) |>
+    summarize(mean_wis = mean(wis, na.rm = TRUE), .groups = "drop") %>% filter(model_id %in% model_ids)
+
+temp3c$target_end_date = as.Date(temp3c$target_end_date)
+
+temp3c$model_id <- factor(temp3c$model_id,
+  levels = model_ids)
+```
+
+```{r}
+figure3c = ggplot() +
+  geom_line(
+    data = subset(temp3c, model_id != "epiENGAGE-ensemble_mean"),
+    aes(target_end_date, mean_wis, color = model_id), linewidth = 1
+  ) +
+  geom_line(
+    data = subset(temp3c, model_id == "epiENGAGE-ensemble_mean"),
+    aes(target_end_date, mean_wis, color = model_id), linewidth = 1.2
+  ) +
+  scale_color_manual(
+    values = c(setNames(scales::hue_pal()(length(unique(temp3c$model_id)) - 1),
+                         setdiff(unique(temp3c$model_id), "epiENGAGE-ensemble_mean")),
+                "epiENGAGE-ensemble_mean" = "black")
+  ) + labs(y = "Mean WIS", x = "Date", color = "Model") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") + 
+  facet_wrap(~horizon,  labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", x)))) + theme_bw() +
+  theme(
+    text = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 17),
+    strip.text = element_text(size = 17),
+    legend.position = "bottom"
+  )
+
+figure3c
+```
+
+# Figure 3
+```{r, fig.height = 20, fig.width = 20}
+(figure3a + figure3b) / (figure11_date_line)
+```
+
+## Save to file
+```{r}
+png("Figures/figure3.png", width = 1920, height = 1920)
+(figure3a + figure3b) / (figure11_date_line)
+dev.off()
+```
