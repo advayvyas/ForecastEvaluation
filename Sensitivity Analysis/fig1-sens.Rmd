@@ -27,20 +27,36 @@ library(scico)
 library(scoringutils)
 library(hubUtils)
 library(hubEnsembles)
-library(hubData)
 ```
 
 # Data
 ```{r}
-state_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_coverage.csv")
-# state_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_coverage_summary.csv")
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-# state_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis_summary.csv")
+state_coverage <- read.csv("../Data/state-scoring/state_coverage.csv")
+state_wis <- read.csv("../Data/state-scoring/state_wis.csv")
 
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-# standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-# standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+standard_coverage <- read.csv("../Data/standard-scoring/standard_coverage.csv")
+standard_wis <- read.csv("../Data/standard-scoring/standard_wis.csv")
+```
+
+```{r}
+standard_wis$reference_date = as.Date(standard_wis$reference_date)
+
+standard_coverage$reference_date = as.Date(standard_coverage$reference_date)
+state_coverage$reference_date = as.Date(state_coverage$reference_date)
+```
+
+```{r}
+state_wis <- state_wis |> mutate(reference_date = as.Date(target_end_date) - (horizon - 1) * 7)
+```
+
+```{r}
+dates_to_remove <- as.Date(c("2025-11-22", "2025-11-29", "2025-12-06", "2025-12-13"))
+
+standard_wis = standard_wis |> filter(!reference_date %in% dates_to_remove)
+state_wis = state_wis |> filter(!reference_date %in% dates_to_remove)
+
+standard_coverage = standard_coverage |> filter(!reference_date %in% dates_to_remove)
+state_coverage = state_coverage |> filter(!reference_date %in% dates_to_remove)
 ```
 
 # Subfigures
@@ -50,13 +66,13 @@ model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-G
 
 ## Figure 1a
 ```{r}
-standard_wis = standard_wis |> filter(location != 'nyc')
-state_wis = state_wis |> filter(location != 'nyc')
+standard_wis_1a = standard_wis |> filter(location != 'nyc')
+state_wis_1a = state_wis |> filter(location != 'nyc')
 
-temp1a_state = state_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+temp1a_state = state_wis_1a |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 temp1a_state$type = "state-scoring"
 
-temp1a_standard = standard_wis |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
+temp1a_standard = standard_wis_1a |> group_by(model_id, target) |>  summarise(mean_wis = mean(wis), count = n(), .groups = 'drop')
 temp1a_standard$type = "standard-scoring"
 
 temp1a = rbind(temp1a_standard, temp1a_state)
@@ -67,10 +83,6 @@ temp1a = temp1a |>
 
 temp1a$model_id <- factor(temp1a$model_id,
   levels = model_ids)
-```
-
-```{r}
-knitr::kable(temp1a)
 ```
 
 ```{r}
@@ -105,40 +117,12 @@ temp1a_standard$type = "standard-scoring"
 temp1a = rbind(temp1a_standard, temp1a_state)
 ```
 
-```{r}
-knitr::kable(temp1a)
-```
-
-```{r, fig.height = 10, fig.width = 10}
-figure1a_loc = ggplot(temp1a, aes(x = location, y = mean_wis, fill = type)) + 
-  geom_col(position = "dodge", color = "black") + 
-  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  scale_y_continuous(limits = c(0, 2.5), breaks = c(0.5, 1, 1.5, 2, 2.5, 3),
-                     expand = expansion(mult = 0, add = 0.03)) +
-  labs(x = "Model", y = "Mean WIS", fill = "Scoring Method") + 
-  theme_bw() + theme_bw() +
-  theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) +
-  theme(legend.position = "top") 
-
-figure1a_loc
-```
-
 ## Figure 5
 ```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-state_wis = state_wis |> rename(state_wis = wis)
+state_wis_5 = state_wis |> rename(state_wis = wis)
 
-complete_wis <- state_wis %>%
-  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
+complete_wis <- state_wis_5 %>%
+  left_join(standard_wis, by = intersect(colnames(state_wis_5), colnames(standard_wis)))
 
 # complete_wis$relative_wis <- complete_wis$wis / complete_wis$state_wis
 complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis") |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
@@ -342,8 +326,7 @@ figure1b_date_line
 
 #### Figure 11
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+standard_wis_11 = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
          model_id != "FluSight-ensemble") |> filter(location != 'nyc')
 
 # complete_wis <- complete_wis %>%
@@ -351,22 +334,22 @@ standard_wis = standard_wis |> select("location", "target_end_date", "horizon", 
 ```
 
 ```{r}
-sum(is.na(standard_wis)) 
+sum(is.na(standard_wis_11)) 
 # complete_wis = na.omit(complete_wis)
 ```
 
 ```{r}
 # standard_wis <- standard_wis %>% rename(wis = wis_score)
 
-class(standard_wis) <- c("scores", "data.table", class(standard_wis))
-attr(standard_wis, "metrics") <- "wis"
+class(standard_wis_11) <- c("scores", "data.table", class(standard_wis_11))
+attr(standard_wis_11, "metrics") <- "wis"
 
-head(standard_wis)
+head(standard_wis_11)
 ```
 
 ```{r}
 comparisons_by_location <- get_pairwise_comparisons(
-  scores = standard_wis,
+  scores = standard_wis_11,
   compare = "model_id",
   by = "location",
   baseline = "epiENGAGE-baseline"
@@ -416,7 +399,7 @@ figure11_loc
 
 ```{r}
 comparisons_by_date <- get_pairwise_comparisons(
-  scores = standard_wis,
+  scores = standard_wis_11,
   compare = "model_id",
   by = "target_end_date",
   baseline = "epiENGAGE-baseline"
@@ -467,7 +450,7 @@ figure11_date
 
 ```{r}
 comparisons_by_line <- get_pairwise_comparisons(
-  scores = standard_wis,
+  scores = standard_wis_11,
   compare = "model_id",
   by = c("target_end_date", "horizon"),
   baseline = "epiENGAGE-baseline"
@@ -521,13 +504,11 @@ figure11_date_line
 
 ## Figure 1c (SRSS)
 ```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
-standard_wis = standard_wis |> filter(location != 'nyc')
-state_wis = state_wis |> rename(state_wis = wis)
+standard_wis_1c = standard_wis |> filter(location != 'nyc')
+state_wis_1c = state_wis |> rename(state_wis = wis)
 
-complete_wis <- state_wis %>%
-  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
+complete_wis <- state_wis_1c %>%
+  left_join(standard_wis_1c, by = intersect(colnames(state_wis_1c), colnames(standard_wis_1c)))
 
 # complete_wis$relative_wis <- complete_wis$wis / complete_wis$state_wis
 complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis") |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
@@ -594,7 +575,7 @@ knitr::kable(temp1c_model)
 temp1c_loc <- comparisons_by_location %>%
   filter(method == "standard", compare_against == "state")
 
-lookup = read.csv("data/lookup.csv")
+lookup = read.csv("../Data/lookup.csv")
 temp1c_loc = temp1c_loc |> left_join(lookup, by = "location") 
 temp1c_loc = temp1c_loc |>
   arrange(desc(state), wis_scaled_relative_skill) |>
@@ -647,8 +628,7 @@ figure1c_loc
 
 ### Figure 10
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
+standard_wis_10 = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
          model_id != "FluSight-ensemble") |> filter(location != 'nyc') 
 
 # complete_wis <- complete_wis %>%
@@ -656,22 +636,22 @@ standard_wis = standard_wis |> select("location", "target_end_date", "horizon", 
 ```
 
 ```{r}
-sum(is.na(standard_wis)) 
+sum(is.na(standard_wis_10)) 
 # complete_wis = na.omit(complete_wis)
 ```
 
 ```{r}
 # standard_wis <- standard_wis %>% rename(wis = wis_score)
 
-class(standard_wis) <- c("scores", "data.table", class(standard_wis))
-attr(standard_wis, "metrics") <- "wis"
+class(standard_wis_10) <- c("scores", "data.table", class(standard_wis_10))
+attr(standard_wis_10, "metrics") <- "wis"
 
-head(standard_wis)
+head(standard_wis_10)
 ```
 
 ```{r}
 comparisons_by_model <- get_pairwise_comparisons(
-  scores = standard_wis,
+  scores = standard_wis_10,
   compare = "model_id",
   baseline = "epiENGAGE-baseline"
 )
@@ -707,7 +687,7 @@ figure10_model
 
 ```{r}
 comparisons_by_location <- get_pairwise_comparisons(
-  scores = standard_wis,
+  scores = standard_wis_10,
   compare = "model_id",
   by = "location",
   baseline = "epiENGAGE-baseline"
@@ -729,7 +709,7 @@ temp10_loc_avg <- temp10_loc %>%
     .groups = "drop"
   ) 
 
-lookup = read.csv("data/lookup.csv")
+lookup = read.csv("../Data/lookup.csv")
 temp10_loc_avg = temp10_loc_avg |> left_join(lookup, by = "location") 
 temp10_loc_avg$state_classification = ifelse(temp10_loc_avg$state == 'state', 'state', 'not-state')
 temp10_loc_avg = temp10_loc_avg |> mutate(state = ifelse(state == 'state', location, state))
@@ -771,146 +751,6 @@ figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_
   geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
 
 figure10_loc
-```
-
-## Figure 6
-### Local
-```{r}
-raw = read.csv("Data/raw_data.csv")
-```
-
-```{r}
-set_horizon = 2
-```
-
-```{r, fig.width=10, fig.height=10}
-plot_data <- raw %>%
-  filter(output_type == "quantile") %>%
-  mutate(
-    output_type_id = as.numeric(output_type_id),
-    date = as.Date(target_end_date)
-  ) %>%
-  pivot_wider(
-    names_from = output_type_id,
-    values_from = value,
-    names_prefix = "q_"
-  ) %>%
-  rename(
-    observed = oracle_value,
-    predicted_value = `q_0.5`,  
-    lower = `q_0.025`,           
-    upper = `q_0.975`            
-  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) |> 
-  filter(location %in% c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder")) 
-
-plot_data$location = factor(plot_data$location, levels = c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder"))
-```
-
-```{r, fig.width=20, fig.height=10}
-obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
-              alpha = 0.4, color = NA) +
-  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
-            linewidth = 1) +
-  geom_point(aes(y = observed, color = "Observed HSA"),
-             size = 2, shape = 16) +
-  facet_wrap(~location, nrow=1) +
-  scale_color_manual(
-    name = NULL,
-    values = c(
-      "Observed HSA" = "#E74C3C",
-      "Predicted HSA" = "#F39C12"
-    )
-  ) +
-  scale_fill_manual(
-    name = NULL,
-    values = c("Prediction Interval" = "#F39C12")
-  ) +
-  labs(
-    x = NULL,
-    y = "Percent Influenza ED Visits"
-  ) +
-  theme_bw() +
-  theme(
-    text            = element_text(size = 27),
-    axis.text.x     = element_text(size = 24),
-    axis.text.y     = element_text(size = 24),
-    axis.title      = element_text(size = 27),
-    legend.text     = element_text(size = 24),
-    legend.title    = element_text(size = 25.5),
-    strip.text      = element_text(size = 25.5),
-    legend.position = "bottom",
-  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
-```
-
-### State
-```{r}
-raw_state = read.csv("Data/state_raw.csv")
-```
-
-```{r, fig.width=10, fig.height=10}
-plot_data_state <- raw_state %>%
-  filter(output_type == "quantile") %>%
-  mutate(
-    output_type_id = as.numeric(output_type_id),
-    date = as.Date(target_end_date)
-  ) %>%
-  pivot_wider(
-    names_from = output_type_id,
-    values_from = state_value,
-    names_prefix = "q_"
-  ) %>%
-  rename(
-    observed = oracle_value,
-    predicted_value = `q_0.5`,  
-    lower = `q_0.025`,           
-    upper = `q_0.975`            
-  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) |> 
-  filter(location %in% c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder")) 
-
-plot_data_state$location = factor(plot_data_state$location, levels = c("austin", "houston",  "el-paso", "mesa", "pittsfield", "boulder"))
-```
-
-```{r, fig.width=20, fig.height=10}
-obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
-              alpha = 0.4, color = NA) +
-  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
-            linewidth = 1) +
-  geom_point(aes(y = observed, color = "Observed HSA"),
-             size = 2, shape = 16) +
-  facet_wrap(~location, nrow=1) +
-  scale_color_manual(
-    name = NULL,
-    values = c(
-      "Observed HSA" = "#E74C3C",
-      "Predicted HSA" = "black"
-    )
-  ) +
-  scale_fill_manual(
-    name = NULL,
-    values = c("Prediction Interval" = "darkgray")
-  ) +
-  labs(
-    x = NULL,
-    y = "Percent Influenza ED Visits"
-  ) +
-  theme_bw() +
-  theme(
-    text            = element_text(size = 27),
-    axis.text.x     = element_text(size = 24),
-    axis.text.y     = element_text(size = 24),
-    axis.title      = element_text(size = 27),
-    legend.text     = element_text(size = 24),
-    legend.title    = element_text(size = 25.5),
-    strip.text      = element_text(size = 25.5),
-    legend.position = "bottom",
-  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
-```
-
-```{r, fig.width=20, fig.height=15}
-fig1c_timeseries = obsvspred_loc / obsvspred_state
-fig1c_timeseries
 ```
 
 
@@ -957,186 +797,8 @@ figure1d = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) +
     strip.text      = element_text(size = 25.5)
   ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1)
 
-
-
 figure1d
 ```
-
-```{r, fig.height = 10, fig.width = 10}
-temp1d_state = state_coverage |> group_by(model_id, target, horizon) |>  
-  summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
-temp1d_state$type = "state-scoring"
-
-temp1d_standard = standard_coverage |> group_by(model_id, target, horizon) |> 
-  summarise(mean_coverage = mean(coverage_95), count = n(), .groups = 'drop')
-temp1d_standard$type = "standard-scoring"
-
-temp1d = rbind(temp1d_standard, temp1d_state)
-temp1d = temp1d |> filter(target == "Flu ED visits pct",
-         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
-
-temp1d$model_id <- factor(temp1d$model_id,
-  levels = model_ids)
-
-figure1d_split = ggplot(temp1d, aes(x = model_id, y = mean_coverage, fill = type)) + 
-  geom_col(col = "black", position = "dodge") + 
-  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  labs(x = "Model", y = "Mean Coverage (95%)", fill = "Scoring Method") + 
-  theme_bw() + 
-  theme(legend.position = "top") + 
-  theme(
-    text            = element_text(size = 27),
-    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
-    axis.text.y     = element_text(size = 24),
-    axis.title      = element_text(size = 27),
-    legend.text     = element_text(size = 24),
-    legend.title    = element_text(size = 25.5),
-    strip.text      = element_text(size = 25.5)
-  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + 
-  scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + geom_hline(yintercept = 0.95, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
-
-figure1d_split
-```
-
-
-## Extra
-### 50% coverage rate
-```{r}
-standard_coverage_50 = read.csv("Data/standard-scoring/standard_coverage_50.csv")
-state_coverage_50 = read.csv("Data/state-scoring/state_coverage_50.csv")
-standard_coverage_50 = standard_coverage_50 |> filter(location != 'nyc')
-
-temp50_stat = state_coverage_50 |> group_by(model_id, target, horizon) |>  
-  summarise(mean_coverage = mean(coverage_50), count = n(), .groups = 'drop')
-temp50_stat$type = "state-scoring"
-
-temp50_stan = standard_coverage_50 |> group_by(model_id, target, horizon) |> 
-  summarise(mean_coverage = mean(coverage_50), count = n(), .groups = 'drop')
-temp50_stan$type = "standard-scoring"
-
-temp50 = rbind(temp50_stan, temp50_stat)
-temp50 = temp50 |> filter(target == "Flu ED visits pct",
-         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
-
-temp50$model_id <- factor(temp50$model_id,
-  levels = model_ids)
-```
-
-```{r}
-knitr::kable(temp50)
-```
-
-```{r, fig.height = 10, fig.width = 10}
-figure_50_split = ggplot(temp50, aes(x = model_id, y = mean_coverage, fill = type)) + 
-  geom_col(col = "black", position = "dodge") + 
-  scale_fill_manual(values = c("standard-scoring" = "firebrick", "state-scoring" = "royalblue")) +
-  labs(x = "Model", y = "Mean Coverage (50%)", fill = "Scoring Method") + 
-  theme_bw() + 
-  theme(legend.position = "top") + 
-  theme(
-    text            = element_text(size = 27),
-    axis.text.x     = element_text(size = 24, angle = 60, hjust = 1, vjust = 1),
-    axis.text.y     = element_text(size = 24),
-    axis.title      = element_text(size = 27),
-    legend.text     = element_text(size = 24),
-    legend.title    = element_text(size = 25.5),
-    strip.text      = element_text(size = 25.5)
-  ) + scale_y_continuous(expand = expansion(mult = 0, add = 0.03)) + scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) + 
-  geom_hline(yintercept = 0.5, linetype = "dashed",linewidth = 1) + facet_wrap(~horizon,  labeller = labeller(horizon = as_labeller(function(x) paste("Horizon", as.numeric(x) + 1))))
-
-figure_50_split
-```
-
-
-### Combined location model rWIS plot
-```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-state_wis = state_wis |> rename(state_wis = wis)
-```
-
-```{r}
-complete_wis <- state_wis %>%
-  left_join(standard_wis, by = intersect(colnames(state_wis), colnames(standard_wis)))
-
-complete_wis$relative_wis <- complete_wis$wis / complete_wis$state_wis
-complete_wis = complete_wis |> select("location", "target_end_date", "horizon", "reference_date",  "model_id", "target", "wis",  "state_wis",    "relative_wis")
-
-complete_wis <- complete_wis %>%
-  filter(wis > 0)
-```
-
-```{r}
-complete_wis_summary <- complete_wis %>%
-  group_by(model_id, location) %>%
-  summarise(
-    mean_relative_wis = mean(relative_wis[!is.infinite(relative_wis)]),
-    count = n(),
-    .groups = 'drop'
-  )
-
-temp_special = complete_wis_summary |> filter(         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
-
-temp_special$model_id <- factor(temp_special$model_id,
-  levels = model_ids)
-
-lookup = read.csv("Data/lookup.csv")
-temp_special = temp_special |> left_join(lookup, by = "location")
-```
-
-he rWIS figure with location on the x-axis, rWIS on the y-axis, displayed as a dot plot with points colored by model.
-Since this is rWIS, the y-axis should be on a log scale centered at 1, so that values such as rWIS = 0.5 and rWIS = 2 are equidistant from 1.
-```{r, fig.height=20, fig.width=20}
-state_order = temp_special |>
-  distinct(location, state) |>
-  arrange(state, location)
-
-state_boundaries = which(diff(as.numeric(factor(state_order$state))) != 0) + 0.5
-
-ggplot(temp_special) + geom_point(size=5, aes(x=location, y=mean_relative_wis, color = as.factor(model_id)))+ 
-  labs(y = "Effect (rWIS)", x = "Model") + 
-  theme_bw() +
-  theme(
-    text = element_text(size = 18),
-    axis.text.x = element_text(size = 16, angle = 50, hjust = 1, vjust = 1),
-    axis.text.y = element_text(size = 16),
-    axis.title = element_text(size = 18),
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 17),
-    strip.text = element_text(size = 17)  
-  ) +
-  theme(legend.position = "top") +
-  scale_y_log10() +
-  geom_hline(aes(yintercept = 1), col = "black", linetype = "dashed", linewidth = 1.2) + geom_vline(xintercept = state_boundaries, color = "black", linewidth = 1.0)
-```
-
-### NA stuff
-```{r}
-sum(is.na(complete_wis$wis))
-na <- complete_wis %>%
-  filter(if_any(everything(), is.na))
-
-table(na$location)
-table(na$target_end_date)
-table(na$model_id)
-```
-
-```{r}
-# complete_wis = na.omit(complete_wis)
-standard_wis$horizon = as.character(standard_wis$horizon)
-
-complete_wis$model_id <- droplevels(as.factor(complete_wis$model_id))
-complete_wis$horizon <- droplevels(as.factor(complete_wis$horizon))
-complete_wis$location <- droplevels(as.factor(complete_wis$location))
-
-complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
-         !model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
-         model_id != "FluSight-ensemble") 
-```
-
 
 # Save to files
 
@@ -1149,56 +811,27 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
 figure1b_loc + figure1b_date
 ```
 
-## Figure 6
-```{r, fig.height = 20, fig.width = 20}
-fig1c_timeseries
-```
-
 ## Saving
 ```{r}
-png("Figures/figure1.png", width = 1920, height = 1920)
+png("figure1-sens.png", width = 1920, height = 1920)
 (figure1a + figure1d) / (figure1c_model + figure1c_loc + plot_layout(widths = c(0.4, 0.6)))
 dev.off()
 ```
 
 ```{r}
-png("Figures/figure6.png", width = 1440, height = 1080)
-fig1c_timeseries
-dev.off()
-```
-
-```{r}
-png("Figures/figure5.png", width = 1920, height = 1920)
+png("figure5-sens.png", width = 1920, height = 1920)
 (figure1b_loc + figure1b_date)
 dev.off()
 ```
 
 ```{r}
-png("Figures/figure7.png", width = 1575, height = 973)
-(figure1b_date_line) # i just save it manually, it looks better
-dev.off()
-```
-
-```{r}
-png("Figures/figure8.png", width = 1575, height = 973)
-(figure_50_split) # i just save it manually, it looks better
-dev.off()
-```
-
-```{r}
-png("Figures/figure9.png", width = 1575, height = 973)
-(figure1d_split) # i just save it manually, it looks better
-dev.off()
-```
-
-```{r}
-png("Figures/figure10.png", width = 2080, height = 1024)
+png("figure10-sens.png", width = 2080, height = 1024)
 (figure10_model + figure10_loc) + plot_layout(ncol = 2, widths = c(0.3, 0.7))
 dev.off()
 ```
 
 ```{r}
-png("Figures/figure11.png", width = 1920, height = 1920)
+png("figure11-sens.png", width = 1920, height = 1920)
 (figure11_loc + figure11_date) 
 dev.off()
 ```
