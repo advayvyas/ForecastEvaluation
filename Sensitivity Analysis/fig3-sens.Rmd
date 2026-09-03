@@ -25,15 +25,24 @@ library(kableExtra)
 library(scoringutils)
 library(hubUtils)
 library(hubEnsembles)
-library(hubData)
 ```
 
 # Data
 ```{r}
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-# standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-# standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+standard_coverage <- read.csv("../Data/standard-scoring/standard_coverage.csv")
+standard_wis <- read.csv("../Data/standard-scoring/standard_wis.csv")
+```
+
+```{r}
+standard_wis$reference_date = as.Date(standard_wis$reference_date)
+standard_coverage$reference_date = as.Date(standard_coverage$reference_date)
+```
+
+```{r}
+dates_to_remove <- as.Date(c("2025-11-22", "2025-11-29", "2025-12-06", "2025-12-13"))
+
+standard_wis = standard_wis |> filter(!reference_date %in% dates_to_remove)
+standard_coverage = standard_coverage |> filter(!reference_date %in% dates_to_remove)
 ```
 
 # Subfigures
@@ -166,7 +175,7 @@ figure3c
 
 ## Save to file
 ```{r}
-png("Figures/figure3.png", width = 1920, height = 1920)
+png("figure3-sens.png", width = 1920, height = 1920)
 (figure3a + figure3b) / (figure11_date_line)
 dev.off()
 ```

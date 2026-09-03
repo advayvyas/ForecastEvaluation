@@ -27,14 +27,28 @@ library(mgcv)
 library(scoringutils)
 library(hubUtils)
 library(hubEnsembles)
-library(hubData)
 ```
 
 # Data
 ```{r}
-state_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+state_wis <- read.csv("../Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("../Data/standard-scoring/standard_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
+```
+
+```{r}
+standard_wis$reference_date = as.Date(standard_wis$reference_date)
+```
+
+```{r}
+state_wis <- state_wis |> mutate(reference_date = as.Date(target_end_date) - (horizon - 1) * 7)
+```
+
+```{r}
+dates_to_remove <- as.Date(c("2025-11-22", "2025-11-29", "2025-12-06", "2025-12-13"))
+
+standard_wis = standard_wis |> filter(!reference_date %in% dates_to_remove)
+state_wis = state_wis |> filter(!reference_date %in% dates_to_remove)
 ```
 
 ```{r}
@@ -167,7 +181,7 @@ fig2b <- ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
 ```
 
 ```{r}
-lookup = read.csv("Data/lookup.csv")
+lookup = read.csv("../Data/lookup.csv")
 location_ci = location_ci |> left_join(lookup, by = "location")
 ```
 
@@ -212,7 +226,7 @@ fig2_left = (fig2a / fig2b)
 ```
 
 ```{r}
-png("Figures/figure2.png", width = 1920, height = 1440)
+png("figure2-sens.png", width = 1920, height = 1440)
 ((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))
 dev.off()
 ```
