@@ -28,12 +28,21 @@ library(zoo)
 library(scoringutils)
 library(hubUtils)
 library(hubEnsembles)
-library(hubData)
 ```
 
 # Data
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("../Data/standard-scoring/standard_wis.csv")
+```
+
+```{r}
+standard_wis$reference_date = as.Date(standard_wis$reference_date)
+```
+
+```{r}
+dates_to_remove <- as.Date(c("2025-11-22", "2025-11-29", "2025-12-06", "2025-12-13"))
+
+standard_wis = standard_wis |> filter(!reference_date %in% dates_to_remove)
 ```
 
 ```{r}
@@ -59,7 +68,12 @@ standard_wis = standard_wis %>% filter(model_id %in% model_ids) |> filter(locati
 
 ## Epidemic phase
 ```{r}
-raw = read.csv("Data/raw_data.csv")
+raw = read.csv("../Data/raw_data.csv")
+raw$reference_date = as.Date(raw$reference_date)
+```
+
+```{r}
+raw = raw |> filter(!reference_date %in% dates_to_remove)
 ```
 
 ```{r}
@@ -199,7 +213,7 @@ fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
 ```
 
 ```{r}
-lookup = read.csv("Data/lookup.csv")
+lookup = read.csv("../Data/lookup.csv")
 location_ci = location_ci |> left_join(lookup, by = "location")
 
 location_ci$state_level = ifelse(location_ci$state == 'state', 'state', 'not-state')
@@ -306,7 +320,7 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
 
 
 ```{r}
-png("Figures/figure4.png", width = 2080, height = 1440)
+png("figure4-sens.png", width = 2080, height = 1440)
 ((fig4c + fig4a + fig4d + fig4e) | plot_spacer() | fig4b) +
   plot_layout(widths = c(0.6, 0.05, 0.4))
 dev.off()
