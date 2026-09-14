@@ -27,7 +27,7 @@ library(ggplot2)
 ```
 
 ```{r, warning = FALSE, message = FALSE}
-hub_path <- "C:/Projects/flu-metrocast"
+hub_path <- "C:/Users/advay/Projects/flu-metrocast"
 hub_con <- connect_hub(hub_path)
 
 
@@ -47,12 +47,9 @@ model_order <- c(
   "NAU-INFLAenza",
   "UMass-SAR",
   "VTSanghani-PRIME",
-  "MOBS-EpyStrain_Flu",
-  "ACCIDDA-InfluPaint",
   "epiENGAGE-baseline",
   "epiENGAGE-ensemble_mean",
-  "epiENGAGE-lop_norm",
-  "FluSight-ensemble" 
+  "epiENGAGE-lop_norm"
 )
 ```
 
@@ -77,8 +74,8 @@ plot_df <- plot_df %>%
 ```
 Missing prediction data from NAU-INFLAenza model on the date 12/20/25 for the locations of south-carolina and north-carolina. Additionally, there is missing predictions from the models UT-GBQR, epiENGAGE-GBQR, epiENGAGE-baseline, epiENGAGE-ensemble_mean, and epiENGAGE-lop_norm on the date 11/22/25 for location north-carolina. 
 ```{r}
-# png("Data/data_details.png", 
-#       width = 8, height = 4, units = "in", res = 600)
+png("Figures/data_consistency.png",
+      width = 8, height = 4, units = "in", res = 600)
 ggplot(plot_df, aes(x = reference_date, y = model_id)) +
   geom_line(aes(group = model_id),
             linewidth = 0.7,
