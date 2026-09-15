@@ -33,13 +33,11 @@ library(hubData)
 
 # Data
 ```{r}
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 ```
 
 ```{r}
-model_ids <- c("UT-GBQR", "epiforecasts-dyngam", "NAU-Copycat", "UMass-alloy",
-               "NAU-INFLAenza", "UMass-SAR", "VTSanghani-PRIME",
-               "epiENGAGE-baseline", "epiENGAGE-ensemble_mean")
+model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
 
 state_locations <- c("colorado", "georgia", "indiana", "maine", "maryland", "massachusetts", 
                      "minnesota", "north-carolina", "oregon", "south-carolina", "texas", "utah", "virginia")

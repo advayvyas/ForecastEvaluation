@@ -256,7 +256,7 @@ figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill
   midpoint = 0
 ) +  
   geom_tile(col = "black") +
-  labs(x = "Model", y = "Date", fill = "Log Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Date", fill = "Log Relative WIS") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -563,7 +563,7 @@ head(complete_wis_long)
 comparisons_by_model <- get_pairwise_comparisons(
   scores = complete_wis_long,
   compare = "method",
-  by = "model_id",
+  by = "model_id"
 )
 
 head(comparisons_by_model)
@@ -571,7 +571,7 @@ head(comparisons_by_model)
 comparisons_by_location <- get_pairwise_comparisons(
   scores = complete_wis_long,
   compare = "method",
-  by = "location",
+  by = "location"
 )
 
 head(comparisons_by_location)
@@ -1070,9 +1070,15 @@ combined_A <- bind_rows(
   plot_data_state_A %>% mutate(source = "State-scoring")
 )
 
-# observed points, deduped so they don't overplot across horizons/reference_dates
-observed_A <- plot_data_A %>%
-  distinct(location, date, observed)
+observed_A <- raw %>%
+  filter(location %in% c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder")) %>%
+  mutate(date = as.Date(target_end_date)) %>%
+  distinct(location, date, oracle_value) %>%
+  rename(observed = oracle_value) %>%
+  filter(!is.na(observed))
+
+observed_A$location <- factor(observed_A$location,
+  levels = c("austin", "houston", "el-paso", "mesa", "pittsfield", "boulder"))
 ```
 
 ```{r}

@@ -30,15 +30,15 @@ library(hubData)
 
 # Data
 ```{r}
-standard_coverage <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
+standard_coverage <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
 # standard_coverage_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
-standard_wis <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 # standard_wis_summary <- read.csv("C:/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
 ```
 
 # Subfigures
 ```{r}
-model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiforecasts-dyngam")
+model_ids <- c("NAU-Copycat", "NAU-INFLAenza", "UMass-SAR", "UMass-alloy", "UT-GBQR", "VTSanghani-PRIME", "epiENGAGE-baseline", "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm", "epiforecasts-dyngam")
 ```
 
 ## Left

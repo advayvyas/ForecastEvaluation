@@ -55,16 +55,25 @@ model_order <- c(
 
 ```{r}
 plot_df <- model_by_date %>%
-  filter(reference_date >= "2025-10-01",
-         model_id != "epiENGAGE-GBQR") %>%
+  filter(
+    reference_date >= as.Date("2025-10-01"),
+    model_id %in% model_order
+  ) %>%
   mutate(
     model_id = factor(model_id, levels = rev(model_order)),
     completeness = case_when(
-      model_id == "NAU-INFLAenza" & reference_date == as.Date("2025-12-20") ~ "Both",
-      model_id %in% c("UT-GBQR", "epiENGAGE-GBQR", "epiENGAGE-baseline", 
-                      "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm") & 
+      model_id == "NAU-INFLAenza" &
+        reference_date == as.Date("2025-12-20") ~ "Both",
+      model_id %in% c(
+        "UT-GBQR", "epiENGAGE-baseline",
+        "epiENGAGE-ensemble_mean", "epiENGAGE-lop_norm"
+      ) &
         reference_date == as.Date("2025-11-22") ~ "NC",
       TRUE ~ "Complete"
+    ),
+    completeness = factor(
+      completeness,
+      levels = c("NC", "SC", "Both", "Complete")
     )
   )
 
