@@ -163,8 +163,7 @@ temp1b <- suppressWarnings(
     filter(target == "Flu ED visits pct") %>%
     get_pairwise_comparisons(
       compare = "method",
-      by = c("model_id", "location"),
-      baseline = "state"
+      by = c("model_id", "location")
     ) %>%
     filter(
       method == "standard",
@@ -181,7 +180,7 @@ temp1b <- suppressWarnings(
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_scaled_relative_skill))) + 
+figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(mean_scores_ratio))) + 
   scale_fill_gradient2(
   low = "#2166ac", 
   mid = "grey90", 
@@ -189,7 +188,7 @@ figure1b_loc <- ggplot(temp1b, aes(x = model_id, y = location, fill = log(wis_sc
   midpoint = 0
 ) + 
   geom_tile(col = "black") + 
-  labs(x = "Model", y = "Location", fill = "Log Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Location", fill = "Log Relative WIS") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -220,8 +219,7 @@ temp1b_date <- suppressWarnings(
     filter(target == "Flu ED visits pct") %>%
     get_pairwise_comparisons(
       compare = "method",
-      by = c("model_id", "target_end_date"),
-      baseline = "state"
+      by = c("model_id", "target_end_date")
     ) %>%
     filter(
       method == "standard",
@@ -234,7 +232,7 @@ temp1b_date <- suppressWarnings(
 ```
 
 ```{r, fig.height = 10, fig.width = 10}
-figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill = log(wis_scaled_relative_skill))) + 
+figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill = log(mean_scores_ratio))) + 
   scale_fill_gradient2(
   low = "#2166ac", 
   mid = "grey90", 
@@ -242,7 +240,7 @@ figure1b_date <- ggplot(temp1b_date, aes(x = model_id, y = target_end_date, fill
   midpoint = 0
 ) +  
   geom_tile(col = "black") +
-  labs(x = "Model", y = "Date", fill = "Log Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Date", fill = "Log Relative WIS") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -272,8 +270,7 @@ temp1b_date_line <- suppressWarnings(
     filter(target == "Flu ED visits pct") %>%
     get_pairwise_comparisons(
       compare = "method",
-      by = c("model_id", "target_end_date", "horizon"),
-      baseline = "state"
+      by = c("model_id", "target_end_date", "horizon")
     ) %>%
     filter(
       method == "standard",
@@ -295,7 +292,7 @@ horizon_labels <- c(
 ```
 
 ```{r}
-figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date), y = wis_scaled_relative_skill, color = model_id)) + 
+figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date), y = mean_scores_ratio, color = model_id)) + 
   geom_line() +
   geom_point() +
   geom_hline(yintercept = 1,linetype = "dashed", color = "black") +
@@ -305,7 +302,7 @@ figure1b_date_line <- ggplot(temp1b_date_line, aes(x = as.Date(target_end_date),
                          setdiff(unique(temp1b_date_line$model_id), "epiENGAGE-ensemble_mean")),
                 "epiENGAGE-ensemble_mean" = "black")
   ) +
-  labs(x = "Date", y = "Scaled Relative Skill Score (WIS)") + 
+  labs(x = "Date", y = "Relative WIS") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -372,7 +369,7 @@ figure11_loc <- ggplot(temp11_loc, aes(x = model_id, y = location, fill = log(wi
     midpoint = 0
   ) + 
   geom_tile(col = "black") + 
-  labs(x = "Model", y = "Location", fill = "Log Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Location", fill = "Log Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -422,7 +419,7 @@ figure11_date <- ggplot(temp11_date, aes(x = model_id, y = target_end_date, fill
     midpoint = 0
   ) +  
   geom_tile(col = "black") +
-  labs(x = "Model", y = "Date", fill = "Log Relative Skill Score (WIS)") + 
+  labs(x = "Model", y = "Date", fill = "Log Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -483,7 +480,7 @@ figure11_date_line <- ggplot(temp11_date_line, aes(x = as.Date(target_end_date),
                          setdiff(unique(temp11_date_line$model_id), "epiENGAGE-ensemble_mean")),
                 "epiENGAGE-ensemble_mean" = "black")
   ) +
-  labs(x = "Date", y = "Relative Skill Score (WIS)") + 
+  labs(x = "Date", y = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() + 
   theme(
     legend.position = "top",
@@ -547,8 +544,7 @@ head(complete_wis_long)
 comparisons_by_model <- get_pairwise_comparisons(
   scores = complete_wis_long,
   compare = "method",
-  by = "model_id",
-  baseline = "state"
+  by = "model_id"
 )
 
 head(comparisons_by_model)
@@ -556,8 +552,7 @@ head(comparisons_by_model)
 comparisons_by_location <- get_pairwise_comparisons(
   scores = complete_wis_long,
   compare = "method",
-  by = "location",
-  baseline = "state"
+  by = "location"
 )
 
 head(comparisons_by_location)
@@ -578,16 +573,16 @@ temp1c_loc <- comparisons_by_location %>%
 lookup = read.csv("../Data/lookup.csv")
 temp1c_loc = temp1c_loc |> left_join(lookup, by = "location") 
 temp1c_loc = temp1c_loc |>
-  arrange(desc(state), wis_scaled_relative_skill) |>
+  arrange(desc(state), mean_scores_ratio) |>
   mutate(location = factor(location, levels = location))
 
 knitr::kable(temp1c_loc)
 ```
 
 ```{r}
-figure1c_model = ggplot(temp1c_model, aes(x = model_id, y = wis_scaled_relative_skill)) + 
+figure1c_model = ggplot(temp1c_model, aes(x = model_id, y = mean_scores_ratio)) + 
   geom_col(fill = "firebrick", color = "black") + 
-  labs(x = "Model", y = "Scaled relative skill score (WIS)") + 
+  labs(x = "Model", y = "Relative WIS") + 
    theme_bw() +
   theme(
     text            = element_text(size = 27),
@@ -606,9 +601,9 @@ figure1c_model
 ```{r, fig.height=6, fig.width=14}
 state_boundaries = which(diff(as.numeric(factor(temp1c_loc$state))) != 0) + 0.5
 
-figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = wis_scaled_relative_skill, fill = state)) + 
+figure1c_loc = ggplot(temp1c_loc, aes(x = location, y = mean_scores_ratio, fill = state)) + 
   geom_col(color = "black") + 
-  labs(x = "Location", y = "Scaled relative skill score (WIS)") + 
+  labs(x = "Location", y = "Relative WIS") + 
   theme_bw() +
   theme(
     text            = element_text(size = 27),
@@ -669,7 +664,7 @@ temp10_model = temp10_model |> filter(model_id != 'epiENGAGE-baseline')
 ```{r}
 figure10_model = ggplot(temp10_model, aes(x = model_id, y = wis_scaled_relative_skill)) + 
   geom_col(fill = "firebrick", color = "black") + 
-  labs(x = "Model", y = "Relative skill score (WIS)") + 
+  labs(x = "Model", y = "Scaled Relative Skill Score (WIS)") + 
    theme_bw() +
   theme(
     text            = element_text(size = 27),
@@ -727,7 +722,7 @@ state_boundaries = which(diff(as.numeric(factor(temp10_loc_avg$state,
 figure10_loc = ggplot(temp10_loc_avg, aes(x = location, y = wis_scaled_relative_skill, fill = state)) + 
   geom_col(aes(alpha = state_classification), width = 0.7, color = "black") +
   scale_alpha_manual(values = c("state" = 1.2, "not-state" = 0.2)) +
-  labs(x = "Location", y = "Relative skill score (WIS)") + 
+  labs(x = "Location", y = "Scaled Relative Skill Score (WIS)") + 
   theme_bw() +
   theme(
     text            = element_text(size = 27),
