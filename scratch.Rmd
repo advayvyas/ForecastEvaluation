@@ -1,0 +1,228 @@
+---
+title: "scratch"
+output: html_document
+date: "2026-09-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggforce)
+```
+
+## Figure 6
+### Local
+```{r}
+raw = read.csv("Data/raw_data.csv")
+```
+
+```{r}
+set_horizon = 0
+```
+
+```{r, fig.width=10, fig.height=10}
+plot_data <- raw %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,  
+    lower = `q_0.025`,           
+    upper = `q_0.975`            
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) 
+
+plot_data$location = factor(plot_data$location)
+```
+
+```{r, fig.width=20, fig.height=10}
+obsvspred_loc <- ggplot(plot_data, aes(x = date)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
+              alpha = 0.4, color = NA) +
+  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
+            linewidth = 1) +
+  geom_point(aes(y = observed, color = "Observed HSA"),
+             size = 2, shape = 16) +
+  facet_wrap(~location, nrow=10) +
+  scale_color_manual(
+    name = NULL,
+    values = c(
+      "Observed HSA" = "#E74C3C",
+      "Predicted HSA" = "#F39C12"
+    )
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("Prediction Interval" = "#F39C12")
+  ) +
+  labs(
+    x = NULL,
+    y = "Percent Influenza ED Visits"
+  ) +
+  theme_bw() +
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "bottom",
+  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
+```
+
+
+
+### State
+```{r}
+raw_state = read.csv("Data/state_raw.csv")
+```
+
+```{r, fig.width=10, fig.height=10}
+plot_data_state <- raw_state %>%
+  filter(output_type == "quantile") %>%
+  mutate(
+    output_type_id = as.numeric(output_type_id),
+    date = as.Date(target_end_date)
+  ) %>%
+  pivot_wider(
+    names_from = output_type_id,
+    values_from = state_value,
+    names_prefix = "q_"
+  ) %>%
+  rename(
+    observed = oracle_value,
+    predicted_value = `q_0.5`,  
+    lower = `q_0.025`,           
+    upper = `q_0.975`            
+  ) |> filter(model_id == "epiENGAGE-ensemble_mean") |> filter(horizon == set_horizon) 
+
+plot_data_state$location = factor(plot_data_state$location)
+```
+
+```{r, fig.width=20, fig.height=10}
+obsvspred_state <- ggplot(plot_data_state, aes(x = date)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = "Prediction Interval"),
+              alpha = 0.4, color = NA) +
+  geom_line(aes(y = predicted_value, color = "Predicted HSA"),
+            linewidth = 1) +
+  geom_point(aes(y = observed, color = "Observed HSA"),
+             size = 2, shape = 16) +
+  facet_wrap(~location, nrow=10) +
+  scale_color_manual(
+    name = NULL,
+    values = c(
+      "Observed HSA" = "#E74C3C",
+      "Predicted HSA" = "black"
+    )
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("Prediction Interval" = "darkgray")
+  ) +
+  labs(
+    x = NULL,
+    y = "Percent Influenza ED Visits"
+  ) +
+  theme_bw() +
+  theme(
+    text            = element_text(size = 27),
+    axis.text.x     = element_text(size = 24),
+    axis.text.y     = element_text(size = 24),
+    axis.title      = element_text(size = 27),
+    legend.text     = element_text(size = 24),
+    legend.title    = element_text(size = 25.5),
+    strip.text      = element_text(size = 25.5),
+    legend.position = "bottom",
+  ) + scale_x_date(date_breaks = "2 months", date_labels = "%b") 
+```
+
+```{r}
+plot_data$level <- "Local"
+plot_data_state$level <- "State"
+
+combined <- bind_rows(
+  plot_data       %>% select(date, location, level, observed, predicted_value, lower, upper),
+  plot_data_state %>% select(date, location, level, observed, predicted_value, lower, upper)
+)
+
+combined$level <- factor(combined$level, levels = c("Local", "State"))
+combined$location <- factor(combined$location)
+
+combined = combined |> filter(!(location %in% c("texas", "colorado", "georgia", "indiana" , "maine", "nyc", "utah", "virginia", "south-carolina", "maryland", "massachusetts", "minnesota", "north-carolina", "oregon")))
+```
+
+```{r}
+locations_per_page <- 10
+
+n_pages_combined <- n_pages(
+  ggplot(combined, aes(x = date)) +
+    facet_grid_paginate(location ~ level, nrow = locations_per_page, ncol = 2, page = 1)
+)
+```
+
+```{r, fig.width=10, fig.height=20}
+for (p in seq_len(n_pages_combined)) {
+  print(
+    ggplot(combined, aes(x = date)) +
+      geom_ribbon(aes(ymin = lower, ymax = upper, fill = level),
+                  alpha = 0.4, color = NA) +
+      geom_line(aes(y = predicted_value, color = paste(level, "Predicted")), linewidth = 1) +
+      geom_point(aes(y = observed, color = paste(level, "Observed")), size = 2, shape = 16) +
+      facet_grid_paginate(location ~ level, nrow = locations_per_page, ncol = 2, page = p) +
+      scale_color_manual(
+        name = NULL,
+        values = c(
+          "Local Observed"  = "#E74C3C",
+          "Local Predicted" = "#F39C12",
+          "State Observed"  = "#E74C3C",
+          "State Predicted" = "black"
+        )
+      ) +
+      scale_fill_manual(
+        name = NULL,
+        values = c(
+          "Local" = "#F39C12",
+          "State" = "darkgray"
+        )
+      ) +
+      labs(x = NULL, y = "Percent Influenza ED Visits") +
+      theme_bw() +
+      theme(
+        text            = element_text(size = 16),
+        axis.text.x     = element_text(size = 12),
+        axis.text.y     = element_text(size = 12),
+        axis.title      = element_text(size = 14),
+        legend.text     = element_text(size = 12),
+        legend.title    = element_text(size = 14),
+        strip.text      = element_text(size = 12),
+        legend.position = "left"
+      ) + scale_x_date(date_breaks = "2 months", date_labels = "%b")
+  )
+}
+```
+```
+
+```
+
+
+
+
+
+
+
+
+
+

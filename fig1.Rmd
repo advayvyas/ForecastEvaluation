@@ -3,8 +3,8 @@ title: "Figure 1"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
-    toc: true
-knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "C:/Users/advay/Projects/ForecastEvaluation/HTML", encoding = encoding) })
+    to true
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "/Users/advay/Projects/ForecastEvaluation/HTML", encoding = encoding) })
 urlcolor: blue
 linkcolor: red
 ---
@@ -32,15 +32,15 @@ library(hubData)
 
 # Data
 ```{r}
-state_coverage <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_coverage.csv")
-# state_coverage_summary <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_coverage_summary.csv")
-state_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-# state_wis_summary <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis_summary.csv")
+state_coverage <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_coverage.csv")
+# state_coverage_summary <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_coverage_summary.csv")
+state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+# state_wis_summary <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis_summary.csv")
 
-standard_coverage <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
-# standard_coverage_summary <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
-# standard_wis_summary <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
+standard_coverage <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage.csv")
+# standard_coverage_summary <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_coverage_summary.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+# standard_wis_summary <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis_summary.csv")
 ```
 
 # Subfigures
@@ -133,8 +133,8 @@ figure1a_loc
 
 ## Figure 5
 ```{r}
-state_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
 
 complete_wis <- state_wis %>%
@@ -339,7 +339,7 @@ figure1b_date_line
 
 #### Figure 11
 ```{r}
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
          model_id != "FluSight-ensemble") |> filter(location != 'nyc')
 
@@ -518,8 +518,8 @@ figure11_date_line
 
 ## Figure 1c (SRSS)
 ```{r}
-state_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
+state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
 standard_wis = standard_wis |> filter(location != 'nyc')
 state_wis = state_wis |> rename(state_wis = wis)
 
@@ -643,7 +643,7 @@ figure1c_loc
 
 ### Figure 10
 ```{r}
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 standard_wis = standard_wis |> select("location", "target_end_date", "horizon", "reference_date", "model_id", "target", "wis") |> filter(!model_id %in% c("epiENGAGE-GBQR", "ACCIDDA-InfluPaint", "MOBS-EpyStrain_Flu"),
          model_id != "FluSight-ensemble") |> filter(location != 'nyc') 
 
@@ -778,7 +778,7 @@ raw = read.csv("Data/raw_data.csv")
 ```
 
 ```{r}
-set_horizon = 2
+set_horizon = 0
 ```
 
 ```{r, fig.width=10, fig.height=10}
@@ -1195,8 +1195,8 @@ figure_50_split
 
 ### Combined location model rWIS plot
 ```{r}
-state_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 state_wis = state_wis |> rename(state_wis = wis)
 ```
 
@@ -1305,7 +1305,7 @@ dev.off()
 ```
 
 ```{r}
-png("Figures/figure6.png", width = 1440, height = 1080)
+png("Figures/figure6-h1.png", width = 1440, height = 1080)
 fig1c_timeseries
 dev.off()
 ```
