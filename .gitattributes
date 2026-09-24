@@ -1,3 +1,2 @@
 *.Rmd linguist-language=R
 *.html linguist-vendored
-*.csv filter=lfs diff=lfs merge=lfs -text
