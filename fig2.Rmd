@@ -73,22 +73,33 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
          model_id != "FluSight-ensemble") 
 
 complete_wis_filtered <- complete_wis %>%
-  filter(wis > 0, state_wis > 0)
+  filter(wis > 0, state_wis > 0) |> # Not sure we should be doing this -- if there are scores that are 0, we should just use a Tweedie distribution?
+  rename(wis = wis_local, wis_state = state_wis) |> 
+  pivot_longer(
+      c(state_wis, wis),
+      names_to = "geo_granularity",
+      values_to = "all_wis", 
+      names_prefix = "wis_"
+    ) |>
+  mutate(local = ifelse(geo_granularity == "local", TRUE, FALSE))
 ```
 
 
 # Model effects
 ```{r}
+# This model now includes on the as an outcome variable all WIS scores (we should discuss if these are log-transformed or natural) and on the RHS an indicator variable for whether that WIS is from a local model (local = TRUE) or whether it is from a state model applied to local data (local = FALSE). 
 model <- gam(
-  log(wis) ~ offset(log(state_wis)) +
-             s(model_id, bs = "re") +
-             s(location, bs = "re") +
-             s(horizon, bs = "re"),
-  family = gaussian(),
+  all_wis ~  local + 
+             s(model_id, bs = "re", by = local) + # additional effect for local
+             s(location, bs = "re", by = local) +
+             s(horizon, k = 4, by = local),
+  family = Gamma(link = "log"),
   data = complete_wis_filtered,  
   method = "REML"
 )
 
+# This means that exp(beta_local) is the average multipliative effect of being a local model (>1 means it worsens performance, <1 means it improves performance). The intercept is the average score.
+# And the the location/model/horizon random effects tell you the additional multiplicative effect of location/model/horizon have specifically on the local model's performance, on top of the avergae local effect capture by beta_local.
 summary(model)
 ```
 
