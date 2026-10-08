@@ -90,6 +90,9 @@ complete_wis_filtered <- complete_wis %>%
 # This model now includes on the as an outcome variable all WIS scores (we should discuss if these are log-transformed or natural) and on the RHS an indicator variable for whether that WIS is from a local model (local = TRUE) or whether it is from a state model applied to local data (local = FALSE). 
 model <- gam(
   all_wis ~  local + 
+             s(model_id, bs = "re") +
+             s(location, bs = "re") +
+             s(horizon, k = 4), # optional
              s(model_id, bs = "re", by = local) + # additional effect for local
              s(location, bs = "re", by = local) +
              s(horizon, k = 4, by = local),
