@@ -29,11 +29,15 @@ library(scoringutils)
 library(hubUtils)
 library(hubEnsembles)
 library(hubData)
+library(lme4)
+library(glmmTMB)
+library(DHARMa)
+library(tweedie)
 ```
 
 # Data
 ```{r}
-standard_wis <- read.csv("C:/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
 ```
 
 ```{r}
@@ -119,25 +123,81 @@ standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 ```
 
 # Model effects
-```{r}
-model <- gam(
-  log(wis) ~ s(model_id, bs = "re") +  
-        s(location, bs = "re") +
-        s(horizon, bs = "re") + 
-        s(trend, bs = "re") + 
-        s(granularity, bs = "re"),
-  family = gaussian(),
+```{r, fig.height = 6, fig.width = 6}
+# Example using a Gaussian log-link GLMM
+model_glmm_log_transform_fixed <- lmer(
+  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
   data = standard_wis,
-  method = "REML"
+  REML = TRUE
 )
 
-summary(model)
+summary(model_glmm_log_transform_fixed)
+
+plot(model_glmm_log_transform_fixed, type=c("p","smooth"), col.line=1)
+plot(model_glmm_log_transform_fixed,
+     sqrt(abs(resid(.)))~fitted(.),
+     type=c("p","smooth"), col.line=1)
+lattice::qqmath(model_glmm_log_transform_fixed)
+plot(model_glmm_log_transform_fixed, rstudent(.) ~ hatvalues(.))
 ```
 
 ```{r, fig.height = 6, fig.width = 6}
-par(mfrow = c(2, 2))
-gam.check(model)
-par(mfrow = c(1, 1))
+model_glmm_log_transform <- lmer(
+  log(wis) ~ (1 | model_id) + (1 | location) + (1 | horizon) + (1 | trend) + (1 | granularity),
+  data = standard_wis,
+  REML = TRUE
+)
+
+summary(model_glmm_log_transform)
+
+# Source - https://stackoverflow.com/a/63755072
+# Posted by Ben Bolker, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-10-09, License - CC BY-SA 4.0
+plot(model_glmm_log_transform, type=c("p","smooth"), col.line=1)
+plot(model_glmm_log_transform,
+     sqrt(abs(resid(.)))~fitted(.),
+     type=c("p","smooth"), col.line=1)
+lattice::qqmath(model_glmm_log_transform)
+plot(model_glmm_log_transform, rstudent(.) ~ hatvalues(.))
+```
+
+```{r, fig.height = 6, fig.width = 6}
+model_glmm_log_link <- glmer(
+  wis ~ model_id + horizon + trend + granularity + (1 | location),
+  data = standard_wis,
+  family = Gamma(link = "log")
+)
+
+summary(model_glmm_log_link)
+```
+
+```{r}
+res_gamma <- simulateResiduals(
+  fittedModel = model_glmm_log_link,
+  n = 250,
+  refit = FALSE,
+  seed = 123
+)
+
+plotQQunif(
+  res_gamma,
+  testDispersion = FALSE,
+  testOutliers = FALSE
+)
+plotResiduals(res_gamma, quantreg = FALSE)
+testDispersion(res_gamma, plot = TRUE)
+testOutliers(res_gamma, plot = TRUE)
+```
+
+```{r}
+correction_factor <- 2 * sum(log(standard_wis$wis))
+
+AIC_log_adjusted <- AIC(model_glmm_log_transform) + correction_factor
+AIC_log_adjusted_fixed <- AIC(model_glmm_log_transform_fixed) + correction_factor
+
+print(paste("More Fixed Effects Log Model AIC:", AIC_log_adjusted_fixed))
+print(paste("Log Model AIC:", AIC_log_adjusted))
+print(paste("Log link model AIC:", AIC(model_glmm_log_link)))
 ```
 
 ```{r}
