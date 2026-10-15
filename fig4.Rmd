@@ -162,23 +162,64 @@ plot(model_glmm_log_transform, rstudent(.) ~ hatvalues(.))
 ```
 
 ```{r, fig.height = 6, fig.width = 6}
-model_glmm_log_link <- glmer(
+model_glmm_log_link <- glmmTMB(
   wis ~ model_id + horizon + trend + granularity + (1 | location),
   data = standard_wis,
-  family = Gamma(link = "log")
+  family = t_family(link = "log")
 )
 
 summary(model_glmm_log_link)
 ```
 
 ```{r}
-res_gamma <- simulateResiduals(
-  fittedModel = model_glmm_log_link,
-  n = 250,
-  refit = FALSE,
-  seed = 123
+library(glmmTMB)
+
+# Define the base fixed and random effects structure to keep it consistent
+base_formula <- wis ~ model_id + horizon + trend + granularity + (1 | location)
+
+# Fit all major combinations for the dispformula
+m_base  <- glmmTMB(base_formula, family = Gamma(link = "log"), data = standard_wis)
+m_m     <- glmmTMB(base_formula, dispformula = ~ model_id, family = Gamma(link = "log"), data = standard_wis)
+m_mh    <- glmmTMB(base_formula, dispformula = ~ model_id + horizon, family = Gamma(link = "log"), data = standard_wis)
+m_mhg   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + granularity, family = Gamma(link = "log"), data = standard_wis)
+m_mht   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + trend, family = Gamma(link = "log"), data = standard_wis)
+m_all   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + trend + granularity, family = Gamma(link = "log"), data = standard_wis)
+
+# Compile into a clean comparison table
+aic_table <- AIC(m_base, m_m, m_mh, m_mhg, m_mht, m_all)
+aic_table <- aic_table[order(aic_table$AIC), ] # Sort from lowest AIC (best) to highest
+print(aic_table)
+```
+
+```{r}
+model_lognorm <- glmmTMB(
+  wis ~ model_id + horizon + trend + granularity + (1 | location),
+  dispformula = ~ model_id + horizon + trend + granularity,
+  data = standard_wis,
+  family = lognormal(link = "log")
 )
 
+# Check diagnostics
+plot(simulateResiduals(model_lognorm))
+
+```
+
+```{r}
+sim_res <- simulateResiduals(fittedModel = model_glmm_log_link)
+plot(sim_res)
+```
+
+```{r}
+plotResiduals(sim_res, form = standard_wis$model_id)
+plotResiduals(sim_res, form = standard_wis$horizon)
+```
+
+```{r}
+testDispersion(sim_res)
+testOutliers(sim_res)
+```
+
+```{r}
 plotQQunif(
   res_gamma,
   testDispersion = FALSE,
