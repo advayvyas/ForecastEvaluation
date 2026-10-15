@@ -1433,7 +1433,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-01-31,Flu ED visits pct,3,2026-02-21,houston,quantile,0.5,1.3232171535491943,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,0,2026-01-31,san-antonio,quantile,0.5,2.2686766386032104,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,1,2026-02-07,san-antonio,quantile,0.5,2.105827569961548,ACCIDDA-InfluPaint
-2026-01-31,Flu ED visits pct,2,2026-02-14,san-antonio,quantile,0.5,1.6640090942382813,ACCIDDA-InfluPaint
+2026-01-31,Flu ED visits pct,2,2026-02-14,san-antonio,quantile,0.5,1.6640090942382812,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,3,2026-02-21,san-antonio,quantile,0.5,1.335379123687744,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,0,2026-01-31,beaumont,quantile,0.5,3.602004051208496,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,1,2026-02-07,beaumont,quantile,0.5,2.92983078956604,ACCIDDA-InfluPaint
@@ -1881,7 +1881,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-01-31,Flu ED visits pct,3,2026-02-21,savannah,quantile,0.9,1.238225519657136,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,0,2026-01-31,floyd,quantile,0.9,2.3170399665832524,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,1,2026-02-07,floyd,quantile,0.9,2.3791509866714495,ACCIDDA-InfluPaint
-2026-01-31,Flu ED visits pct,2,2026-02-14,floyd,quantile,0.9,2.3193130493164063,ACCIDDA-InfluPaint
+2026-01-31,Flu ED visits pct,2,2026-02-14,floyd,quantile,0.9,2.3193130493164062,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,3,2026-02-21,floyd,quantile,0.9,2.034843683242798,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,0,2026-01-31,hall,quantile,0.9,5.054083824157715,ACCIDDA-InfluPaint
 2026-01-31,Flu ED visits pct,1,2026-02-07,hall,quantile,0.9,4.105825901031494,ACCIDDA-InfluPaint
@@ -3491,7 +3491,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-02-07,Flu ED visits pct,1,2026-02-14,frederick,quantile,0.1,1.009877324104309,ACCIDDA-InfluPaint
 2026-02-07,Flu ED visits pct,2,2026-02-21,frederick,quantile,0.1,0.7637282907962799,ACCIDDA-InfluPaint
 2026-02-07,Flu ED visits pct,3,2026-02-28,frederick,quantile,0.1,0.6538271605968475,ACCIDDA-InfluPaint
-2026-02-07,Flu ED visits pct,0,2026-02-07,montgomery,quantile,0.1,1.2867202758789063,ACCIDDA-InfluPaint
+2026-02-07,Flu ED visits pct,0,2026-02-07,montgomery,quantile,0.1,1.2867202758789062,ACCIDDA-InfluPaint
 2026-02-07,Flu ED visits pct,1,2026-02-14,montgomery,quantile,0.1,1.0580408573150637,ACCIDDA-InfluPaint
 2026-02-07,Flu ED visits pct,2,2026-02-21,montgomery,quantile,0.1,1.0570613145828247,ACCIDDA-InfluPaint
 2026-02-07,Flu ED visits pct,3,2026-02-28,montgomery,quantile,0.1,0.773199200630188,ACCIDDA-InfluPaint
@@ -6588,7 +6588,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-02-14,Flu ED visits pct,2,2026-02-28,worcester,quantile,0.25,2.0754488110542297,ACCIDDA-InfluPaint
 2026-02-14,Flu ED visits pct,3,2026-03-07,worcester,quantile,0.25,1.531160295009613,ACCIDDA-InfluPaint
 2026-02-14,Flu ED visits pct,0,2026-02-14,pittsfield,quantile,0.25,1.2436386346817017,ACCIDDA-InfluPaint
-2026-02-14,Flu ED visits pct,1,2026-02-21,pittsfield,quantile,0.25,1.1573562622070313,ACCIDDA-InfluPaint
+2026-02-14,Flu ED visits pct,1,2026-02-21,pittsfield,quantile,0.25,1.1573562622070312,ACCIDDA-InfluPaint
 2026-02-14,Flu ED visits pct,2,2026-02-28,pittsfield,quantile,0.25,1.4292718768119812,ACCIDDA-InfluPaint
 2026-02-14,Flu ED visits pct,3,2026-03-07,pittsfield,quantile,0.25,1.636856734752655,ACCIDDA-InfluPaint
 2026-02-14,Flu ED visits pct,0,2026-02-14,boston,quantile,0.25,2.342531144618988,ACCIDDA-InfluPaint
@@ -9296,7 +9296,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-02-21,Flu ED visits pct,2,2026-03-07,cherokee,quantile,0.25,2.7436368465423584,ACCIDDA-InfluPaint
 2026-02-21,Flu ED visits pct,3,2026-03-14,cherokee,quantile,0.25,2.362002670764923,ACCIDDA-InfluPaint
 2026-02-21,Flu ED visits pct,0,2026-02-21,athens,quantile,0.25,2.5428673028945923,ACCIDDA-InfluPaint
-2026-02-21,Flu ED visits pct,1,2026-02-28,athens,quantile,0.25,2.2771072387695313,ACCIDDA-InfluPaint
+2026-02-21,Flu ED visits pct,1,2026-02-28,athens,quantile,0.25,2.2771072387695312,ACCIDDA-InfluPaint
 2026-02-21,Flu ED visits pct,2,2026-03-07,athens,quantile,0.25,2.2873681783676147,ACCIDDA-InfluPaint
 2026-02-21,Flu ED visits pct,3,2026-03-14,athens,quantile,0.25,1.747703582048416,ACCIDDA-InfluPaint
 2026-02-21,Flu ED visits pct,0,2026-02-21,south-augusta,quantile,0.25,1.4323391318321228,ACCIDDA-InfluPaint
@@ -12057,7 +12057,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-02-28,Flu ED visits pct,3,2026-03-21,marietta,quantile,0.25,1.127059817314148,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,0,2026-02-28,macon,quantile,0.25,1.8279108107089996,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,1,2026-03-07,macon,quantile,0.25,1.657668113708496,ACCIDDA-InfluPaint
-2026-02-28,Flu ED visits pct,2,2026-03-14,macon,quantile,0.25,1.1671524047851563,ACCIDDA-InfluPaint
+2026-02-28,Flu ED visits pct,2,2026-03-14,macon,quantile,0.25,1.1671524047851562,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,3,2026-03-21,macon,quantile,0.25,0.9971472471952438,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,0,2026-02-28,henry,quantile,0.25,2.2002713680267334,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,1,2026-03-07,henry,quantile,0.25,1.8525341153144836,ACCIDDA-InfluPaint
@@ -12486,7 +12486,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-02-28,Flu ED visits pct,0,2026-02-28,minnesota,quantile,0.5,4.185751676559448,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,1,2026-03-07,minnesota,quantile,0.5,3.153449058532715,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,2,2026-03-14,minnesota,quantile,0.5,2.1665737628936768,ACCIDDA-InfluPaint
-2026-02-28,Flu ED visits pct,3,2026-03-21,minnesota,quantile,0.5,1.6582717895507813,ACCIDDA-InfluPaint
+2026-02-28,Flu ED visits pct,3,2026-03-21,minnesota,quantile,0.5,1.6582717895507812,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,0,2026-02-28,columbia,quantile,0.5,1.7930734753608704,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,1,2026-03-07,columbia,quantile,0.5,2.12466824054718,ACCIDDA-InfluPaint
 2026-02-28,Flu ED visits pct,2,2026-03-14,columbia,quantile,0.5,1.920295000076294,ACCIDDA-InfluPaint
@@ -14718,7 +14718,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-03-14,Flu ED visits pct,0,2026-03-14,roanoke,quantile,0.1,3.500856399536133,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,1,2026-03-21,roanoke,quantile,0.1,2.9134228229522705,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,2,2026-03-28,roanoke,quantile,0.1,2.093627333641052,ACCIDDA-InfluPaint
-2026-03-14,Flu ED visits pct,3,2026-04-04,roanoke,quantile,0.1,1.6486587524414063,ACCIDDA-InfluPaint
+2026-03-14,Flu ED visits pct,3,2026-04-04,roanoke,quantile,0.1,1.6486587524414062,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,0,2026-03-14,virginia,quantile,0.1,1.8291605710983276,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,1,2026-03-21,virginia,quantile,0.1,1.2785634994506836,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,2,2026-03-28,virginia,quantile,0.1,0.7090082466602325,ACCIDDA-InfluPaint
@@ -15133,7 +15133,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-03-14,Flu ED visits pct,3,2026-04-04,hall,quantile,0.5,1.5299779772758484,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,0,2026-03-14,marietta,quantile,0.5,1.18863844871521,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,1,2026-03-21,marietta,quantile,0.5,1.2671427726745603,ACCIDDA-InfluPaint
-2026-03-14,Flu ED visits pct,2,2026-03-28,marietta,quantile,0.5,1.1697769165039063,ACCIDDA-InfluPaint
+2026-03-14,Flu ED visits pct,2,2026-03-28,marietta,quantile,0.5,1.1697769165039062,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,3,2026-04-04,marietta,quantile,0.5,1.261187493801117,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,0,2026-03-14,macon,quantile,0.5,1.1704943180084229,ACCIDDA-InfluPaint
 2026-03-14,Flu ED visits pct,1,2026-03-21,macon,quantile,0.5,1.2875620126724243,ACCIDDA-InfluPaint
@@ -16951,7 +16951,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-03-21,Flu ED visits pct,1,2026-03-28,colorado-springs,quantile,0.05,0.7144119143486023,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,2,2026-04-04,colorado-springs,quantile,0.05,0.4116072803735733,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,3,2026-04-11,colorado-springs,quantile,0.05,0.2494095340371132,ACCIDDA-InfluPaint
-2026-03-21,Flu ED visits pct,0,2026-03-21,weld,quantile,0.05,2.0095291137695313,ACCIDDA-InfluPaint
+2026-03-21,Flu ED visits pct,0,2026-03-21,weld,quantile,0.05,2.0095291137695312,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,1,2026-03-28,weld,quantile,0.05,1.2564840614795685,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,2,2026-04-04,weld,quantile,0.05,0.4469105675816536,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,3,2026-04-11,weld,quantile,0.05,0.2016278021037578,ACCIDDA-InfluPaint
@@ -17837,7 +17837,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-03-21,Flu ED visits pct,3,2026-04-11,clt-area,quantile,0.25,0.9828497022390366,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,0,2026-03-21,north-carolina,quantile,0.25,2.4352301359176636,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,1,2026-03-28,north-carolina,quantile,0.25,1.9616963267326355,ACCIDDA-InfluPaint
-2026-03-21,Flu ED visits pct,2,2026-04-04,north-carolina,quantile,0.25,2.0510940551757813,ACCIDDA-InfluPaint
+2026-03-21,Flu ED visits pct,2,2026-04-04,north-carolina,quantile,0.25,2.0510940551757812,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,3,2026-04-11,north-carolina,quantile,0.25,1.5355590283870697,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,0,2026-03-21,portland-or,quantile,0.25,1.3145279586315155,ACCIDDA-InfluPaint
 2026-03-21,Flu ED visits pct,1,2026-03-28,portland-or,quantile,0.25,0.7253359705209732,ACCIDDA-InfluPaint
@@ -24084,7 +24084,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-04-04,Flu ED visits pct,2,2026-04-18,athens,quantile,0.9,1.1523811817169194,ACCIDDA-InfluPaint
 2026-04-04,Flu ED visits pct,3,2026-04-25,athens,quantile,0.9,1.16539615392685,ACCIDDA-InfluPaint
 2026-04-04,Flu ED visits pct,0,2026-04-04,south-augusta,quantile,0.9,2.0428416728973393,ACCIDDA-InfluPaint
-2026-04-04,Flu ED visits pct,1,2026-04-11,south-augusta,quantile,0.9,2.0247573852539063,ACCIDDA-InfluPaint
+2026-04-04,Flu ED visits pct,1,2026-04-11,south-augusta,quantile,0.9,2.0247573852539062,ACCIDDA-InfluPaint
 2026-04-04,Flu ED visits pct,2,2026-04-18,south-augusta,quantile,0.9,1.9417448639869692,ACCIDDA-InfluPaint
 2026-04-04,Flu ED visits pct,3,2026-04-25,south-augusta,quantile,0.9,1.6378154754638674,ACCIDDA-InfluPaint
 2026-04-04,Flu ED visits pct,0,2026-04-04,columbus,quantile,0.9,1.6313228011131289,ACCIDDA-InfluPaint
@@ -26747,7 +26747,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-04-11,Flu ED visits pct,1,2026-04-18,senc,quantile,0.75,1.0633004903793335,ACCIDDA-InfluPaint
 2026-04-11,Flu ED visits pct,2,2026-04-25,senc,quantile,0.75,0.9008466750383378,ACCIDDA-InfluPaint
 2026-04-11,Flu ED visits pct,3,2026-05-02,senc,quantile,0.75,0.7166987508535386,ACCIDDA-InfluPaint
-2026-04-11,Flu ED visits pct,0,2026-04-11,fay-area,quantile,0.75,1.7017593383789063,ACCIDDA-InfluPaint
+2026-04-11,Flu ED visits pct,0,2026-04-11,fay-area,quantile,0.75,1.7017593383789062,ACCIDDA-InfluPaint
 2026-04-11,Flu ED visits pct,1,2026-04-18,fay-area,quantile,0.75,1.1066561043262484,ACCIDDA-InfluPaint
 2026-04-11,Flu ED visits pct,2,2026-04-25,fay-area,quantile,0.75,0.5187071114778522,ACCIDDA-InfluPaint
 2026-04-11,Flu ED visits pct,3,2026-05-02,fay-area,quantile,0.75,0.4382722452282906,ACCIDDA-InfluPaint
@@ -38778,7 +38778,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-05-09,Flu ED visits pct,0,2026-05-09,clt-area,quantile,0.975,1.7084026485681534,ACCIDDA-InfluPaint
 2026-05-09,Flu ED visits pct,1,2026-05-16,clt-area,quantile,0.975,1.799043521285057,ACCIDDA-InfluPaint
 2026-05-09,Flu ED visits pct,2,2026-05-23,clt-area,quantile,0.975,2.154039978981018,ACCIDDA-InfluPaint
-2026-05-09,Flu ED visits pct,3,2026-05-30,clt-area,quantile,0.975,3.1279983520507813,ACCIDDA-InfluPaint
+2026-05-09,Flu ED visits pct,3,2026-05-30,clt-area,quantile,0.975,3.1279983520507812,ACCIDDA-InfluPaint
 2026-05-09,Flu ED visits pct,0,2026-05-09,north-carolina,quantile,0.975,0.8892154842615128,ACCIDDA-InfluPaint
 2026-05-09,Flu ED visits pct,1,2026-05-16,north-carolina,quantile,0.975,1.358595535159111,ACCIDDA-InfluPaint
 2026-05-09,Flu ED visits pct,2,2026-05-23,north-carolina,quantile,0.975,1.2662894576787949,ACCIDDA-InfluPaint
@@ -39619,7 +39619,7 @@ reference_date,target,horizon,target_end_date,location,output_type,output_type_i
 2026-05-16,Flu ED visits pct,1,2026-05-23,south-carolina,quantile,0.1,0.044748226180672646,ACCIDDA-InfluPaint
 2026-05-16,Flu ED visits pct,2,2026-05-30,south-carolina,quantile,0.1,0.03323395736515522,ACCIDDA-InfluPaint
 2026-05-16,Flu ED visits pct,3,2026-06-06,south-carolina,quantile,0.1,0.01260136952623725,ACCIDDA-InfluPaint
-2026-05-16,Flu ED visits pct,0,2026-05-16,houston,quantile,0.1,0.20962905883789063,ACCIDDA-InfluPaint
+2026-05-16,Flu ED visits pct,0,2026-05-16,houston,quantile,0.1,0.20962905883789062,ACCIDDA-InfluPaint
 2026-05-16,Flu ED visits pct,1,2026-05-23,houston,quantile,0.1,0.11369074881076813,ACCIDDA-InfluPaint
 2026-05-16,Flu ED visits pct,2,2026-05-30,houston,quantile,0.1,0.057315656915307045,ACCIDDA-InfluPaint
 2026-05-16,Flu ED visits pct,3,2026-06-06,houston,quantile,0.1,0.019355567172169685,ACCIDDA-InfluPaint
