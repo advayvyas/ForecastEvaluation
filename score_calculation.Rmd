@@ -49,6 +49,28 @@ compute_wis_score <- function(df, predicted, observed, target_date) {
 }
 ```
 
+
+```{r}
+compute_wis_score_log <- function(df, predicted, observed, target_date) {
+  df_wis <- df %>%
+    rename(predicted = !!rlang::sym(predicted),
+           observed = !!rlang::sym(observed),
+           quantile_level = output_type_id) %>%
+    dplyr::select(reference_date, location, horizon, target, target_end_date,
+                  output_type, quantile_level, observed, predicted) |>
+    as_forecast_quantile(
+      forecast_unit = c("location", "target_end_date", "horizon", "target"),
+      predicted = "predicted",
+      quantile_col = "quantile_level"
+    ) |>
+    transform_forecasts(fun = log_shift, offset = 1, append = FALSE) |>
+    score() |>
+    dplyr::select(location, target_end_date, horizon,
+                  wis, overprediction, underprediction, dispersion, coverage_50 = interval_coverage_50, coverage_90 = interval_coverage_90)
+  return(df_wis)
+}
+```
+
 # Data 
 ## Observed data
 ```{r}
@@ -122,8 +144,52 @@ wis <- raw %>%
 ```{r}
 write_csv(wis, "Data/standard-scoring/standard_wis.csv")
 
-data = read.csv("Data/standard-scoring/standard_wis.csv")
+wis = read.csv("Data/standard-scoring/standard_wis.csv")
 knitr::kable(head(wis))
+```
+
+### Log version
+```{r wis_calc_log}
+wis_log <- raw %>%
+  filter(!is.na(oracle_value)) %>%
+  {
+    models <- unique(.$model_id)
+    dates <- sort(unique(.$target_end_date))
+
+    map_df(models, ~ {
+      model_name <- .x
+
+      map_df(dates, ~ {
+        target_date <- .x
+
+        raw_filtered <- raw %>%
+          filter(model_id == model_name,
+                 target_end_date == target_date,
+                 !is.na(oracle_value))
+
+        if (nrow(raw_filtered) == 0) return(NULL)
+
+        compute_wis_score_log(
+          df = raw_filtered,
+          predicted = "value",
+          observed = "oracle_value",
+          target_date = target_date
+        ) %>%
+          mutate(model_id = model_name) %>%
+          left_join(raw_filtered %>%
+                       distinct(location, horizon, target, reference_date),
+                     by = c("location", "horizon"))   # target + reference_date both rejoined per-row
+
+      })
+    })
+  }
+```
+
+```{r}
+write_csv(wis_log, "Data/standard-scoring/log_standard_wis.csv")
+
+wis_log = read.csv("Data/standard-scoring/log_standard_wis.csv")
+knitr::kable(head(wis_log))
 ```
 
 ```{r wis_summary}
@@ -282,7 +348,9 @@ sum(is.na(state_raw) == TRUE)
 ```{r}
 models <- unique(state_raw$model_id)
 dates <- sort(unique(state_raw$target_end_date))
+```
 
+```{r}
 state_results <- state_raw %>%
   filter(!is.na(state_value)) %>%
   {
@@ -321,6 +389,48 @@ write_csv(state_results, "Data/state-scoring/state_wis.csv")
 
 state_wis = read.csv("Data/state-scoring/state_wis.csv")
 knitr::kable(head(state_wis))
+```
+
+### Log version
+```{r}
+state_results_log <- state_raw %>%
+  filter(!is.na(state_value)) %>%
+  {
+    models <- unique(.$model_id)
+    dates <- sort(unique(.$target_end_date))
+
+    map_df(models, ~ {
+      model_name <- .x
+
+      map_df(dates, ~ {
+        target_date <- .x
+
+        state_raw_filtered <- state_raw %>%
+          filter(model_id == model_name,
+                 target_end_date == target_date,
+                 !is.na(state_value))
+
+        if (nrow(state_raw_filtered) == 0) return(NULL)
+
+        compute_wis_score_log(
+          df = state_raw_filtered,
+          predicted = "state_value",
+          observed = "oracle_value",
+          target_date = target_date
+        ) %>%
+          mutate(model_id = model_name,
+                 target = state_raw_filtered$target[1])
+
+      })
+    })
+  }
+```
+
+```{r}
+write_csv(state_results_log, "Data/state-scoring/log_state_wis.csv")
+
+log_state_wis = read.csv("Data/state-scoring/log_state_wis.csv")
+knitr::kable(head(log_state_wis))
 ```
 
 ```{r}
