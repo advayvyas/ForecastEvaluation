@@ -37,7 +37,7 @@ library(tweedie)
 
 # Data
 ```{r}
-standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv")
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv") # THIS IS LOG NOW! WATCH OUT! JUST FOR EASE OF FIXING!
 ```
 
 ```{r}
@@ -48,10 +48,9 @@ state_locations <- c("colorado", "georgia", "indiana", "maine", "maryland", "mas
 
 standard_wis <- standard_wis %>%
   mutate(
-    wis = as.numeric(wis),
-    horizon  = horizon - 1
+    wis = as.numeric(wis)
   ) %>%
-  filter(wis > 0, !is.infinite(log(wis)), !is.na(wis))
+  filter(!is.infinite(wis), !is.na(wis))
 
 # standard_wis$model_id <- as.factor(standard_wis$model_id)
 # standard_wis$horizon <- as.factor(standard_wis$horizon)
@@ -124,84 +123,17 @@ standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 
 # Model effects
 ```{r, fig.height = 6, fig.width = 6}
-# Example using a Gaussian log-link GLMM
-model_glmm_log_transform_fixed <- lmer(
-  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
-  data = standard_wis,
-  REML = TRUE
-)
-
-summary(model_glmm_log_transform_fixed)
-
-plot(model_glmm_log_transform_fixed, type=c("p","smooth"), col.line=1)
-plot(model_glmm_log_transform_fixed,
-     sqrt(abs(resid(.)))~fitted(.),
-     type=c("p","smooth"), col.line=1)
-lattice::qqmath(model_glmm_log_transform_fixed)
-plot(model_glmm_log_transform_fixed, rstudent(.) ~ hatvalues(.))
-```
-
-```{r, fig.height = 6, fig.width = 6}
-model_glmm_log_transform <- lmer(
-  log(wis) ~ (1 | model_id) + (1 | location) + (1 | horizon) + (1 | trend) + (1 | granularity),
-  data = standard_wis,
-  REML = TRUE
-)
-
-summary(model_glmm_log_transform)
-
-# Source - https://stackoverflow.com/a/63755072
-# Posted by Ben Bolker, modified by community. See post 'Timeline' for change history
-# Retrieved 2026-10-09, License - CC BY-SA 4.0
-plot(model_glmm_log_transform, type=c("p","smooth"), col.line=1)
-plot(model_glmm_log_transform,
-     sqrt(abs(resid(.)))~fitted(.),
-     type=c("p","smooth"), col.line=1)
-lattice::qqmath(model_glmm_log_transform)
-plot(model_glmm_log_transform, rstudent(.) ~ hatvalues(.))
-```
-
-```{r, fig.height = 6, fig.width = 6}
 model_glmm_log_link <- glmmTMB(
   wis ~ model_id + horizon + trend + granularity + (1 | location),
   data = standard_wis,
-  family = t_family(link = "log")
+  family = tweedie(link = "log")
 )
 
 summary(model_glmm_log_link)
 ```
 
 ```{r}
-library(glmmTMB)
-
-# Define the base fixed and random effects structure to keep it consistent
-base_formula <- wis ~ model_id + horizon + trend + granularity + (1 | location)
-
-# Fit all major combinations for the dispformula
-m_base  <- glmmTMB(base_formula, family = Gamma(link = "log"), data = standard_wis)
-m_m     <- glmmTMB(base_formula, dispformula = ~ model_id, family = Gamma(link = "log"), data = standard_wis)
-m_mh    <- glmmTMB(base_formula, dispformula = ~ model_id + horizon, family = Gamma(link = "log"), data = standard_wis)
-m_mhg   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + granularity, family = Gamma(link = "log"), data = standard_wis)
-m_mht   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + trend, family = Gamma(link = "log"), data = standard_wis)
-m_all   <- glmmTMB(base_formula, dispformula = ~ model_id + horizon + trend + granularity, family = Gamma(link = "log"), data = standard_wis)
-
-# Compile into a clean comparison table
-aic_table <- AIC(m_base, m_m, m_mh, m_mhg, m_mht, m_all)
-aic_table <- aic_table[order(aic_table$AIC), ] # Sort from lowest AIC (best) to highest
-print(aic_table)
-```
-
-```{r}
-model_lognorm <- glmmTMB(
-  wis ~ model_id + horizon + trend + granularity + (1 | location),
-  dispformula = ~ model_id + horizon + trend + granularity,
-  data = standard_wis,
-  family = lognormal(link = "log")
-)
-
-# Check diagnostics
-plot(simulateResiduals(model_lognorm))
-
+family_params(model_glmm_log_link)
 ```
 
 ```{r}
@@ -209,37 +141,6 @@ sim_res <- simulateResiduals(fittedModel = model_glmm_log_link)
 plot(sim_res)
 ```
 
-```{r}
-plotResiduals(sim_res, form = standard_wis$model_id)
-plotResiduals(sim_res, form = standard_wis$horizon)
-```
-
-```{r}
-testDispersion(sim_res)
-testOutliers(sim_res)
-```
-
-```{r}
-plotQQunif(
-  res_gamma,
-  testDispersion = FALSE,
-  testOutliers = FALSE
-)
-plotResiduals(res_gamma, quantreg = FALSE)
-testDispersion(res_gamma, plot = TRUE)
-testOutliers(res_gamma, plot = TRUE)
-```
-
-```{r}
-correction_factor <- 2 * sum(log(standard_wis$wis))
-
-AIC_log_adjusted <- AIC(model_glmm_log_transform) + correction_factor
-AIC_log_adjusted_fixed <- AIC(model_glmm_log_transform_fixed) + correction_factor
-
-print(paste("More Fixed Effects Log Model AIC:", AIC_log_adjusted_fixed))
-print(paste("Log Model AIC:", AIC_log_adjusted))
-print(paste("Log link model AIC:", AIC(model_glmm_log_link)))
-```
 
 ```{r}
 estimates <- smooth_estimates(model)
