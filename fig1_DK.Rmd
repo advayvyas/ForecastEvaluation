@@ -833,8 +833,8 @@ counties_sf <- counties(cb = TRUE, year = 2022) %>%
 
 # OMB MSA delineation file
 library(readxl)
-
-msa <- read_excel("/Users/dk29776/Dropbox/UTAustin/Forecasting/Local-Level-Forecasting/data/list1_2023.xlsx",skip = 2)
+## you can download this data from here https://www.census.gov/programs-surveys/metro-micro/about/delineation-files.html?utm_source=chatgpt.com
+msa <- read_excel("Data/list1_2023.xlsx",skip = 2)
 msa <- msa %>%
   mutate(
     GEOID = sprintf("%02d%03d",
