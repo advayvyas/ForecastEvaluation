@@ -37,7 +37,8 @@ library(tweedie)
 
 # Data
 ```{r}
-standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv") # THIS IS LOG NOW! WATCH OUT! JUST FOR EASE OF FIXING!
+standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
+log_standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv") 
 ```
 
 ```{r}
@@ -56,6 +57,19 @@ standard_wis <- standard_wis %>%
 # standard_wis$horizon <- as.factor(standard_wis$horizon)
 
 standard_wis = standard_wis %>% filter(model_id %in% model_ids) |> filter(location != 'nyc')
+```
+
+```{r}
+log_standard_wis <- log_standard_wis %>%
+  mutate(
+    wis = as.numeric(wis)
+  ) %>%
+  filter(!is.infinite(wis), !is.na(wis))
+
+# standard_wis$model_id <- as.factor(standard_wis$model_id)
+# standard_wis$horizon <- as.factor(standard_wis$horizon)
+
+log_standard_wis = log_standard_wis %>% filter(model_id %in% model_ids) |> filter(location != 'nyc')
 ```
 
 ## Epidemic phase
@@ -89,7 +103,13 @@ trend_df <- oracle %>%
 standard_wis <- standard_wis %>%
   left_join(trend_df, by = c("location", "target_end_date"))
 
-sum(is.na(standard_wis$trend))
+log_standard_wis <- standard_wis %>%
+  left_join(trend_df, by = c("location", "target_end_date"))
+
+sum(is.na(log_standard_wis$trend))
+nrow(standard_wis) 
+
+sum(is.na(log_standard_wis$trend))
 nrow(standard_wis) 
 ```
 ## Granularity
@@ -109,6 +129,15 @@ standard_wis <- standard_wis %>%
 table(standard_wis$granularity)
 standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
 
+# LOG
+log_standard_wis <- log_standard_wis %>%
+  mutate(
+    granularity = if_else(location %in% state_locations, "state", "local"),
+    granularity = factor(granularity, levels = c("local", "state"))
+  )
+
+table(log_standard_wis$granularity)
+log_standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
 ```
 ## Levels
 ```{r}
@@ -121,7 +150,18 @@ standard_wis$trend <- droplevels(as.factor(standard_wis$trend))
 standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 ```
 
-# Model effects
+## Log Levels
+```{r}
+log_standard_wis$horizon = as.character(log_standard_wis$horizon)
+
+log_standard_wis$model_id <- droplevels(as.factor(log_standard_wis$model_id))
+log_standard_wis$location <- droplevels(as.factor(log_standard_wis$location))
+log_standard_wis$horizon <- droplevels(as.factor(log_standard_wis$horizon))
+log_standard_wis$trend <- droplevels(as.factor(log_standard_wis$trend))
+log_standard_wis$granularity <- droplevels(as.factor(log_standard_wis$granularity))
+```
+
+# Models
 ```{r, fig.height = 6, fig.width = 6}
 model_glmm_log_link <- glmmTMB(
   wis ~ model_id + horizon + trend + granularity + (1 | location),
@@ -141,7 +181,7 @@ sim_res <- simulateResiduals(fittedModel = model_glmm_log_link)
 plot(sim_res)
 ```
 
-
+# Estimates
 ```{r}
 estimates <- smooth_estimates(model)
 
