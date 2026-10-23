@@ -103,7 +103,7 @@ trend_df <- oracle %>%
 standard_wis <- standard_wis %>%
   left_join(trend_df, by = c("location", "target_end_date"))
 
-log_standard_wis <- standard_wis %>%
+log_standard_wis <- log_standard_wis %>%
   left_join(trend_df, by = c("location", "target_end_date"))
 
 sum(is.na(log_standard_wis$trend))
@@ -161,25 +161,115 @@ log_standard_wis$trend <- droplevels(as.factor(log_standard_wis$trend))
 log_standard_wis$granularity <- droplevels(as.factor(log_standard_wis$granularity))
 ```
 
+# Pop data
+```{r}
+# library(readxl)
+# ## you can download this data from here https://www.census.gov/programs-surveys/metro-micro/about/delineation-files.html?utm_source=chatgpt.com
+# msa <- read_excel("Data/list1_2023.xlsx",skip = 2)
+# msa <- msa %>%
+#   mutate(
+#     GEOID = sprintf("%02d%03d",
+#                     as.numeric(`FIPS State Code`),
+#                     as.numeric(`FIPS County Code`))
+#   ) %>%
+#   dplyr::select(GEOID, `CBSA Code`)
+# 
+# # county → state → MSA 연결
+# state_msa <- counties_sf %>%
+#   left_join(msa, by = "GEOID") %>%
+#   filter(!is.na(`CBSA Code`))
+# 
+# # state별 MSA 개수
+# msa_count <- state_msa %>%
+#   group_by(STATEFP) %>%
+#   summarise(MSA_count = n_distinct(`CBSA Code`))
+# 
+# st_sf <- tigris::states(cb = TRUE, year = 2022)
+# 
+# st_name <- st_sf %>%
+#   sf::st_drop_geometry() %>%
+#   dplyr::select(STATEFP, NAME) %>%
+#   dplyr::distinct()
+# 
+# msa_count <- msa_count %>%
+#   left_join(st_name, by = "STATEFP") %>%
+#   rename(n_msa = MSA_count)
+```
+
 # Models
-```{r, fig.height = 6, fig.width = 6}
-model_glmm_log_link <- glmmTMB(
+We write log_raw_normal_identity = LRNI
+log_log_normal_identity = LLRI
+none_raw_tweedie_log = NRTL
+
+
+
+```{r}
+standard_wis = standard_wis |> filter(wis != 0)
+
+LRNI <- lmer(
+  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
+  data = standard_wis
+)
+
+summary(LRNI)
+plot(LRNI)
+qqnorm(resid(LRNI))
+qqline(resid(LRNI))
+```
+
+```{r} 
+log_standard_wis = log_standard_wis |> filter(wis != 0)
+
+LLRI <- lmer(
+  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
+  data = log_standard_wis
+)
+
+summary(LLRI)
+plot(LLRI)
+qqnorm(resid(LLRI))
+qqline(resid(LLRI))
+```
+
+```{r}
+NRTL <- glmmTMB(
   wis ~ model_id + horizon + trend + granularity + (1 | location),
   data = standard_wis,
   family = tweedie(link = "log")
 )
-
-summary(model_glmm_log_link)
 ```
 
 ```{r}
-family_params(model_glmm_log_link)
+summary(NRTL)
+simulateResiduals(NRTL, n = 1000, plot = TRUE)
+```
+
+
+# Interaction terms
+Let's try just the LRNI model first to keep it simple.
+
+```{r}
+LRNI_interactions <- lmer(
+  log(wis) ~ model_id + horizon + trend + granularity + (1 | location) +
+    model_id:horizon +
+    model_id:trend +
+    model_id:granularity,
+    # horizon:trend +
+    # horizon:granularity +
+    # trend:granularity,
+  data = standard_wis
+)
+
+summary(LRNI_interactions)
+plot(LRNI_interactions)
+qqnorm(resid(LRNI_interactions))
+qqline(resid(LRNI_interactions))
 ```
 
 ```{r}
-sim_res <- simulateResiduals(fittedModel = model_glmm_log_link)
-plot(sim_res)
+anova(LRNI, LRNI_interactions, test = "LRT")
 ```
+
 
 # Estimates
 ```{r}
