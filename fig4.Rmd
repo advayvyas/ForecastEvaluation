@@ -14,6 +14,7 @@ knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FAL
 ```
 
 ------------------------------------------------------------------------
+
 ```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
 library(dplyr)
 library(tidyverse)
@@ -33,9 +34,18 @@ library(lme4)
 library(glmmTMB)
 library(DHARMa)
 library(tweedie)
+
+library(tidycensus)
+library(tigris)
+library(dplyr)
+library(tidyr)
+library(sf)
+
+options(tigris_use_cache = TRUE)
 ```
 
 # Data
+
 ```{r}
 standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/standard_wis.csv") 
 log_standard_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/standard-scoring/log_standard_wis.csv") 
@@ -73,6 +83,7 @@ log_standard_wis = log_standard_wis %>% filter(model_id %in% model_ids) |> filte
 ```
 
 ## Epidemic phase
+
 ```{r}
 raw = read.csv("Data/raw_data.csv")
 ```
@@ -112,7 +123,9 @@ nrow(standard_wis)
 sum(is.na(log_standard_wis$trend))
 nrow(standard_wis) 
 ```
+
 ## Granularity
+
 ```{r}
 state_locations <- c(
   "colorado", "georgia", "indiana", "maine", "maryland",
@@ -139,7 +152,9 @@ log_standard_wis <- log_standard_wis %>%
 table(log_standard_wis$granularity)
 log_standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
 ```
+
 ## Levels
+
 ```{r}
 standard_wis$horizon = as.character(standard_wis$horizon)
 
@@ -151,6 +166,7 @@ standard_wis$granularity <- droplevels(as.factor(standard_wis$granularity))
 ```
 
 ## Log Levels
+
 ```{r}
 log_standard_wis$horizon = as.character(log_standard_wis$horizon)
 
@@ -161,53 +177,82 @@ log_standard_wis$trend <- droplevels(as.factor(log_standard_wis$trend))
 log_standard_wis$granularity <- droplevels(as.factor(log_standard_wis$granularity))
 ```
 
-# Pop data
+## Pop data
+
 ```{r}
-# library(readxl)
-# ## you can download this data from here https://www.census.gov/programs-surveys/metro-micro/about/delineation-files.html?utm_source=chatgpt.com
-# msa <- read_excel("Data/list1_2023.xlsx",skip = 2)
-# msa <- msa %>%
-#   mutate(
-#     GEOID = sprintf("%02d%03d",
-#                     as.numeric(`FIPS State Code`),
-#                     as.numeric(`FIPS County Code`))
-#   ) %>%
-#   dplyr::select(GEOID, `CBSA Code`)
-# 
-# # county → state → MSA 연결
-# state_msa <- counties_sf %>%
-#   left_join(msa, by = "GEOID") %>%
-#   filter(!is.na(`CBSA Code`))
-# 
-# # state별 MSA 개수
-# msa_count <- state_msa %>%
-#   group_by(STATEFP) %>%
-#   summarise(MSA_count = n_distinct(`CBSA Code`))
-# 
-# st_sf <- tigris::states(cb = TRUE, year = 2022)
-# 
-# st_name <- st_sf %>%
-#   sf::st_drop_geometry() %>%
-#   dplyr::select(STATEFP, NAME) %>%
-#   dplyr::distinct()
-# 
-# msa_count <- msa_count %>%
-#   left_join(st_name, by = "STATEFP") %>%
-#   rename(n_msa = MSA_count)
+
+# county
+counties_sf <- counties(cb = TRUE, year = 2022) %>%
+  st_drop_geometry() %>%
+  dplyr::select(GEOID, STATEFP)
+
+# OMB MSA delineation file
+library(readxl)
+## you can download this data from here https://www.census.gov/programs-surveys/metro-micro/about/delineation-files.html?utm_source=chatgpt.com
+msa <- read_excel("Data/list1_2023.xlsx",skip = 2)
+msa <- msa %>%
+  mutate(
+    GEOID = sprintf("%02d%03d",
+                    as.numeric(`FIPS State Code`),
+                    as.numeric(`FIPS County Code`))
+  ) %>%
+  dplyr::select(GEOID, `CBSA Code`)
+
+# county → state → MSA 연결
+state_msa <- counties_sf %>%
+  left_join(msa, by = "GEOID") %>%
+  filter(!is.na(`CBSA Code`))
+
+# state별 MSA 개수
+msa_count <- state_msa %>%
+  group_by(STATEFP) %>%
+  summarise(MSA_count = n_distinct(`CBSA Code`))
+
+st_sf <- tigris::states(cb = TRUE, year = 2022)
+
+st_name <- st_sf %>%
+  sf::st_drop_geometry() %>%
+  dplyr::select(STATEFP, NAME) %>%
+  dplyr::distinct()
+
+msa_count <- msa_count %>%
+  left_join(st_name, by = "STATEFP") %>%
+  rename(n_msa = MSA_count)
+```
+
+```{r}
+locations <- read.csv("Data/locations.csv")
+
+state_pop <- get_acs(
+  geography = "state",
+  variables = "B01003_001",  # total population
+  year = 2023,
+  survey = "acs5",
+  output = "wide"
+) %>%
+  dplyr::select(state = NAME, population = B01003_001E)
+
+standard_wis <- standard_wis %>%
+  left_join(locations %>% 
+              dplyr::select(state, location, population), 
+            by = c("location")) %>% 
+  left_join(state_pop, by = "state", suffix = c("",".state")) %>%
+  left_join(msa_count %>%
+              dplyr::select(-STATEFP), by = c("state" = "NAME")) %>%
+  mutate(pop_ratio = population/population.state)
+
 ```
 
 # Models
-We write log_raw_normal_identity = LRNI
-log_log_normal_identity = LLRI
-none_raw_tweedie_log = NRTL
 
-
+We write log_raw_normal_identity = LRNI, log_log_normal_identity = LLRI, none_raw_tweedie_log = NRTL
 
 ```{r}
+length(standard_wis |> filter(wis == 0))
 standard_wis = standard_wis |> filter(wis != 0)
 
 LRNI <- lmer(
-  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
+  log(wis) ~ model_id + horizon + trend + granularity + n_msa + pop_ratio + (1 | location),
   data = standard_wis
 )
 
@@ -217,7 +262,8 @@ qqnorm(resid(LRNI))
 qqline(resid(LRNI))
 ```
 
-```{r} 
+```{r}
+length(log_standard_wis |> filter(wis == 0))
 log_standard_wis = log_standard_wis |> filter(wis != 0)
 
 LLRI <- lmer(
@@ -244,8 +290,8 @@ summary(NRTL)
 simulateResiduals(NRTL, n = 1000, plot = TRUE)
 ```
 
-
 # Interaction terms
+
 Let's try just the LRNI model first to keep it simple.
 
 ```{r}
@@ -257,7 +303,6 @@ LRNI_interactions <- lmer(
     # horizon:trend +
     # horizon:granularity +
     # trend:granularity,
-  data = standard_wis
 )
 
 summary(LRNI_interactions)
@@ -270,8 +315,8 @@ qqline(resid(LRNI_interactions))
 anova(LRNI, LRNI_interactions, test = "LRT")
 ```
 
-
 # Estimates
+
 ```{r}
 estimates <- smooth_estimates(model)
 
@@ -309,6 +354,7 @@ granularity_ci <- make_ci_table("s(granularity)", granularity)
 ```
 
 # Subfigures
+
 ```{r}
 fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) + 
@@ -429,11 +475,11 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
 ```
 
 # Figure 4
+
 ```{r, fig.height=20, fig.width=25}
 ((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
   plot_layout(widths = c(0.6, 0.05, 0.4))
 ```
-
 
 ```{r}
 png("Figures/figure4.png", width = 2080, height = 1440)
@@ -441,4 +487,3 @@ png("Figures/figure4.png", width = 2080, height = 1440)
   plot_layout(widths = c(0.6, 0.05, 0.4))
 dev.off()
 ```
-
