@@ -41,6 +41,8 @@ library(dplyr)
 library(tidyr)
 library(sf)
 
+library(lmerTest)
+
 options(tigris_use_cache = TRUE)
 ```
 
@@ -241,6 +243,14 @@ standard_wis <- standard_wis %>%
               dplyr::select(-STATEFP), by = c("state" = "NAME")) %>%
   mutate(pop_ratio = population/population.state)
 
+log_standard_wis <- log_standard_wis %>%
+  left_join(locations %>% 
+              dplyr::select(state, location, population), 
+            by = c("location")) %>% 
+  left_join(state_pop, by = "state", suffix = c("",".state")) %>%
+  left_join(msa_count %>%
+              dplyr::select(-STATEFP), by = c("state" = "NAME")) %>%
+  mutate(pop_ratio = population/population.state)
 ```
 
 # Models
@@ -250,13 +260,18 @@ We write log_raw_normal_identity = LRNI, log_log_normal_identity = LLRI, none_ra
 ```{r}
 length(standard_wis |> filter(wis == 0))
 standard_wis = standard_wis |> filter(wis != 0)
+```
 
+```{r}
 LRNI <- lmer(
-  log(wis) ~ model_id + horizon + trend + granularity + n_msa + pop_ratio + (1 | location),
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
   data = standard_wis
 )
 
 summary(LRNI)
+```
+
+```{r}
 plot(LRNI)
 qqnorm(resid(LRNI))
 qqline(resid(LRNI))
@@ -265,13 +280,18 @@ qqline(resid(LRNI))
 ```{r}
 length(log_standard_wis |> filter(wis == 0))
 log_standard_wis = log_standard_wis |> filter(wis != 0)
+```
 
+```{r}
 LLRI <- lmer(
-  log(wis) ~ model_id + horizon + trend + granularity + (1 | location),
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,,
   data = log_standard_wis
 )
 
 summary(LLRI)
+```
+
+```{r}
 plot(LLRI)
 qqnorm(resid(LLRI))
 qqline(resid(LLRI))
@@ -288,31 +308,6 @@ NRTL <- glmmTMB(
 ```{r}
 summary(NRTL)
 simulateResiduals(NRTL, n = 1000, plot = TRUE)
-```
-
-# Interaction terms
-
-Let's try just the LRNI model first to keep it simple.
-
-```{r}
-LRNI_interactions <- lmer(
-  log(wis) ~ model_id + horizon + trend + granularity + (1 | location) +
-    model_id:horizon +
-    model_id:trend +
-    model_id:granularity,
-    # horizon:trend +
-    # horizon:granularity +
-    # trend:granularity,
-)
-
-summary(LRNI_interactions)
-plot(LRNI_interactions)
-qqnorm(resid(LRNI_interactions))
-qqline(resid(LRNI_interactions))
-```
-
-```{r}
-anova(LRNI, LRNI_interactions, test = "LRT")
 ```
 
 # Estimates
