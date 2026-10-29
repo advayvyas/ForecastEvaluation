@@ -279,7 +279,17 @@ qqline(resid(LRNI))
 ```
 
 ```{r}
-as.data.frame(coef(summary(LRNI))) |> arrange(Estimate) 
+fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
+  tibble::rownames_to_column("term")
+
+fixed_effects |>
+  filter(!grepl(":", term)) |>
+  arrange(Estimate)
+
+fixed_effects |>
+  filter(grepl(":", term)) |>
+  arrange(Estimate)
+
 as.data.frame(ranef(LRNI, condVar = TRUE)) |> arrange(condval)  
 ```
 
@@ -291,7 +301,7 @@ log_standard_wis = log_standard_wis |> filter(wis != 0)
 
 ```{r}
 LLRI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,,
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
   data = log_standard_wis
 )
 
@@ -305,14 +315,24 @@ qqline(resid(LLRI))
 ```
 
 ```{r}
-as.data.frame(coef(summary(LLRI))) |> arrange(Estimate) 
+fixed_effects <- as.data.frame(coef(summary(LLRI))) |>
+  tibble::rownames_to_column("term")
+
+fixed_effects |>
+  filter(!grepl(":", term)) |>
+  arrange(Estimate)
+
+fixed_effects |>
+  filter(grepl(":", term)) |>
+  arrange(Estimate)
+
 as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)  
 ```
 
 ## NRTL
 ```{r}
 NRTL <- glmmTMB(
-  wis ~ model_id + horizon + trend + granularity + (1 | location),
+  wis ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
   data = standard_wis,
   family = tweedie(link = "log")
 )
