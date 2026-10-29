@@ -284,11 +284,11 @@ fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
 
 fixed_effects |>
   filter(!grepl(":", term)) |>
-  arrange(Estimate)
+  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
 
 fixed_effects |>
   filter(grepl(":", term)) |>
-  arrange(Estimate)
+  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
 
 as.data.frame(ranef(LRNI, condVar = TRUE)) |> arrange(condval)  
 ```
@@ -315,16 +315,16 @@ qqline(resid(LLRI))
 ```
 
 ```{r}
-fixed_effects <- as.data.frame(coef(summary(LLRI))) |>
+fixed_effects_llri <- as.data.frame(coef(summary(LLRI))) |>
   tibble::rownames_to_column("term")
 
-fixed_effects |>
+fixed_effects_llri |>
   filter(!grepl(":", term)) |>
-  arrange(Estimate)
+  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
 
-fixed_effects |>
+fixed_effects_llri |>
   filter(grepl(":", term)) |>
-  arrange(Estimate)
+  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
 
 as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)  
 ```
@@ -334,12 +334,16 @@ as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)
 NRTL <- glmmTMB(
   wis ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
   data = standard_wis,
-  family = tweedie(link = "log")
+  family = Gamma(link = "log"),
+  control = glmmTMBControl(parallel = 4)
 )
 ```
 
 ```{r}
 summary(NRTL)
+```
+
+```{r}
 simulateResiduals(NRTL, n = 1000, plot = TRUE)
 ```
 
