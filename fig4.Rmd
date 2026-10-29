@@ -257,6 +257,7 @@ log_standard_wis <- log_standard_wis %>%
 
 We write log_raw_normal_identity = LRNI, log_log_normal_identity = LLRI, none_raw_tweedie_log = NRTL
 
+## LRNI
 ```{r}
 length(standard_wis |> filter(wis == 0))
 standard_wis = standard_wis |> filter(wis != 0)
@@ -278,6 +279,12 @@ qqline(resid(LRNI))
 ```
 
 ```{r}
+as.data.frame(coef(summary(LRNI))) |> arrange(Estimate) 
+as.data.frame(ranef(LRNI, condVar = TRUE)) |> arrange(condval)  
+```
+
+## LLRI
+```{r}
 length(log_standard_wis |> filter(wis == 0))
 log_standard_wis = log_standard_wis |> filter(wis != 0)
 ```
@@ -297,6 +304,12 @@ qqnorm(resid(LLRI))
 qqline(resid(LLRI))
 ```
 
+```{r}
+as.data.frame(coef(summary(LLRI))) |> arrange(Estimate) 
+as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)  
+```
+
+## NRTL
 ```{r}
 NRTL <- glmmTMB(
   wis ~ model_id + horizon + trend + granularity + (1 | location),
