@@ -4,7 +4,7 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
     toc: true
-knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "C:/Projects/ForecastEvaluation/HTML", encoding = encoding) })
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, output_dir = "/Users/advay/Projects/ForecastEvaluation//HTML", encoding = encoding) })
 urlcolor: blue
 linkcolor: red
 ---
@@ -141,8 +141,8 @@ standard_wis <- standard_wis %>%
     granularity = factor(granularity, levels = c("local", "state"))
   )
 
-table(standard_wis$granularity)
-standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
+# table(standard_wis$granularity)
+# standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
 
 # LOG
 log_standard_wis <- log_standard_wis %>%
@@ -151,8 +151,8 @@ log_standard_wis <- log_standard_wis %>%
     granularity = factor(granularity, levels = c("local", "state"))
   )
 
-table(log_standard_wis$granularity)
-log_standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
+# table(log_standard_wis$granularity)
+# log_standard_wis %>% distinct(location, granularity) %>% arrange(granularity, location)
 ```
 
 ## Levels
@@ -256,6 +256,7 @@ log_standard_wis <- log_standard_wis %>%
 # Models
 
 We write log_raw_normal_identity = LRNI, log_log_normal_identity = LLRI, none_raw_tweedie_log = NRTL
+none_raw_gamma_log = NRGL
 
 ## LRNI
 ```{r}
@@ -264,8 +265,25 @@ standard_wis = standard_wis |> filter(wis != 0)
 ```
 
 ```{r}
+standard_wis$trend <- relevel(
+  factor(standard_wis$trend),
+  ref = "Stable"
+)
+
+standard_wis$model_id <- relevel(
+  factor(standard_wis$model_id),
+  ref = "epiENGAGE-baseline"
+)
+
+standard_wis$granularity <- relevel(
+  factor(standard_wis$granularity),
+  ref = "state"
+)
+```
+
+```{r}
 LRNI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location),
   data = standard_wis
 )
 
@@ -279,134 +297,181 @@ qqline(resid(LRNI))
 ```
 
 ```{r}
-fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
-  tibble::rownames_to_column("term")
-
-fixed_effects |>
-  filter(!grepl(":", term)) |>
-  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
-
-fixed_effects |>
-  filter(grepl(":", term)) |>
-  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
-
-as.data.frame(ranef(LRNI, condVar = TRUE)) |> arrange(condval)  
+# fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
+#   tibble::rownames_to_column("term")
+# 
+# fixed_effects |>
+#   filter(!grepl(":", term)) |>
+#   arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
+# 
+# fixed_effects |>
+#   filter(grepl(":", term)) |>
+#   arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
+# 
+# as.data.frame(ranef(LRNI, condVar = TRUE)) |> arrange(condval)  
 ```
 
 ## LLRI
 ```{r}
-length(log_standard_wis |> filter(wis == 0))
-log_standard_wis = log_standard_wis |> filter(wis != 0)
+# length(log_standard_wis |> filter(wis == 0))
+# log_standard_wis = log_standard_wis |> filter(wis != 0)
 ```
 
 ```{r}
-LLRI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
-  data = log_standard_wis
-)
-
-summary(LLRI)
+# LLRI <- lmer(
+#   log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
+#   data = log_standard_wis
+# )
+# 
+# summary(LLRI)
 ```
 
 ```{r}
-plot(LLRI)
-qqnorm(resid(LLRI))
-qqline(resid(LLRI))
+# plot(LLRI)
+# qqnorm(resid(LLRI))
+# qqline(resid(LLRI))
 ```
 
 ```{r}
-fixed_effects_llri <- as.data.frame(coef(summary(LLRI))) |>
-  tibble::rownames_to_column("term")
-
-fixed_effects_llri |>
-  filter(!grepl(":", term)) |>
-  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
-
-fixed_effects_llri |>
-  filter(grepl(":", term)) |>
-  arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
-
-as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)  
+# fixed_effects_llri <- as.data.frame(coef(summary(LLRI))) |>
+#   tibble::rownames_to_column("term")
+# 
+# fixed_effects_llri |>
+#   filter(!grepl(":", term)) |>
+#   arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
+# 
+# fixed_effects_llri |>
+#   filter(grepl(":", term)) |>
+#   arrange(Estimate) |> select(term, Estimate, `Pr(>|t|)`)
+# 
+# as.data.frame(ranef(LLRI, condVar = TRUE)) |> arrange(condval)  
 ```
 
 ## NRGL
 ```{r}
-NRGL <- glmmTMB(
-  wis ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
-  data = standard_wis,
-  family = Gamma(link = "log"),
-  control = glmmTMBControl(parallel = 4)
-)
+# NRGL <- glmmTMB(
+#   wis ~ model_id * (horizon + trend + granularity) + (1 | location) + n_msa + pop_ratio,
+#   data = standard_wis,
+#   family = Gamma(link = "log"),
+#   control = glmmTMBControl(parallel = 4)
+# )
 ```
 
 ```{r}
-summary(NRGL)
+# summary(NRGL)
 ```
 
 ```{r}
-simulateResiduals(NRGL, n = 1000, plot = TRUE)
+# simulateResiduals(NRGL, n = 1000, plot = TRUE)
 ```
 
 ## NRTL
 ```{r}
-NRTL <- glmmTMB(
-  wis ~ model_id * (horizon + trend + granularity) +
-    (1 | location) + n_msa + pop_ratio,
-  data = standard_wis,
-  family = tweedie(link = "log"),
-  start = list(psi = qlogis(1.995 - 1)),
-  map = list(psi = factor(NA)),
-  control = glmmTMBControl(
-    parallel = 4,
-    optCtrl = list(iter.max = 1000, eval.max = 2000)
-  )
-)
+# NRTL <- glmmTMB(
+#   wis ~ model_id * (horizon + trend + granularity) +
+#     (1 | location) + n_msa + pop_ratio,
+#   data = standard_wis,
+#   family = tweedie(link = "log"),
+#   start = list(psi = qlogis(1.995 - 1)),
+#   map = list(psi = factor(NA)),
+#   control = glmmTMBControl(
+#     parallel = 4,
+#     optCtrl = list(iter.max = 1000, eval.max = 2000)
+#   )
+# )
 ```
 
 ```{r}
-summary(NRTL)
+# summary(NRTL)
 ```
 
 ```{r}
-simulateResiduals(NRTL, n = 1000, plot = TRUE)
+# simulateResiduals(NRTL, n = 1000, plot = TRUE)
 ```
 
 # Estimates
 
 ```{r}
-estimates <- smooth_estimates(model)
+fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
+  tibble::rownames_to_column("term") |>
+  rename(est = Estimate, se = `Std. Error`) |>
+  mutate(
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se,
+    pct_est   = (exp(est) - 1) * 100,
+    pct_lower = (exp(ci_lower) - 1) * 100,
+    pct_upper = (exp(ci_upper) - 1) * 100,
+    excludes_zero = ci_lower > 0 | ci_upper < 0
+  )
 
-make_ci_table <- function(smooth_name, group_var) {
-  estimates |>
-    filter(.smooth == smooth_name) |>
-    select(.smooth, {{ group_var }}, .estimate, .se) |>
-    rename(est = .estimate, se = .se) |>
-    mutate(
-      ci_lower = est - 1.96 * se,
-      ci_upper = est + 1.96 * se,
-      pct_est   = (exp(est) - 1) * 100,
-      pct_lower = (exp(ci_lower) - 1) * 100,
-      pct_upper = (exp(ci_upper) - 1) * 100,
-      excludes_zero = ci_lower > 0 | ci_upper < 0
-    ) |>
-    arrange(est)
+main_effects_ci <- fixed_effects |>
+  filter(!grepl(":", term)) |>
+  arrange(est)
+
+interaction_effects_ci <- fixed_effects |>
+  filter(grepl(":", term)) |>
+  arrange(est)
+
+get_level <- function(terms, variable) {
+  vapply(strsplit(terms, ":", fixed = TRUE), function(parts) {
+    part <- parts[startsWith(parts, variable)][1]
+    level <- substring(part, nchar(variable) + 1)
+
+    if (level == "") "per 1-unit increase" else level
+  }, character(1))
 }
 
-model_id_ci  <- make_ci_table("s(model_id)", model_id)
-location_ci  <- make_ci_table("s(location)", location)
+make_ci_table <- function(variable) {
+  main_effects_ci |>
+    filter(startsWith(term, variable)) |>
+    mutate(
+      !!variable := get_level(term, variable),
+      .before = 1
+    ) |>
+    select(-term)
+}
 
-horizon_ci   <- make_ci_table("s(horizon)", horizon)
-horizon_ci$horizon = as.numeric(horizon_ci$horizon)
-horizon_ci$horizon = horizon_ci$horizon
+make_interaction_ci_table <- function(variable1, variable2) {
+  interaction_effects_ci |>
+    filter(
+      grepl(paste0("(^|:)", variable1), term),
+      grepl(paste0("(^|:)", variable2), term)
+    ) |>
+    mutate(
+      !!variable1 := get_level(term, variable1),
+      !!variable2 := get_level(term, variable2),
+      .before = 1
+    ) |>
+    select(-term)
+}
 
-trend_ci <- make_ci_table("s(trend)", trend)
-granularity_ci <- make_ci_table("s(granularity)", granularity)
+model_id_ci    <- make_ci_table("model_id")
+horizon_ci     <- make_ci_table("horizon")
+trend_ci       <- make_ci_table("trend")
+granularity_ci <- make_ci_table("granularity")
+n_msa_ci       <- make_ci_table("n_msa")
+pop_ratio_ci   <- make_ci_table("pop_ratio")
 
-# knitr::kable(model_id_ci |> select(-.smooth))
-# knitr::kable(location_ci |> select(-.smooth))
-# knitr::kable(horizon_ci |> select(-.smooth))
-# knitr::kable(trend_ci |> select(-.smooth))
-# knitr::kable(granularity_ci |> select(-.smooth))
+model_horizon_ci <- make_interaction_ci_table("model_id", "horizon")
+model_trend_ci <- make_interaction_ci_table("model_id", "trend")
+model_granularity_ci <- make_interaction_ci_table("model_id", "granularity")
+
+location_ci <- as.data.frame(ranef(LRNI, condVar = TRUE)) |>
+  filter(grpvar == "location", term == "(Intercept)") |>
+  transmute(
+    location = grp,
+    est = condval,
+    se = condsd,
+    ci_lower = est - 1.96 * se,
+    ci_upper = est + 1.96 * se,
+    pct_est   = (exp(est) - 1) * 100,
+    pct_lower = (exp(ci_lower) - 1) * 100,
+    pct_upper = (exp(ci_upper) - 1) * 100,
+    excludes_zero = ci_lower > 0 | ci_upper < 0
+  ) |>
+  arrange(est)
+
+# location_ci
 ```
 
 # Subfigures
@@ -416,7 +481,7 @@ fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) + 
   geom_point(size = 5, color = "steelblue") +
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Random effect (% diff on WIS)", x = "Horizon") +
+  labs(y = "Fixed effect (% diff on WIS)", x = "Horizon") +
   theme_bw() +
   coord_flip() + 
   theme(
@@ -478,7 +543,7 @@ fig4c = ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "seagreen", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Random effect (% diff on WIS)", x = "Model") +
+  labs(y = "Fixed effect (% diff on WIS)", x = "Model") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -497,7 +562,7 @@ fig4d = ggplot(trend_ci, aes(x = reorder(trend, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "violet", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Random effect (% diff on WIS)", x = "Trend") +
+  labs(y = "Fixed effect (% diff on WIS)", x = "Trend") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -516,7 +581,7 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
   geom_point(color = "firebrick", size = 5) + 
   geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
-  labs(y = "Random effect (% diff on WIS)", x = "Granularity") +
+  labs(y = "Fixed effect (% diff on WIS)", x = "Granularity") +
   theme_bw() + 
   coord_flip() + 
   theme(
@@ -532,14 +597,22 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
 
 # Figure 4
 
-```{r, fig.height=20, fig.width=25}
+```{r, fig.height=20, fig.width=30}
 ((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
   plot_layout(widths = c(0.6, 0.05, 0.4))
 ```
 
+
 ```{r}
-png("Figures/figure4.png", width = 2080, height = 1440)
-((fig4c + fig4a + fig4d + fig4e) | plot_spacer() | fig4b) +
-  plot_layout(widths = c(0.6, 0.05, 0.4))
-dev.off()
+knitr::kable(model_granularity_ci)
+knitr::kable(arrange(model_horizon_ci, horizon, desc(est)))
+knitr::kable(arrange(model_trend_ci, desc(trend), desc(est)))
+```
+
+
+```{r}
+# png("Figures/figure4.png", width = 2080, height = 1440)
+# ((fig4c + fig4a + fig4d + fig4e) | plot_spacer() | fig4b) +
+#   plot_layout(widths = c(0.6, 0.05, 0.4))
+# dev.off()
 ```
