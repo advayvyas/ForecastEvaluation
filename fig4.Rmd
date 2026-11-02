@@ -596,6 +596,10 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
 ```
 
 # Figure 4
+# I think it would be helpful to make Figure 4 more focused on comparing model performance rather than just presenting the regression coefficients.
+# One suggestion was to visualize the model rankings separately for increasing, stable, and decreasing trends. 
+# Did you add population as a variable?
+
 
 ```{r, fig.height=20, fig.width=30}
 ((fig4a + fig4c + fig4d + fig4e) | plot_spacer() | fig4b) +
