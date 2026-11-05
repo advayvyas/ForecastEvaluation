@@ -283,7 +283,7 @@ standard_wis$granularity <- relevel(
 
 ```{r}
 LRNI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location),
+  log(wis) ~ model_id * (horizon + trend + granularity) + log(population) + (1 | location),
   data = standard_wis
 )
 
@@ -473,6 +473,117 @@ location_ci <- as.data.frame(ranef(LRNI, condVar = TRUE)) |>
 
 # location_ci
 ```
+ 
+## Processing
+```{r}
+model_base <- tibble::tibble(
+  model_id = levels(model.frame(LRNI)$model_id)
+) |>
+  left_join(
+    model_id_ci |> select(model_id, model_est = est),
+    by = "model_id"
+  ) |>
+  mutate(model_est = coalesce(model_est, 0))
+
+rank_models <- function(interactions) {
+  model_base |>
+    left_join(
+      interactions |> select(model_id, interaction_est = est),
+      by = "model_id"
+    ) |>
+    mutate(
+      interaction_est = coalesce(interaction_est, 0),
+      combined_est = model_est + interaction_est,
+      rank = min_rank(combined_est)
+    ) |>
+    arrange(rank) |>
+    select(rank, model_id, model_est, interaction_est, combined_est)
+}
+
+trend_increasing <- rank_models(
+  model_trend_ci |> filter(trend == "Increasing")
+)
+
+trend_decreasing <- rank_models(
+  model_trend_ci |> filter(trend == "Decreasing")
+)
+
+granularity_local <- rank_models(
+  model_granularity_ci |> filter(granularity == "local")
+)
+
+horizon_0 <- rank_models(
+  model_horizon_ci |> filter(horizon == "0")
+)
+
+horizon_1 <- rank_models(
+  model_horizon_ci |> filter(horizon == "1")
+)
+
+horizon_2 <- rank_models(
+  model_horizon_ci |> filter(horizon == "2")
+)
+
+horizon_3 <- rank_models(
+  model_horizon_ci |> filter(horizon == "3")
+)
+```
+
+```{r}
+trend_increasing <- trend_increasing |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+trend_decreasing <- trend_decreasing |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+granularity_local <- granularity_local |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+horizon_0 <- horizon_0 |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+horizon_1 <- horizon_1 |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+horizon_2 <- horizon_2 |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+
+horizon_3 <- horizon_3 |>
+  filter(model_id != "epiENGAGE-baseline") |>
+  mutate(rank = min_rank(combined_est)) |>
+  arrange(rank)
+```
+
+## Tables
+```{r}
+knitr::kable(trend_increasing, digits = 3, caption = "Model rankings: Increasing trend")
+
+knitr::kable(trend_decreasing, digits = 3, caption = "Model rankings: Decreasing trend")
+
+knitr::kable(granularity_local, digits = 3, caption = "Model rankings: Local granularity")
+
+knitr::kable(horizon_0, digits = 3, caption = "Model rankings: Horizon 0")
+
+knitr::kable(horizon_1, digits = 3, caption = "Model rankings: Horizon 1")
+
+knitr::kable(horizon_2, digits = 3, caption = "Model rankings: Horizon 2")
+
+knitr::kable(horizon_3, digits = 3, caption = "Model rankings: Horizon 3")
+
+```
+
 
 # Subfigures
 
