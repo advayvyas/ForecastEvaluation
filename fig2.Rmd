@@ -73,8 +73,8 @@ complete_wis = complete_wis |> filter(target == "Flu ED visits pct",
          model_id != "FluSight-ensemble") 
 
 complete_wis_filtered <- complete_wis %>%
-  filter(wis > 0, state_wis > 0) |> # Not sure we should be doing this -- if there are scores that are 0, we should just use a Tweedie distribution?
-  rename(wis = wis_local, wis_state = state_wis) |> 
+  filter(wis > 0, state_wis > 0) |> 
+  rename(wis = wis, wis_state = state_wis) |> 
   pivot_longer(
       c(state_wis, wis),
       names_to = "geo_granularity",

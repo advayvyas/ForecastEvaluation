@@ -283,12 +283,41 @@ standard_wis$granularity <- relevel(
 
 ```{r}
 LRNI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + log(population) + (1 | location),
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location),
   data = standard_wis
 )
 
 summary(LRNI)
 ```
+
+### Testing if log(population) is statistically significant
+```{r}
+LRNI_pop <- lmer(
+  log(wis) ~ model_id * (horizon + trend + granularity) + log(population) + (1 | location),
+  data = standard_wis
+)
+
+anova(LRNI, LRNI_pop, test = 'lrt')
+
+fit_reml <- update(LRNI_pop, REML = TRUE)
+
+RLRsim::exactRLRT(fit_reml, seed = 123)
+```
+
+### Testing if the date random intercept is statistically significant
+```{r}
+LRNI_date <- lmer(
+  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | target_end_date) + (1 | location),
+  data = standard_wis
+)
+
+anova(LRNI, LRNI_date, test = 'lrt')
+```
+
+```{r}
+summary(LRNI_date)
+```
+
 
 ```{r}
 plot(LRNI)
@@ -456,20 +485,20 @@ model_horizon_ci <- make_interaction_ci_table("model_id", "horizon")
 model_trend_ci <- make_interaction_ci_table("model_id", "trend")
 model_granularity_ci <- make_interaction_ci_table("model_id", "granularity")
 
-location_ci <- as.data.frame(ranef(LRNI, condVar = TRUE)) |>
-  filter(grpvar == "location", term == "(Intercept)") |>
-  transmute(
-    location = grp,
-    est = condval,
-    se = condsd,
-    ci_lower = est - 1.96 * se,
-    ci_upper = est + 1.96 * se,
-    pct_est   = (exp(est) - 1) * 100,
-    pct_lower = (exp(ci_lower) - 1) * 100,
-    pct_upper = (exp(ci_upper) - 1) * 100,
-    excludes_zero = ci_lower > 0 | ci_upper < 0
-  ) |>
-  arrange(est)
+# location_ci <- as.data.frame(ranef(LRNI, condVar = TRUE)) |>
+#   filter(grpvar == "location", term == "(Intercept)") |>
+#   transmute(
+#     location = grp,
+#     est = condval,
+#     se = condsd,
+#     ci_lower = est - 1.96 * se,
+#     ci_upper = est + 1.96 * se,
+#     pct_est   = (exp(est) - 1) * 100,
+#     pct_lower = (exp(ci_lower) - 1) * 100,
+#     pct_upper = (exp(ci_upper) - 1) * 100,
+#     excludes_zero = ci_lower > 0 | ci_upper < 0
+#   ) |>
+#   arrange(est)
 
 # location_ci
 ```
