@@ -176,65 +176,103 @@ complete_wis_filtered <- complete_wis %>%
 
 
 # Model effects
+## New models 
+### Normal and Gamma with log link family (NG)
 ```{r}
 # This model now includes on the as an outcome variable all WIS scores (we should discuss if these are log-transformed or natural) and on the RHS an indicator variable for whether that WIS is from a local model (local = TRUE) or whether it is from a state model applied to local data (local = FALSE). 
-model <- gam(
-  all_wis ~  local +
-             s(model_id, bs = "re") +
-             s(location, bs = "re") +
-             s(horizon, k = 4), # optional
-             s(model_id, bs = "re", by = local) + # additional effect for local
-             s(location, bs = "re", by = local) +
-             s(horizon, k = 4, by = local),
+NG <- glmer(
+  all_wis ~ local * (model_id + horizon + n_msa + pop_ratio) +
+    (1 | location) + (1 | target_end_date) + 
+    (0 + as.numeric(local) | location),
   family = Gamma(link = "log"),
-  data = complete_wis_filtered,  
-  method = "REML"
+  data = complete_wis_filtered,
+  subset = all_wis > 0
 )
 
+summary(NG)
 # This means that exp(beta_local) is the average multipliative effect of being a local model (>1 means it worsens performance, <1 means it improves performance). The intercept is the average score.
 # And the the location/model/horizon random effects tell you the additional multiplicative effect of location/model/horizon have specifically on the local model's performance, on top of the avergae local effect capture by beta_local.
-summary(model)
 ```
 
 ```{r}
-library(glmmTMB)
+plot(NG)
+qqnorm(resid(NG))
+qqline(resid(NG))
+```
 
-model <- glmmTMB(
-  wis ~ offset(log(state_wis)) +
-        (1 | model_id) +
-        (1 | location) +
-        (1 | horizon),
-  family = Gamma(link = "log"),
-  data = complete_wis_filtered
+
+### Log and normal family (LN)
+```{r}
+LN <- lmer(
+  log(all_wis) ~ local * (model_id + horizon + n_msa + pop_ratio) +
+    (1 | location) + (1 | target_end_date) +
+    (0 + as.numeric(local) | location),
+  data = complete_wis_filtered,
+  subset = all_wis > 0,
+  REML = TRUE
 )
 
-summary(model)
+summary(LN)
+```
 
+```{r}
+plot(LN)
+qqnorm(resid(LN))
+qqline(resid(LN))
+```
 
-res <- simulateResiduals(
-  fittedModel = model,
-  n = 1000,
-  seed = 123
-)
+### Comparisons
+```{r}
+LN_ML <- update(LN, REML = FALSE)
 
-# QQ plot and residuals vs fitted values
-plot(res)
+print(data.frame(
+  model = c("Log-normal", "Gamma"),
+  AIC = c(
+    AIC(LN_ML) + 2 * sum(model.response(model.frame(LN_ML))),
+    AIC(NG)
+  )
+))
+```
 
-# Dispersion diagnostic
-testDispersion(res, plot = TRUE)
-
-# Residuals by predictor (uses the rows actually fitted)
-dat <- model.frame(model)
-
-plotResiduals(res, form = factor(dat$model_id))
-plotResiduals(res, form = factor(dat$location))
-plotResiduals(res, form = factor(dat$horizon))
+```{r}
+# library(glmmTMB)
+# 
+# model <- glmmTMB(
+#   wis ~ offset(log(state_wis)) +
+#         (1 | model_id) +
+#         (1 | location) +
+#         (1 | horizon),
+#   family = Gamma(link = "log"),
+#   data = complete_wis_filtered
+# )
+# 
+# summary(model)
+# 
+# 
+# res <- simulateResiduals(
+#   fittedModel = model,
+#   n = 1000,
+#   seed = 123
+# )
+# 
+# # QQ plot and residuals vs fitted values
+# plot(res)
+# 
+# # Dispersion diagnostic
+# testDispersion(res, plot = TRUE)
+# 
+# # Residuals by predictor (uses the rows actually fitted)
+# dat <- model.frame(model)
+# 
+# plotResiduals(res, form = factor(dat$model_id))
+# plotResiduals(res, form = factor(dat$location))
+# plotResiduals(res, form = factor(dat$horizon))
 ```
 
 ```{r, fig.height = 6, fig.width = 6}
-par(mfrow = c(2, 2))
-gam.check(model)
-par(mfrow = c(1, 1))
+# par(mfrow = c(2, 2))
+# gam.check(model)
+# par(mfrow = c(1, 1))
 ```
 
 ```{r}
