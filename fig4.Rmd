@@ -260,69 +260,52 @@ none_raw_gamma_log = NRGL
 
 ## LRNI
 ```{r}
-length(standard_wis |> filter(wis == 0))
-standard_wis = standard_wis |> filter(wis != 0)
-```
-
-```{r}
-standard_wis$trend <- relevel(
-  factor(standard_wis$trend),
-  ref = "Stable"
-)
-
-standard_wis$model_id <- relevel(
-  factor(standard_wis$model_id),
-  ref = "epiENGAGE-baseline"
-)
-
-standard_wis$granularity <- relevel(
-  factor(standard_wis$granularity),
-  ref = "state"
-)
-```
-
-```{r}
-LRNI <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location),
-  data = standard_wis
-)
-
-summary(LRNI)
+# LRNI <- lmer(
+#   log(wis) ~ model_id * (horizon + trend + granularity) + (1 | location),
+#   data = standard_wis
+# )
+# 
+# summary(LRNI)
 ```
 
 ### Testing if log(population) is statistically significant
 ```{r}
-LRNI_pop <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + log(population) + (1 | location),
-  data = standard_wis
-)
-
-anova(LRNI, LRNI_pop, test = 'lrt')
-
-fit_reml <- update(LRNI_pop, REML = TRUE)
-
-RLRsim::exactRLRT(fit_reml, seed = 123)
+# LRNI_pop <- lmer(
+#   log(wis) ~ model_id * (horizon + trend + granularity) + log(population) + (1 | location),
+#   data = standard_wis
+# )
+# 
+# anova(LRNI, LRNI_pop, test = 'lrt')
+# 
+# fit_reml <- update(LRNI_pop, REML = TRUE)
+# 
+# RLRsim::exactRLRT(fit_reml, seed = 123)
 ```
 
 ### Testing if the date random intercept is statistically significant
 ```{r}
-LRNI_date <- lmer(
-  log(wis) ~ model_id * (horizon + trend + granularity) + (1 | target_end_date) + (1 | location),
-  data = standard_wis
-)
-
-anova(LRNI, LRNI_date, test = 'lrt')
+# LRNI_date2 <- lmer(
+#   log(wis) ~ model_id * (horizon + trend + granularity) +  (1 | reference_date) + (1 | target_end_date) + (1 | location),
+#   data = standard_wis
+# )
+# 
+# LRNI_date <- lmer(
+#   log(wis) ~ model_id * (horizon + trend + granularity) + (1 | target_end_date) + (1 | location),
+#   data = standard_wis
+# )
+# 
+# anova(LRNI, LRNI_date, test = 'lrt')
 ```
 
 ```{r}
-summary(LRNI_date)
+# summary(LRNI_date)
 ```
 
 
 ```{r}
-plot(LRNI)
-qqnorm(resid(LRNI))
-qqline(resid(LRNI))
+# plot(LRNI)
+# qqnorm(resid(LRNI))
+# qqline(resid(LRNI))
 ```
 
 ```{r}
@@ -418,57 +401,139 @@ qqline(resid(LRNI))
 # simulateResiduals(NRTL, n = 1000, plot = TRUE)
 ```
 
-# Estimates
+# Gamma chosen models
+```{r}
+length(standard_wis |> filter(wis == 0))
+standard_wis = standard_wis |> filter(wis != 0)
+
+length(log_standard_wis |> filter(wis == 0))
+log_standard_wis = log_standard_wis |> filter(wis != 0)
+```
 
 ```{r}
-fixed_effects <- as.data.frame(coef(summary(LRNI))) |>
-  tibble::rownames_to_column("term") |>
-  rename(est = Estimate, se = `Std. Error`) |>
-  mutate(
-    ci_lower = est - 1.96 * se,
-    ci_upper = est + 1.96 * se,
-    pct_est   = (exp(est) - 1) * 100,
-    pct_lower = (exp(ci_lower) - 1) * 100,
-    pct_upper = (exp(ci_upper) - 1) * 100,
-    excludes_zero = ci_lower > 0 | ci_upper < 0
+standard_wis$trend <- relevel(
+  factor(standard_wis$trend),
+  ref = "Stable"
+)
+
+standard_wis$model_id <- relevel(
+  factor(standard_wis$model_id),
+  ref = "epiENGAGE-baseline"
+)
+
+standard_wis$granularity <- relevel(
+  factor(standard_wis$granularity),
+  ref = "state"
+)
+
+log_standard_wis$trend <- relevel(
+  factor(log_standard_wis$trend),
+  ref = "Stable"
+)
+
+log_standard_wis$model_id <- relevel(
+  factor(log_standard_wis$model_id),
+  ref = "epiENGAGE-baseline"
+)
+
+log_standard_wis$granularity <- relevel(
+  factor(log_standard_wis$granularity),
+  ref = "state"
+)
+```
+
+
+```{r}
+wis_gamma <- glmmTMB(
+  wis ~ model_id * (horizon + trend + granularity) +
+    (1 | location) + (1 | target_end_date) + (1 | reference_date),
+  dispformula = ~ model_id + horizon + trend + granularity,
+  family = Gamma(link = "log"),
+  data = standard_wis,
+  control = glmmTMBControl(
+    parallel = 4,
+    optCtrl = list(iter.max = 2000, eval.max = 3000)
   )
+)
+summary(wis_gamma)
+```
 
-main_effects_ci <- fixed_effects |>
-  filter(!grepl(":", term)) |>
-  arrange(est)
+## Tests
+```{r}
+# wis_gamma_1 <- glmmTMB(
+#   wis ~ model_id * (horizon + trend + granularity) +
+#     (1 | location) + (1 | target_end_date),
+#   dispformula = ~ model_id + horizon + trend + granularity,
+#   family = Gamma(link = "log"),
+#   data = standard_wis,
+#   control = glmmTMBControl(
+#     parallel = 4,
+#     optCtrl = list(iter.max = 2000, eval.max = 3000)
+#   )
+# )
+# 
+# wis_gamma_2 <- glmmTMB(
+#   wis ~ model_id * (horizon + trend + granularity) +
+#     (1 | location) +  (1 | reference_date) + (1 | target_end_date) ,
+#   dispformula = ~ model_id + horizon + trend + granularity,
+#   family = Gamma(link = "log"),
+#   data = standard_wis,
+#   control = glmmTMBControl(
+#     parallel = 4,
+#     optCtrl = list(iter.max = 2000, eval.max = 3000)
+#   )
+# )
+# 
+# anova(wis_gamma_1, wis_gamma_2, test = 'lrt')
+# 
+# summary(wis_gamma_1)
+```
 
-interaction_effects_ci <- fixed_effects |>
-  filter(grepl(":", term)) |>
-  arrange(est)
+```{r}
+log1p_gamma <- glmmTMB(
+  wis ~ model_id * (horizon + trend + granularity) +
+    (1 | location) + (1 | target_end_date) + (1 | reference_date),
+  dispformula = ~ model_id + horizon + trend + granularity,
+  family = Gamma(link = "log"),
+  data = log_standard_wis,
+  control = glmmTMBControl(
+    parallel = 4,
+    optCtrl = list(iter.max = 2000, eval.max = 3000)
+  )
+)
 
-get_level <- function(terms, variable) {
-  vapply(strsplit(terms, ":", fixed = TRUE), function(parts) {
-    part <- parts[startsWith(parts, variable)][1]
-    level <- substring(part, nchar(variable) + 1)
+summary(log1p_gamma)
+```
 
-    if (level == "") "per 1-unit increase" else level
-  }, character(1))
+# Estimates
+```{r}
+add_ci <- function(x) {
+  x |>
+    mutate(
+      ci_lower = est - 1.96 * se,
+      ci_upper = est + 1.96 * se,
+      pct_est   = 100 * (exp(est) - 1),
+      pct_lower = 100 * (exp(ci_lower) - 1),
+      pct_upper = 100 * (exp(ci_upper) - 1),
+      excludes_zero = ci_lower > 0 | ci_upper < 0
+    ) |>
+    arrange(est)
 }
+
+fixed_effects <- as.data.frame(coef(summary(log1p_gamma))$cond) |> # HERE
+  rownames_to_column("term") |>
+  rename(est = Estimate, se = `Std. Error`) |>
+  filter(term != "(Intercept)", !grepl(":", term)) |>
+  add_ci()
 
 make_ci_table <- function(variable) {
-  main_effects_ci |>
+  fixed_effects |>
     filter(startsWith(term, variable)) |>
     mutate(
-      !!variable := get_level(term, variable),
-      .before = 1
-    ) |>
-    select(-term)
-}
-
-make_interaction_ci_table <- function(variable1, variable2) {
-  interaction_effects_ci |>
-    filter(
-      grepl(paste0("(^|:)", variable1), term),
-      grepl(paste0("(^|:)", variable2), term)
-    ) |>
-    mutate(
-      !!variable1 := get_level(term, variable1),
-      !!variable2 := get_level(term, variable2),
+      !!variable := {
+        level <- substring(term, nchar(variable) + 1)
+        ifelse(level == "", "per 1-unit increase", level)
+      },
       .before = 1
     ) |>
     select(-term)
@@ -478,144 +543,14 @@ model_id_ci    <- make_ci_table("model_id")
 horizon_ci     <- make_ci_table("horizon")
 trend_ci       <- make_ci_table("trend")
 granularity_ci <- make_ci_table("granularity")
-n_msa_ci       <- make_ci_table("n_msa")
-pop_ratio_ci   <- make_ci_table("pop_ratio")
 
-model_horizon_ci <- make_interaction_ci_table("model_id", "horizon")
-model_trend_ci <- make_interaction_ci_table("model_id", "trend")
-model_granularity_ci <- make_interaction_ci_table("model_id", "granularity")
-
-# location_ci <- as.data.frame(ranef(LRNI, condVar = TRUE)) |>
-#   filter(grpvar == "location", term == "(Intercept)") |>
-#   transmute(
-#     location = grp,
-#     est = condval,
-#     se = condsd,
-#     ci_lower = est - 1.96 * se,
-#     ci_upper = est + 1.96 * se,
-#     pct_est   = (exp(est) - 1) * 100,
-#     pct_lower = (exp(ci_lower) - 1) * 100,
-#     pct_upper = (exp(ci_upper) - 1) * 100,
-#     excludes_zero = ci_lower > 0 | ci_upper < 0
-#   ) |>
-#   arrange(est)
-
-# location_ci
+location_ci <- as.data.frame(ranef(log1p_gamma, condVar = TRUE)) |> # HERE
+  filter(component == "cond", grpvar == "location", term == "(Intercept)") |>
+  select(location = grp, est = condval, se = condsd) |>
+  add_ci()
 ```
- 
-## Processing
-```{r}
-model_base <- tibble::tibble(
-  model_id = levels(model.frame(LRNI)$model_id)
-) |>
-  left_join(
-    model_id_ci |> select(model_id, model_est = est),
-    by = "model_id"
-  ) |>
-  mutate(model_est = coalesce(model_est, 0))
-
-rank_models <- function(interactions) {
-  model_base |>
-    left_join(
-      interactions |> select(model_id, interaction_est = est),
-      by = "model_id"
-    ) |>
-    mutate(
-      interaction_est = coalesce(interaction_est, 0),
-      combined_est = model_est + interaction_est,
-      rank = min_rank(combined_est)
-    ) |>
-    arrange(rank) |>
-    select(rank, model_id, model_est, interaction_est, combined_est)
-}
-
-trend_increasing <- rank_models(
-  model_trend_ci |> filter(trend == "Increasing")
-)
-
-trend_decreasing <- rank_models(
-  model_trend_ci |> filter(trend == "Decreasing")
-)
-
-granularity_local <- rank_models(
-  model_granularity_ci |> filter(granularity == "local")
-)
-
-horizon_0 <- rank_models(
-  model_horizon_ci |> filter(horizon == "0")
-)
-
-horizon_1 <- rank_models(
-  model_horizon_ci |> filter(horizon == "1")
-)
-
-horizon_2 <- rank_models(
-  model_horizon_ci |> filter(horizon == "2")
-)
-
-horizon_3 <- rank_models(
-  model_horizon_ci |> filter(horizon == "3")
-)
-```
-
-```{r}
-trend_increasing <- trend_increasing |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-trend_decreasing <- trend_decreasing |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-granularity_local <- granularity_local |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-horizon_0 <- horizon_0 |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-horizon_1 <- horizon_1 |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-horizon_2 <- horizon_2 |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-
-horizon_3 <- horizon_3 |>
-  filter(model_id != "epiENGAGE-baseline") |>
-  mutate(rank = min_rank(combined_est)) |>
-  arrange(rank)
-```
-
-## Tables
-```{r}
-knitr::kable(trend_increasing, digits = 3, caption = "Model rankings: Increasing trend")
-
-knitr::kable(trend_decreasing, digits = 3, caption = "Model rankings: Decreasing trend")
-
-knitr::kable(granularity_local, digits = 3, caption = "Model rankings: Local granularity")
-
-knitr::kable(horizon_0, digits = 3, caption = "Model rankings: Horizon 0")
-
-knitr::kable(horizon_1, digits = 3, caption = "Model rankings: Horizon 1")
-
-knitr::kable(horizon_2, digits = 3, caption = "Model rankings: Horizon 2")
-
-knitr::kable(horizon_3, digits = 3, caption = "Model rankings: Horizon 3")
-
-```
-
 
 # Subfigures
-
 ```{r}
 fig4a = ggplot(horizon_ci, aes(x = reorder(horizon, -pct_est), y = pct_est)) +
   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) + 
@@ -742,12 +677,6 @@ fig4e = ggplot(granularity_ci, aes(x = reorder(granularity, -pct_est), y = pct_e
   plot_layout(widths = c(0.6, 0.05, 0.4))
 ```
 
-
-```{r}
-knitr::kable(model_granularity_ci)
-knitr::kable(arrange(model_horizon_ci, horizon, desc(est)))
-knitr::kable(arrange(model_trend_ci, desc(trend), desc(est)))
-```
 
 
 ```{r}
