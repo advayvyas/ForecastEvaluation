@@ -505,6 +505,39 @@ log1p_gamma <- glmmTMB(
 summary(log1p_gamma)
 ```
 
+## Date random effects
+maybe make this a figure? or just interesting by itself?
+```{r}
+re <- ranef(wis_gamma)
+re_target <- re$cond$target_end_date
+re_ref    <- re$cond$reference_date
+```
+
+```{r}
+names(re_target)[1] <- "target"
+names(re_ref)[1] <- "ref"
+
+re_target$date <- rownames(re_target)
+re_ref$date <- rownames(re_ref)
+
+dates <- left_join(re_target, re_ref, by = "date")
+dates = dates |> pivot_longer(names_to = "date_type", cols = c(target, ref))
+
+dates$pct <- 100 * (exp(dates$value) - 1)
+```
+
+```{r, fig.width = 8, fig.height = 6}
+ggplot(dates, aes(x=date_type, y = factor(date, levels = rev(sort(unique(date)))), fill=value)) + geom_tile(col = "black") + 
+  scale_fill_gradient2(low = "forestgreen", mid = "grey90", high = "#d73027", midpoint = 0)  + 
+  labs(x = "Date type", y = "Date", fill = "Random effect (log scale)") + theme_bw() + geom_text(aes(label = sprintf("%.2f", value)), size = 3) 
+```
+```{r, fig.width = 8, fig.height = 6}
+ggplot(dates, aes(x=date_type, y = factor(date, levels = rev(sort(unique(date)))), fill=pct)) + geom_tile(col = "black") + 
+  scale_fill_gradient2(low = "forestgreen", mid = "grey90", high = "#d73027", midpoint = 0)  + 
+  labs(x = "Date type", y = "Date", fill = "% change on WIS") + theme_bw() + geom_text(aes(label = sprintf("%.2f", pct)), size = 3) 
+```
+
+
 # Estimates
 ```{r}
 add_ci <- function(x) {
