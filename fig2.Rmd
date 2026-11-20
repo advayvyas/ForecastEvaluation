@@ -14,6 +14,7 @@ knitr::opts_chunk$set(fig.height=4, fig.width=6, fig.align = "left", warning=FAL
 ```
 
 ------------------------------------------------------------------------
+
 ```{r libraries, results='hide', warning=FALSE, message=FALSE, echo = FALSE}
 library(dplyr)
 library(tidyverse)
@@ -40,13 +41,15 @@ library(dplyr)
 library(tidyr)
 library(sf)
 
+library(emmeans)
+
 library(lmerTest)
 
 options(tigris_use_cache = TRUE)
 ```
 
-
 # Data
+
 ```{r}
 state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/state_wis.csv")
 log_state_wis <- read.csv("/Users/advay/Projects/ForecastEvaluation/Data/state-scoring/log_state_wis.csv")
@@ -139,6 +142,7 @@ nrow(standard_wis)
 ```
 
 ## Pop data
+
 ```{r}
 # county
 counties_sf <- counties(cb = TRUE, year = 2022) %>%
@@ -212,6 +216,7 @@ log_standard_wis <- log_standard_wis %>%
 ```
 
 ## Join
+
 ```{r}
 exclude_cols <- c("overprediction", "underprediction", "dispersion", "coverage_50", "coverage_90")
 
@@ -248,8 +253,8 @@ log_complete_wis <- log_complete_wis %>%
   filter(wis > 0)
 ```
 
-##NA stuff
-Since I removed relative_wis and the wis cutoff of 0, I essentially added 47 new entries (in a dataset of 58000) which might slightly affect the models. Mainly VTSanghani which had 46 out of the 47 with state_wis and wis = 0.
+##NA stuff Since I removed relative_wis and the wis cutoff of 0, I essentially added 47 new entries (in a dataset of 58000) which might slightly affect the models. Mainly VTSanghani which had 46 out of the 47 with state_wis and wis = 0.
+
 ```{r}
 sum(is.na(complete_wis$wis))
 na <- complete_wis %>%
@@ -287,6 +292,7 @@ log_complete_wis = log_complete_wis |> filter(target == "Flu ED visits pct",
 ```
 
 ## Filtered
+
 ```{r}
 complete_wis_filtered <- complete_wis %>%
   # filter(wis > 0, state_wis > 0) %>%
@@ -313,10 +319,12 @@ log_complete_wis_filtered <- log_complete_wis %>%
   mutate(local = geo_granularity == "local")
 ```
 
-
 # Model effects
-## New models 
+
+## New models
+
 ### Normal and Gamma with log link family (NG)
+
 ```{r}
 # This model now includes on the as an outcome variable all WIS scores (we should discuss if these are log-transformed or natural) and on the RHS an indicator variable for whether that WIS is from a local model (local = TRUE) or whether it is from a state model applied to local data (local = FALSE). 
 # NG <- glmer(
@@ -339,8 +347,8 @@ log_complete_wis_filtered <- log_complete_wis %>%
 # qqline(resid(NG))
 ```
 
-
 ### Log and normal family (LN)
+
 ```{r}
 # LN <- lmer(
 #   log(all_wis) ~ local * (model_id + horizon + n_msa + pop_ratio) +
@@ -361,6 +369,7 @@ log_complete_wis_filtered <- log_complete_wis %>%
 ```
 
 ### Comparisons
+
 ```{r}
 # LN_ML <- update(LN, REML = FALSE)
 # 
@@ -414,9 +423,8 @@ log_complete_wis_filtered <- log_complete_wis %>%
 # par(mfrow = c(1, 1))
 ```
 
-
-
 ## Gamma models
+
 ```{r}
 all_wis_gamma <- glmmTMB(
   all_wis ~ local * (model_id + horizon + n_msa + pop_ratio) + model_id * (horizon + trend) +
@@ -459,6 +467,45 @@ summary(all_wis_gamma)
 ```
 
 ```{r}
+
+emm <- emmeans(
+  all_wis_gamma,
+  ~ local | model_id * horizon,
+  at = list(
+    local = c(FALSE, TRUE),
+    n_msa = mean(complete_wis_filtered$n_msa, na.rm = TRUE),
+    pop_ratio = mean(complete_wis_filtered$pop_ratio, na.rm = TRUE)
+  ),
+  weights = "equal"
+)
+
+ratios <- contrast(
+  emm,
+  method = list("Local / state" = c(-1, 1))
+)
+
+ratio_df <- as.data.frame(
+  confint(ratios, type = "response", adjust = "none")
+)
+
+ggplot(ratio_df, aes(x = ratio, y = model_id)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_segment(aes(
+    x = asymp.LCL, xend = asymp.UCL,
+    yend = model_id
+  )) +
+  geom_point(size = 2) +
+  facet_wrap(~ horizon, labeller = label_both) +
+  scale_x_log10() +
+  labs(
+    x = "Local / state expected WIS (95% CI)"
+  ) +
+  theme_bw()
+
+```
+
+
+```{r}
 no_ref_model =glmmTMB(
   all_wis ~ local * (model_id + horizon + n_msa + pop_ratio) + model_id * (horizon + trend) +
     (1 | location) + (1 | target_end_date) +
@@ -476,6 +523,7 @@ anova(no_ref_model, all_wis_gamma, test = 'lrt')
 ```
 
 ### Log version
+
 ```{r}
 log1p_all_wis_gamma <- glmmTMB(
   all_wis ~ local * (model_id + horizon + n_msa + pop_ratio) + model_id * (horizon + trend) +
@@ -562,6 +610,7 @@ testOutliers(sim_res)
 ```
 
 # Figure 2
+
 ```{r, fig.height=20, fig.width=20}
 # fig2a <- ggplot(model_id_ci, aes(x = reorder(model_id, -pct_est), y = pct_est)) +
 #   geom_errorbar(aes(ymin = pct_lower, ymax = pct_upper), width = 0.2) +
@@ -650,4 +699,3 @@ testOutliers(sim_res)
 # ((fig2_left) | plot_spacer() | (fig2c)) + plot_layout(ncol = 3, widths = c(0.35, 0.05, 0.55))
 # dev.off()
 ```
-
