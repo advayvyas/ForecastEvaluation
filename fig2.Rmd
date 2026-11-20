@@ -504,6 +504,44 @@ ggplot(ratio_df, aes(x = ratio, y = model_id)) +
 
 ```
 
+```{r}
+emm_trend <- emmeans(
+  all_wis_gamma,
+  ~ local | model_id * trend,
+  at = list(
+    local = c(FALSE, TRUE),
+    n_msa = mean(complete_wis_filtered$n_msa, na.rm = TRUE),
+    pop_ratio = mean(complete_wis_filtered$pop_ratio, na.rm = TRUE)
+  ),
+  weights = "equal"
+)
+
+ratios_trend <- contrast(
+  emm_trend,
+  method = list("Local / state" = c(-1, 1))
+)
+
+ratio_trend_df <- as.data.frame(
+  confint(ratios_trend, type = "response", adjust = "none")
+)
+
+ggplot(ratio_trend_df, aes(x = ratio, y = model_id)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_segment(aes(
+    x = asymp.LCL, xend = asymp.UCL,
+    yend = model_id
+  )) +
+  geom_point(size = 2) +
+  facet_wrap(~ trend, labeller = label_both) +
+  scale_x_log10() +
+  labs(
+    x = "Local / state expected WIS (95% CI)",
+    y = "Model"
+  ) +
+  theme_bw()
+
+```
+
 
 ```{r}
 no_ref_model =glmmTMB(
